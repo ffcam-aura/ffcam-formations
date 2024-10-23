@@ -19,10 +19,10 @@ export class FFCAMScraper {
 
   private static extractText(el: cheerio.Cheerio, label: string): string {
     return el.find(`label:contains("${label}:")`).parent().text()
-      .replace(`${label}:`, '').trim();
-  }
+        .replace(`${label}:`, '').trim();
+}
 
-  private static parseFormation($: cheerio.CheerioAPI, element: cheerio.Element): Formation {
+  private static parseFormation($: cheerio.Root, element: cheerio.Element): Formation {
     const $formation = $(element);
 
     const formation = {

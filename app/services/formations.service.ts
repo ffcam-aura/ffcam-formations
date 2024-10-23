@@ -151,9 +151,9 @@ export class FormationsService {
       for (const dateStr of formation.dates) {
         const parsedDate = this.parseDate(dateStr);
         await sql`
-          INSERT INTO formations_dates (formation_id, date_debut)
-          VALUES (${formationId}, ${parsedDate})
-        `;
+        INSERT INTO formations_dates (formation_id, date_debut)
+        VALUES (${formationId}, ${parsedDate.toISOString().split('T')[0]})
+      `;
       }
 
         } catch (error) {
@@ -171,21 +171,55 @@ export class FormationsService {
 
     static async getFormationByReference(reference: string): Promise<Formation | null> {
         const { rows } = await sql`
-      SELECT f.*, 
-             d.nom as discipline,
-             l.nom as lieu,
-             h.nom as hebergement,
-             array_agg(fd.date_debut) as dates
-      FROM formations f
-      LEFT JOIN disciplines d ON f.discipline_id = d.id
-      LEFT JOIN lieux l ON f.lieu_id = l.id
-      LEFT JOIN types_hebergement h ON f.hebergement_id = h.id
-      LEFT JOIN formations_dates fd ON f.id = fd.formation_id
-      WHERE f.reference = ${reference}
-      GROUP BY f.id, d.nom, l.nom, h.nom
-    `;
-        return rows[0] || null;
+        SELECT f.reference, 
+               f.titre, 
+               array_agg(fd.date_debut) as dates,
+               l.nom as lieu, 
+               f.information_stagiaire as "informationStagiaire",
+               f.nombre_participants as "nombreParticipants",
+               f.places_restantes as "placesRestantes",
+               h.nom as hebergement,
+               f.tarif, 
+               d.nom as discipline,
+               f.organisateur, 
+               f.responsable, 
+               f.email_contact as "emailContact"
+        FROM formations f
+        LEFT JOIN disciplines d ON f.discipline_id = d.id
+        LEFT JOIN lieux l ON f.lieu_id = l.id
+        LEFT JOIN types_hebergement h ON f.hebergement_id = h.id
+        LEFT JOIN formations_dates fd ON f.id = fd.formation_id
+        WHERE f.reference = ${reference}
+        GROUP BY f.id, d.nom, l.nom, h.nom
+        `;
+    
+        // Vérification que les données correspondent bien au schéma Formation
+        if (rows.length === 0) {
+            return null;
+        }
+    
+        const row = rows[0];
+    
+        // Mapping des résultats SQL à un objet de type Formation
+        const formation: Formation = {
+            reference: row.reference,
+            titre: row.titre,
+            dates: row.dates || [],
+            lieu: row.lieu,
+            informationStagiaire: row.informationStagiaire,
+            nombreParticipants: row.nombreParticipants,
+            placesRestantes: row.placesRestantes,
+            hebergement: row.hebergement,
+            tarif: row.tarif,
+            discipline: row.discipline,
+            organisateur: row.organisateur,
+            responsable: row.responsable,
+            emailContact: row.emailContact,
+        };
+    
+        return formation;
     }
+    
 
     static async getAllFormations(): Promise<Formation[]> {
         try {
