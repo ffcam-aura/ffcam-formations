@@ -87,7 +87,6 @@ export async function POST() {
 
     console.log('\n💾 SYNCHRONISATION AVEC LA BASE DE DONNÉES:');
     let succeeded = 0;
-    let failed = 0;
     const errors: {reference: string; error: string}[] = [];
     
     for (const formation of formations) {
@@ -97,7 +96,6 @@ export async function POST() {
         process.stdout.write(`\r• Progression : ${succeeded}/${formations.length} formations synchronisées`);
       } catch (error) {
         console.error(`\n❌ Échec pour ${formation.reference}:`, error);
-        failed++;
         errors.push({
           reference: formation.reference,
           error: error instanceof Error ? error.message : String(error)

@@ -202,6 +202,7 @@ export class FormationsService {
             LEFT JOIN formations_dates fd ON f.id = fd.formation_id
             GROUP BY f.id, d.nom, l.nom, h.nom
           `;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return rows.map((row: any) => ({
                 reference: row.reference,
                 titre: row.titre,
