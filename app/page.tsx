@@ -1,101 +1,208 @@
-import Image from "next/image";
+"use client"; // Indique que ce composant est un composant client
+
+import { useEffect, useState } from "react";
+import { format, parseISO } from "date-fns"; // Utilisé pour formater les dates
+
+type Formation = {
+  reference: string;
+  titre: string;
+  dates: string[];
+  lieu: string;
+  informationStagiaire: string;
+  nombreParticipants: number;
+  placesRestantes: number | null;
+  hebergement: string;
+  tarif: number;
+  discipline: string;
+  organisateur: string;
+  responsable: string;
+  emailContact: string | null;
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [formations, setFormations] = useState<Formation[]>([]);
+  const [filteredFormations, setFilteredFormations] = useState<Formation[]>([]);
+  const [loading, setLoading] = useState(true);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // États pour chaque champ de filtre
+  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [selectedDiscipline, setSelectedDiscipline] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>(""); // Stocke la date de début
+  const [endDate, setEndDate] = useState<string>(""); // Stocke la date de fin
+
+  // Récupérer toutes les valeurs possibles pour les lieux et disciplines
+  const [locations, setLocations] = useState<string[]>([]);
+  const [disciplines, setDisciplines] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchFormations = async () => {
+      try {
+        const response = await fetch("/api/formations");
+        const data = await response.json();
+        setFormations(data);
+        setFilteredFormations(data);
+
+        // Extraire les lieux et disciplines uniques pour les dropdowns
+        const uniqueLocations: string[] = Array.from(new Set(data.map((f: Formation) => f.lieu)));
+        const uniqueDisciplines: string[] = Array.from(new Set(data.map((f: Formation) => f.discipline)));
+  
+        setLocations(uniqueLocations);
+        setDisciplines(uniqueDisciplines);
+      } catch (error) {
+        console.error("Error fetching formations:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFormations();
+  }, []);
+
+  // Fonction de filtrage par champs individuels
+  const filterFormations = () => {
+    const filtered = formations.filter((formation) => {
+      const hasAvailablePlaces = showAvailableOnly
+        ? formation.placesRestantes !== null && formation.placesRestantes > 0
+        : true;
+      const isInLocation = selectedLocation ? formation.lieu === selectedLocation : true;
+      const isInDiscipline = selectedDiscipline ? formation.discipline === selectedDiscipline : true;
+      
+      // Filtrer par dates
+      const isInDateRange = startDate && endDate
+        ? formation.dates.some((date) => {
+            const formationDate = parseISO(date); // Convertir la date
+            return formationDate >= new Date(startDate) && formationDate <= new Date(endDate);
+          })
+        : true;
+
+      return hasAvailablePlaces && isInLocation && isInDiscipline && isInDateRange;
+    });
+
+    setFilteredFormations(filtered);
+  };
+
+  // Appeler `filterFormations` chaque fois qu'un filtre change
+  useEffect(() => {
+    filterFormations();
+  }, [showAvailableOnly, selectedLocation, selectedDiscipline, startDate, endDate]);
+
+  const formatDate = (dateString: string) => {
+    const parsedDate = parseISO(dateString);
+    return format(parsedDate, "dd/MM/yyyy");
+  };
+
+  if (loading) {
+    return <div>Loading formations...</div>;
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Navbar */}
+      <nav className="bg-gray-800 p-4 text-white">
+        <div className="container mx-auto flex justify-between">
+          <h1 className="text-2xl font-bold">Formations FFCAM</h1>
+          <ul className="flex space-x-4">
+            <li><a href="#" className="hover:underline">Accueil</a></li>
+            <li><a href="#" className="hover:underline">A propos</a></li>
+            <li><a href="#" className="hover:underline">Contact</a></li>
+          </ul>
         </div>
+      </nav>
+
+      {/* Contenu principal */}
+      <main className="flex-grow container mx-auto p-8">
+        <h2 className="text-3xl font-bold mb-4 text-center">Découvrez nos formations</h2>
+        <p className="text-center mb-8">
+          Utilisez les filtres ci-dessous pour affiner votre recherche par lieu, discipline ou disponibilité.
+        </p>
+
+        {/* Filtres */}
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label className="block mb-2">Lieux</label>
+            <select
+              value={selectedLocation}
+              onChange={(e) => setSelectedLocation(e.target.value)}
+              className="p-2 border rounded w-full"
+            >
+              <option value="">Tous les lieux</option>
+              {locations.map((location) => (
+                <option key={location} value={location}>
+                  {location}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block mb-2">Disciplines</label>
+            <select
+              value={selectedDiscipline}
+              onChange={(e) => setSelectedDiscipline(e.target.value)}
+              className="p-2 border rounded w-full"
+            >
+              <option value="">Toutes les disciplines</option>
+              {disciplines.map((discipline) => (
+                <option key={discipline} value={discipline}>
+                  {discipline}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block mb-2">Date de début</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="p-2 border rounded w-full"
+            />
+          </div>
+          <div>
+            <label className="block mb-2">Date de fin</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="p-2 border rounded w-full"
+            />
+          </div>
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              checked={showAvailableOnly}
+              onChange={(e) => setShowAvailableOnly(e.target.checked)}
+              className="mr-2"
+            />
+            <label>Afficher uniquement les formations avec des places disponibles</label>
+          </div>
+        </div>
+
+        {/* Liste des formations */}
+        {filteredFormations.length === 0 ? (
+          <p className="text-center">Aucune formation disponible correspondant à vos critères.</p>
+        ) : (
+          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredFormations.map((formation) => (
+              <li key={formation.reference} className="border p-4 rounded shadow">
+                <h3 className="text-xl font-semibold mb-2">{formation.titre}</h3>
+                <p><strong>Lieu :</strong> {formation.lieu}</p>
+                <p><strong>Discipline :</strong> {formation.discipline}</p>
+                <p><strong>Tarif :</strong> {formation.tarif}€</p>
+                <p><strong>Organisateur :</strong> {formation.organisateur}</p>
+                <p><strong>Places restantes :</strong> {formation.placesRestantes ?? "Aucune info"}</p>
+                <p><strong>Dates :</strong> {formation.dates.map(formatDate).join(", ")}</p>
+              </li>
+            ))}
+          </ul>
+        )}
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      {/* Footer */}
+      {/* <footer className="bg-gray-800 p-4 text-white mt-8">
+        <div className="container mx-auto text-center">
+        </div>
+      </footer> */}
     </div>
   );
 }

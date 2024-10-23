@@ -56,9 +56,40 @@ export class FFCAMScraper {
     return match ? parseInt(match[1], 10) : 0;
   }
 
+  // Fonction pour décrypter l'email encodé
+  private static getDecryptedEmailFromCharCodeArray(charCodes: number[]): string {
+    const email = String.fromCharCode(...charCodes);
+    const emailRegex = /mailto:([^"]+)/;
+    const match = email.match(emailRegex);
+    if (match && match[1]) {
+      return match[1];
+    } else {
+      throw new Error("Impossible de trouver l'adresse email.");
+    }
+  }
+
   private static parseEmail($formation: cheerio.Cheerio): string | null {
     // Extraire l'email depuis le script JavaScript encodé
     const scriptContent = $formation.find('script').text();
+
+    // Vérifier si le script contient une séquence encodée avec String.fromCharCode
+    const charCodeMatch = scriptContent.match(/String\.fromCharCode\((.*?)\)/);
+    if (charCodeMatch) {
+      // Extraire et convertir les codes ASCII en tableau de nombres
+      const charCodes = charCodeMatch[1]
+        .split(',')
+        .map(code => parseInt(code.trim(), 10));
+      
+      // Utiliser la fonction de décryptage pour récupérer l'email
+      try {
+        return this.getDecryptedEmailFromCharCodeArray(charCodes);
+      } catch (error) {
+        console.error('Error decrypting email:', error);
+        return null;
+      }
+    }
+
+    // Extraire l'email s'il n'est pas encodé
     const emailMatch = scriptContent.match(/mailto:(.*?)"/);
     return emailMatch ? emailMatch[1] : null;
   }
