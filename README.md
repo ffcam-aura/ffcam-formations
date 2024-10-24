@@ -1,6 +1,16 @@
 # FFCAM Formations
+![Vercel Deploy](https://deploy-badge.vercel.app/vercel/ffcam-formations)
+ ![License](https://img.shields.io/badge/license-MIT-blue)
 
-Cette application web permet de gérer et d'afficher les formations du FFCAM (Fédération Française des Clubs Alpins et de Montagne). Utilisez-la pour consulter, filtrer et gérer les formations facilement, avec un affichage dynamique des contacts.
+Cette application permet d'afficher et de filtrer les formations du FFCAM (Fédération Française des Clubs Alpins et de Montagne).
+Voila ce que fait l'appli:
+- aller récuperer les données sur la page de formations du FFCAM
+- nettoyer ces données
+- les stocker dans une base de données
+- les mettre à dispo via une API
+- les afficher sur la page d'accueil
+
+L'appli est déployée sur [https://ffcam.tech](https://ffcam.tech) grâce à Vercel. Pour le moment, le compte Vercel utilisé est gratuit et lié à mon compte perso.
 
 ## Fonctionnalités
 
@@ -18,7 +28,7 @@ Cette application web permet de gérer et d'afficher les formations du FFCAM (F�
 1. Clonez le projet :
 
    ```bash
-   git clone https://github.com/NicolasRitouet/ffcam-formations.git
+   git clone git@github.com:Club-Alpin-Lyon-Villeurbanne/ffcam-formations.git
    ```
 
 2. Installez les dépendances :
@@ -42,7 +52,7 @@ Avant chaque push, **Husky** s'assure que votre code passe les tests de linting 
 - **Linting** : `pnpm lint`
 - **Build** : `pnpm build`
 
-Cela garantit que vous ne poussiez jamais de code qui casse en production sur **Vercel**.
+Cela garantit que vous ne poussiez jamais de code qui ne passe pas les lint et le build et vous fasse perdre du temps sur **Vercel**.
 
 ## Contribuer
 
