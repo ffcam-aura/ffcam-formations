@@ -6,7 +6,7 @@ import Filters from "@/app/components/Filters";
 import FormationList from "@/app/components/FormationList";
 import Footer from "@/app/components/Footer";
 import { useState, useEffect, useCallback } from "react";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isAfter } from "date-fns";
 
 type Filters = {
   searchQuery: string;
@@ -15,6 +15,7 @@ type Filters = {
   startDate: string;
   endDate: string;
   availableOnly: boolean;
+  showPastFormations: boolean;
 };
 
 export default function Home() {
@@ -27,6 +28,7 @@ export default function Home() {
     startDate: "",
     endDate: "",
     availableOnly: false,
+    showPastFormations: false,
   });
 
   const uniqueLocations = Array.from(new Set(formations.map((f) => f.lieu)));
@@ -35,6 +37,8 @@ export default function Home() {
   // Appliquer les filtres à chaque changement
   useEffect(() => {
     const applyFilters = () => {
+      const today = new Date();
+
       const filtered = formations.filter((formation) => {
         // Recherche par titre ou description
         const matchesSearchQuery = filters.searchQuery
@@ -64,12 +68,21 @@ export default function Home() {
           ? formation.placesRestantes === null || formation.placesRestantes > 0
           : true;
 
+        // Filtrer les formations passées ou futures
+        const isFutureFormation = formation.dates.some((date) => {
+          if (!date) return false;
+          const formationDate = parseISO(date);
+          return !isNaN(formationDate.getTime()) && isAfter(formationDate, today);
+        });
+        const shouldShowFormation = filters.showPastFormations ? true : isFutureFormation;
+
         return (
           matchesSearchQuery &&
           matchesLocation &&
           matchesDiscipline &&
           isInDateRange &&
-          hasAvailablePlaces
+          hasAvailablePlaces &&
+          shouldShowFormation
         );
       });
 
@@ -107,6 +120,7 @@ export default function Home() {
           onFilterChange={handleFilterChange}
           locations={uniqueLocations}
           disciplines={uniqueDisciplines}
+          showPastFormations={filters.showPastFormations}
         />
         
         {/* Afficher le nombre de formations filtrées */}
