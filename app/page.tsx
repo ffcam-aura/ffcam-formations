@@ -7,6 +7,7 @@ import FormationList from "@/app/components/FormationList";
 import Footer from "@/app/components/Footer";
 import { useState, useEffect, useCallback } from "react";
 import { format, parseISO, isAfter } from "date-fns";
+import { ClipLoader } from 'react-spinners';
 
 type Filters = {
   searchQuery: string;
@@ -102,7 +103,19 @@ export default function Home() {
   const formattedLastSyncDate = lastSyncDate ? format(parseISO(lastSyncDate), "dd/MM/yyyy 'à' HH:mm") : "Non disponible";
 
   if (loading) {
-    return <div>Chargement des formations...</div>;
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center">
+          <ClipLoader
+            color="#3B82F6"
+            size={50}
+            speedMultiplier={0.8}
+          />
+        </main>
+        <Footer lastSyncDate={null} />
+      </div>
+    );
   }
 
   if (error) {
@@ -113,7 +126,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow container mx-auto p-8">
-        <h2 className="text-3xl font-bold mb-4 text-center text-primary">Découvrez nos formations</h2>
+        <h2 className="text-3xl font-bold mb-4 text-center text-primary">Découvrez les formations de la FFCAM</h2>
         <p className="text-center text-sm text-neutral mb-8">Dernière synchronisation : {formattedLastSyncDate}</p>
 
         <Filters

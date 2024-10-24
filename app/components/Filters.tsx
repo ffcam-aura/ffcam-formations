@@ -1,22 +1,34 @@
 import { useState, useEffect } from "react";
 
 type FiltersProps = {
-  onFilterChange: (filters: { searchQuery: string; location: string; discipline: string; startDate: string; endDate: string; availableOnly: boolean; showPastFormations: boolean }) => void;
+  onFilterChange: (filters: {
+    searchQuery: string;
+    location: string;
+    discipline: string;
+    startDate: string;
+    endDate: string;
+    availableOnly: boolean;
+    showPastFormations: boolean;
+  }) => void;
   locations: string[];
   disciplines: string[];
-  showPastFormations: boolean;  // Recevoir la nouvelle option
+  showPastFormations: boolean;
 };
 
-export default function Filters({ onFilterChange, locations, disciplines, showPastFormations }: FiltersProps) {
+export default function Filters({
+  onFilterChange,
+  locations,
+  disciplines,
+  showPastFormations,
+}: FiltersProps) {
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [showPast, setShowPast] = useState(showPastFormations);  // Nouveau état pour la case à cocher
+  const [showPast, setShowPast] = useState(showPastFormations);
 
-  // Utiliser useEffect pour déclencher handleFilterChange à chaque fois que l'un des filtres change
   useEffect(() => {
     onFilterChange({
       searchQuery,
@@ -30,82 +42,91 @@ export default function Filters({ onFilterChange, locations, disciplines, showPa
   }, [searchQuery, selectedLocation, selectedDiscipline, startDate, endDate, showAvailableOnly, showPast, onFilterChange]);
 
   return (
-    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 rounded-lg shadow-md">
-      <div className="col-span-1">
-        <label className="block mb-2 text-neutral-dark font-semibold">Recherche (Titre ou Description)</label>
+    <div className="border p-6 rounded-lg shadow-lg bg-white mb-6">
+      {/* Barre de recherche principale */}
+      <div className="mb-6">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="p-2 border border-neutral-light rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
-          placeholder="Rechercher..."
+          placeholder="Rechercher une formation..."
+          className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
         />
       </div>
-      <div>
-        <label className="block mb-2 text-neutral-dark font-semibold">Lieux</label>
-        <select
-          value={selectedLocation}
-          onChange={(e) => setSelectedLocation(e.target.value)}
-          className="p-2 border border-neutral-light rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
-        >
-          <option value="">Tous les lieux</option>
-          {locations.map((location) => (
-            <option key={location} value={location}>
-              {location}
-      </option>
-          ))}
-        </select>
+
+      {/* Filtres principaux */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <div>
+          <select
+            value={selectedLocation}
+            onChange={(e) => setSelectedLocation(e.target.value)}
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          >
+            <option value="">Tous les lieux</option>
+            {locations.map((location) => (
+              <option key={location} value={location}>
+                {location}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <select
+            value={selectedDiscipline}
+            onChange={(e) => setSelectedDiscipline(e.target.value)}
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          >
+            <option value="">Toutes les disciplines</option>
+            {disciplines.map((discipline) => (
+              <option key={discipline} value={discipline}>
+                {discipline}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex gap-2">
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          />
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          />
+        </div>
       </div>
-      <div>
-        <label className="block mb-2 text-neutral-dark font-semibold">Disciplines</label>
-        <select
-          value={selectedDiscipline}
-          onChange={(e) => setSelectedDiscipline(e.target.value)}
-          className="p-2 border border-neutral-light rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
-        >
-          <option value="">Toutes les disciplines</option>
-          {disciplines.map((discipline) => (
-            <option key={discipline} value={discipline}>
-              {discipline}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className="block mb-2 text-neutral-dark font-semibold">Date de début</label>
-        <input
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="p-2 border border-neutral-light rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
-        />
-      </div>
-      <div>
-        <label className="block mb-2 text-neutral-dark font-semibold">Date de fin</label>
-        <input
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className="p-2 border border-neutral-light rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
-        />
-      </div>
-      <div className="flex items-center mt-6">
-        <input
-          type="checkbox"
-          checked={showAvailableOnly}
-          onChange={(e) => setShowAvailableOnly(e.target.checked)}
-          className="mr-2 focus:ring-primary"
-        />
-        <label className="text-neutral-dark font-semibold">Afficher uniquement les formations avec des places disponibles</label>
-      </div>
-      <div className="flex items-center mt-6">
-        <input
-          type="checkbox"
-          checked={showPast}
-          onChange={(e) => setShowPast(e.target.checked)}
-          className="mr-2 focus:ring-primary"
-        />
-        <label className="text-neutral-dark font-semibold">Afficher les formations passées</label>
+
+      {/* Options supplémentaires */}
+      <div className="space-y-3 border-t pt-4 text-neutral-dark">
+        <label className="flex items-center space-x-3 cursor-pointer group">
+          <input
+            type="checkbox"
+            checked={showAvailableOnly}
+            onChange={(e) => setShowAvailableOnly(e.target.checked)}
+            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors cursor-pointer"
+          />
+          <span className="group-hover:text-gray-900 transition-colors">
+            Places disponibles uniquement
+          </span>
+        </label>
+
+        <label className="flex items-center space-x-3 cursor-pointer group">
+          <input
+            type="checkbox"
+            checked={showPast}
+            onChange={(e) => setShowPast(e.target.checked)}
+            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors cursor-pointer"
+          />
+          <span className="group-hover:text-gray-900 transition-colors">
+            Inclure les formations passées
+          </span>
+        </label>
       </div>
     </div>
   );
