@@ -5,8 +5,8 @@ import util from 'util';
 
 
 export async function GET() {
-  const allFormations = await FormationsService.getAllFormations();
-  return NextResponse.json(allFormations);
+  const lastSyncDate = await FormationsService.getLastSync();
+  return NextResponse.json(lastSyncDate);
 }
 
 export async function POST() {

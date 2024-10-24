@@ -9,8 +9,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        primary: {
+          DEFAULT: '#1E40AF', // Bleu primaire
+          light: '#60A5FA',   // Bleu clair
+          dark: '#1E3A8A',    // Bleu foncé
+        },
+        secondary: {
+          DEFAULT: '#10B981', // Vert secondaire
+          light: '#6EE7B7',   // Vert clair
+          dark: '#047857',    // Vert foncé
+        },
+        neutral: {
+          DEFAULT: '#6B7280', // Gris neutre
+          light: '#D1D5DB',   // Gris clair
+          dark: '#374151',    // Gris foncé
+        },
       },
     },
   },

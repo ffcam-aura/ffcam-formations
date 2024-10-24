@@ -1,7 +1,7 @@
 -- Table des disciplines
 CREATE TABLE disciplines (
     id SERIAL PRIMARY KEY,
-    nom VARCHAR(100) NOT NULL,
+    nom VARCHAR(100) NOT NULL UNIQUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -9,7 +9,7 @@ CREATE TABLE disciplines (
 -- Table des lieux
 CREATE TABLE lieux (
     id SERIAL PRIMARY KEY,
-    nom VARCHAR(255) NOT NULL,
+    nom VARCHAR(255) NOT NULL UNIQUE,
     departement VARCHAR(3),  -- Code département (ex: 73)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -18,7 +18,7 @@ CREATE TABLE lieux (
 -- Table des types d'hébergement
 CREATE TABLE types_hebergement (
     id SERIAL PRIMARY KEY,
-    nom VARCHAR(100) NOT NULL, -- ex: GITE, REFUGE FFCAM, CENTRE ACTIVITE FFCAM
+    nom VARCHAR(100) NOT NULL UNIQUE, -- ex: GITE, REFUGE FFCAM, CENTRE ACTIVITE FFCAM
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -26,7 +26,7 @@ CREATE TABLE types_hebergement (
 -- Table principale des formations
 CREATE TABLE formations (
     id SERIAL PRIMARY KEY,
-    reference VARCHAR(50) UNIQUE NOT NULL,  -- ex: 2025SNNAPIN84701
+    reference VARCHAR(50) NOT NULL UNIQUE,  -- ex: 2025SNNAPIN84701
     titre VARCHAR(255) NOT NULL,
     discipline_id INTEGER REFERENCES disciplines(id),
     information_stagiaire TEXT,
@@ -45,7 +45,7 @@ CREATE TABLE formations (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Table pour gérer les dates des formations (certaines formations ont plusieurs dates)
+-- Table pour gérer les dates des formations
 CREATE TABLE formations_dates (
     id SERIAL PRIMARY KEY,
     formation_id INTEGER REFERENCES formations(id),
@@ -98,7 +98,3 @@ CREATE TRIGGER update_formations_documents_modtime
     BEFORE UPDATE ON formations_documents
     FOR EACH ROW
     EXECUTE PROCEDURE update_updated_at_column();
--- Modifications des tables pour ajouter les contraintes UNIQUE nécessaires
-ALTER TABLE disciplines ADD CONSTRAINT disciplines_nom_unique UNIQUE (nom);
-ALTER TABLE lieux ADD CONSTRAINT lieux_nom_unique UNIQUE (nom);
-ALTER TABLE types_hebergement ADD CONSTRAINT types_hebergement_nom_unique UNIQUE (nom);

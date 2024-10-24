@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FFCAM Formations
 
-## Getting Started
+Cette application web permet de gérer et d'afficher les formations du FFCAM (Fédération Française des Clubs Alpins et de Montagne). Utilisez-la pour consulter, filtrer et gérer les formations facilement, avec un affichage dynamique des contacts.
 
-First, run the development server:
+## Fonctionnalités
+
+- **Affichage des formations** : Visualisez les formations avec les détails tels que le lieu, la discipline, les tarifs, et les dates.
+- **Filtrage avancé** : Filtrez par lieu, discipline, dates et disponibilités.
+- **Protection des emails** : Les adresses email des contacts sont masquées et ne sont révélées que sur action de l'utilisateur.
+- **Automatisation pré-déploiement** : Grâce à Husky, le code est automatiquement vérifié avec `pnpm lint` et `pnpm build` avant chaque push pour garantir un déploiement sans erreur sur Vercel.
+
+## Technologies
+
+- **Next.js**, **React**, **Tailwind CSS**, **TypeScript**, **Date-fns**
+  
+## Installation
+
+1. Clonez le projet :
+
+   ```bash
+   git clone https://github.com/NicolasRitouet/ffcam-formations.git
+   ```
+
+2. Installez les dépendances :
+
+   ```bash
+   pnpm install
+   ```
+
+## Développement local
+
+Lancez le projet en mode développement :
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Pré-déploiement avec Husky
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Avant chaque push, **Husky** s'assure que votre code passe les tests de linting et build :
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Linting** : `pnpm lint`
+- **Build** : `pnpm build`
 
-## Learn More
+Cela garantit que vous ne poussiez jamais de code qui casse en production sur **Vercel**.
 
-To learn more about Next.js, take a look at the following resources:
+## Contribuer
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Forkez** ce dépôt.
+2. Créez une branche pour votre fonctionnalité (`git checkout -b feature/new-feature`).
+3. **Commitez** vos modifications (`git commit -m 'Add some feature'`).
+4. **Poussez** vers la branche (`git push origin feature/new-feature`).
+5. Ouvrez une **Pull Request**.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## License
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Ce projet est sous licence [MIT License](./LICENSE).

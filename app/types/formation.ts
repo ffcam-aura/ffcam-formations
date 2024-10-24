@@ -1,5 +1,14 @@
 import { z } from 'zod';
 
+// Schéma pour les documents
+export const formationDocumentSchema = z.object({
+  type: z.string(), // ex: 'inscription', 'cursus'
+  nom: z.string(),
+  url: z.string().url()
+});
+
+export type FormationDocument = z.infer<typeof formationDocumentSchema>;
+
 export const formationSchema = z.object({
   reference: z.string(),
   titre: z.string(),
@@ -14,6 +23,11 @@ export const formationSchema = z.object({
   organisateur: z.string(),
   responsable: z.string(),
   emailContact: z.string().nullable(),
+  documents: z.array(formationDocumentSchema).default([])
 });
 
 export type Formation = z.infer<typeof formationSchema>;
+
+// Types pour les requêtes API
+export type CreateFormationRequest = z.infer<typeof formationSchema>;
+export type UpdateFormationRequest = Partial<CreateFormationRequest>;
