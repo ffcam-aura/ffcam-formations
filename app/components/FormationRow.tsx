@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Formation } from "@/app/types/formation";
 import { format } from "date-fns";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Info } from "lucide-react";
 
 interface FormationRowProps {
   formation: Formation;
@@ -11,6 +11,19 @@ export default function FormationRow({ formation }: FormationRowProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showEmail, setShowEmail] = useState(false);
   const formatDate = (dateString: string) => format(new Date(dateString), "dd/MM/yyyy");
+
+  const formatDateRange = (dates: string[]) => {
+    if (!dates || dates.length === 0) return "";
+    
+    // Trie les dates dans l'ordre chronologique
+    const sortedDates = [...dates].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    
+    if (sortedDates.length === 1) {
+      return formatDate(sortedDates[0]);
+    }
+
+    return `du ${formatDate(sortedDates[0])} au ${formatDate(sortedDates[sortedDates.length - 1])}`;
+  };
 
   return (
     <li className="border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 bg-white overflow-hidden">
@@ -24,12 +37,16 @@ export default function FormationRow({ formation }: FormationRowProps) {
             </div>
           </div>
           <div>
+            <div className="md:hidden text-xs text-gray-500 mb-1">Discipline</div>
+            {formation.discipline}
+          </div>
+          <div>
             <div className="md:hidden text-xs text-gray-500 mb-1">Lieu</div>
             {formation.lieu}
           </div>
           <div>
             <div className="md:hidden text-xs text-gray-500 mb-1">Date</div>
-            {formation.dates[0] && formatDate(formation.dates[0])}
+            {formatDateRange(formation.dates)}
           </div>
           <div>
             <div className="md:hidden text-xs text-gray-500 mb-1">Prix</div>
@@ -38,10 +55,6 @@ export default function FormationRow({ formation }: FormationRowProps) {
           <div>
             <div className="md:hidden text-xs text-gray-500 mb-1">Places</div>
             {formation.placesRestantes !== null ? formation.placesRestantes : "Inconnu"}
-          </div>
-          <div>
-            <div className="md:hidden text-xs text-gray-500 mb-1">Discipline</div>
-            {formation.discipline}
           </div>
         </div>
         <div className="ml-4">
@@ -85,10 +98,22 @@ export default function FormationRow({ formation }: FormationRowProps) {
             </div>
             <div>
               <p className="mb-2">
-                <strong>Toutes les dates :</strong> {formation.dates.map(formatDate).join(", ")}
+                <strong>Dates :</strong> {formatDateRange(formation.dates)}
               </p>
             </div>
           </div>
+
+          {formation.informationStagiaire && (
+            <div className="mt-4 pt-4 border-t">
+              <div className="flex items-center mb-2">
+                <Info className="w-4 h-4 mr-2" />
+                <h4 className="font-semibold">Information stagiaire</h4>
+              </div>
+              <div className="bg-white p-4 rounded-md">
+                <p className="text-sm whitespace-pre-wrap">{formation.informationStagiaire}</p>
+              </div>
+            </div>
+          )}
 
           {formation.documents && formation.documents.length > 0 && (
             <div className="mt-4 pt-4 border-t">
