@@ -46,7 +46,8 @@ export class FFCAMScraper {
             organisateur: parseOrganisateur(organisateur),
             responsable: extractText($formation, "Responsable du stage"),
             emailContact: parseEmail($formation),
-            documents: parseDocuments($formation)
+            documents: parseDocuments($formation),
+            firstSeenAt: new Date().toISOString()
         };
 
         return formation;
