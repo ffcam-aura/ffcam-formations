@@ -8,68 +8,102 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-  	extend: {
-  		fontFamily: {
-  			sans: ['var(--font-source-sans)', 'system-ui', 'sans-serif']
-  		},
-  		colors: {
-  			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
-  				light: '#60A5FA',
-  				dark: '#1E3A8A',
-  				foreground: 'hsl(var(--primary-foreground))'
-  			},
-  			secondary: {
-  				DEFAULT: 'hsl(var(--secondary))',
-  				light: '#6EE7B7',
-  				dark: '#047857',
-  				foreground: 'hsl(var(--secondary-foreground))'
-  			},
-  			neutral: {
-  				DEFAULT: '#6B7280',
-  				light: '#D1D5DB',
-  				dark: '#374151'
-  			},
-  			background: 'hsl(var(--background))',
-  			foreground: 'hsl(var(--foreground))',
-  			card: {
-  				DEFAULT: 'hsl(var(--card))',
-  				foreground: 'hsl(var(--card-foreground))'
-  			},
-  			popover: {
-  				DEFAULT: 'hsl(var(--popover))',
-  				foreground: 'hsl(var(--popover-foreground))'
-  			},
-  			muted: {
-  				DEFAULT: 'hsl(var(--muted))',
-  				foreground: 'hsl(var(--muted-foreground))'
-  			},
-  			accent: {
-  				DEFAULT: 'hsl(var(--accent))',
-  				foreground: 'hsl(var(--accent-foreground))'
-  			},
-  			destructive: {
-  				DEFAULT: 'hsl(var(--destructive))',
-  				foreground: 'hsl(var(--destructive-foreground))'
-  			},
-  			border: 'hsl(var(--border))',
-  			input: 'hsl(var(--input))',
-  			ring: 'hsl(var(--ring))',
-  			chart: {
-  				'1': 'hsl(var(--chart-1))',
-  				'2': 'hsl(var(--chart-2))',
-  				'3': 'hsl(var(--chart-3))',
-  				'4': 'hsl(var(--chart-4))',
-  				'5': 'hsl(var(--chart-5))'
-  			}
-  		},
-  		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
-  		}
-  	}
+    extend: {
+      fontFamily: {
+        sans: ['var(--font-source-sans)', 'system-ui', 'sans-serif']
+      },
+      colors: {
+        primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          50: '#F0F7FF',
+          100: '#E0EFFF',
+          200: '#B3D6FF',
+          300: '#66ADFF',
+          400: '#2E8AFF',
+          500: '#0066FF', // Couleur principale - Bleu montagne
+          600: '#0052CC',
+          700: '#003D99',
+          800: '#002966',
+          900: '#001433',
+          foreground: 'hsl(var(--primary-foreground))'
+        },
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary))',
+          50: '#F5FFF9',
+          100: '#E6FFF0',
+          200: '#B3FFD6',
+          300: '#66FFAD',
+          400: '#1AFF85',
+          500: '#00CC66', // Vert forêt
+          600: '#00994D',
+          700: '#006633',
+          800: '#00331A',
+          900: '#001A0D',
+          foreground: 'hsl(var(--secondary-foreground))'
+        },
+        accent: {
+          DEFAULT: '#FF6B35', // Orange sunset
+          light: '#FF8F66',
+          dark: '#CC4A1D',
+          foreground: 'hsl(var(--accent-foreground))'
+        },
+        neutral: {
+          50: '#F9FAFB',
+          100: '#F3F4F6',
+          200: '#E5E7EB',
+          300: '#D1D5DB',
+          400: '#9CA3AF',
+          500: '#6B7280',
+          600: '#4B5563',
+          700: '#374151',
+          800: '#1F2937',
+          900: '#111827',
+        },
+        success: {
+          DEFAULT: '#10B981', // Vert validtion
+          light: '#34D399',
+          dark: '#059669',
+        },
+        warning: {
+          DEFAULT: '#FBBF24', // Jaune attention
+          light: '#FCD34D',
+          dark: '#D97706',
+        },
+        error: {
+          DEFAULT: '#EF4444', // Rouge erreur
+          light: '#F87171',
+          dark: '#DC2626',
+        },
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))'
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))'
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))'
+        },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))'
+        },
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+      },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)'
+      }
+    }
   },
   plugins: [require("tailwindcss-animate")],
 };
+
 export default config;

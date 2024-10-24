@@ -202,7 +202,7 @@ export default function Home() {
           <Alert className="mb-6 pr-12 relative">
             <AlertDescription className="text-sm text-muted-foreground">
             Explorez facilement toutes les formations FFCAM en un seul endroit !
-            Notre outil simplifie votre recherche et vous proposera bientôt des alertes personnalisées selon vos disciplines préférées. 🏔️
+            Notre outil récupère les formations publiées sur le site de la FFCAM pour simplifier votre recherche. Nous vous proposerons bientôt des alertes personnalisées selon vos disciplines préférées. 🏔️
             </AlertDescription>
             <button 
               onClick={() => setShowIntro(false)}
