@@ -5,10 +5,12 @@ import Navbar from "@/app/components/Navbar";
 import Filters from "@/app/components/Filters";
 import FormationList from "@/app/components/FormationList";
 import Footer from "@/app/components/Footer";
+import { X } from "lucide-react"
 import { useState, useEffect, useCallback } from "react";
 import { format, parseISO, isAfter } from "date-fns";
 import { ClipLoader } from "react-spinners";
 import { Formation } from "@/app/types/formation";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const sortOptions = [
   { value: 'date-asc', label: 'Date (plus ancien)' },
@@ -33,6 +35,7 @@ export default function Home() {
  const { formations, lastSyncDate, loading, error } = useFormations();
  const [filteredFormations, setFilteredFormations] = useState(formations);
  const [sortOption, setSortOption] = useState('date-asc');
+ const [showIntro, setShowIntro] = useState(true);
  const [filters, setFilters] = useState<Filters>({
    searchQuery: "",
    location: "",
@@ -195,6 +198,21 @@ export default function Home() {
    <div className="min-h-screen flex flex-col">
      <Navbar />
      <main className="flex-grow container mx-auto p-8">
+        {showIntro && (
+          <Alert className="mb-6 pr-12 relative">
+            <AlertDescription className="text-sm text-muted-foreground">
+            Explorez facilement toutes les formations FFCAM en un seul endroit !
+            Notre outil simplifie votre recherche et vous proposera bientôt des alertes personnalisées selon vos disciplines préférées. 🏔️
+            </AlertDescription>
+            <button 
+              onClick={() => setShowIntro(false)}
+              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Fermer le message"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </Alert>
+        )}
        <h2 className="text-3xl font-bold mb-4 text-center text-primary">
          Découvrez les formations de la FFCAM
        </h2>
