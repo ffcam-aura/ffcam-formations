@@ -168,7 +168,8 @@ export class FormationsService {
                 f.tarif, 
                 d.nom as discipline,
                 f.organisateur, 
-                f.responsable, 
+                f.responsable,
+                f.first_seen_at as "firstSeenAt",
                 f.email_contact as "emailContact",
                 json_agg(
                     DISTINCT jsonb_build_object(
@@ -204,6 +205,7 @@ export class FormationsService {
             organisateur: row.organisateur,
             responsable: row.responsable,
             emailContact: row.emailContact,
+            firstSeenAt: row.firstSeenAt,
             documents: row.documents || []
         };
     }
@@ -222,7 +224,8 @@ export class FormationsService {
                 f.tarif, 
                 d.nom as discipline,
                 f.organisateur, 
-                f.responsable, 
+                f.responsable,
+                f.first_seen_at as "firstSeenAt",
                 f.email_contact as "emailContact",
                 json_agg(
                     DISTINCT jsonb_build_object(
@@ -254,6 +257,7 @@ export class FormationsService {
             organisateur: row.organisateur,
             responsable: row.responsable,
             emailContact: row.emailContact,
+            firstSeenAt: row.firstSeenAt,
             documents: row.documents || []
         }));
     }

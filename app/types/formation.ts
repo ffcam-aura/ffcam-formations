@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-// Schéma pour les documents
 export const formationDocumentSchema = z.object({
   type: z.string(), // ex: 'inscription', 'cursus'
   nom: z.string(),
@@ -23,7 +22,8 @@ export const formationSchema = z.object({
   organisateur: z.string(),
   responsable: z.string(),
   emailContact: z.string().nullable(),
-  documents: z.array(formationDocumentSchema).default([])
+  documents: z.array(formationDocumentSchema).default([]),
+  firstSeenAt: z.string()
 });
 
 export type Formation = z.infer<typeof formationSchema>;

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Formation } from "@/app/types/formation";
 import { 
   faMountain, 
   faMapMarkerAlt, 
@@ -13,24 +14,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { format } from "date-fns";
 
-type FormationDocument = {
-  type: string;
-  nom: string;
-  url: string;
-};
-
-type Formation = {
-  reference: string;
-  titre: string;
-  lieu: string;
-  discipline: string;
-  tarif: number;
-  organisateur: string;
-  placesRestantes: number | null;
-  dates: string[];
-  emailContact: string | null;
-  documents: FormationDocument[];
-};
 
 export default function FormationCard({ formation }: { formation: Formation }) {
   const [showEmail, setShowEmail] = useState(false);
@@ -90,6 +73,14 @@ export default function FormationCard({ formation }: { formation: Formation }) {
             )}
           </p>
         </div>
+      </div>
+
+      {/* Nouvelle section pour afficher la date first_seen_at */}
+      <div className="text-sm text-gray-500 mb-4">
+        <p>
+          <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
+          <strong>Formation publiée initialement le :</strong> {formatDate(formation.firstSeenAt)}
+        </p>
       </div>
 
       {formation.documents && formation.documents.length > 0 && (
