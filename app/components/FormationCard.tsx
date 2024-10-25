@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Formation } from "@/app/types/formation";
-import { 
-  faMountain, 
-  faMapMarkerAlt, 
-  faDumbbell, 
-  faEuroSign, 
-  faUsers, 
-  faChair, 
+import {
+  faMountain,
+  faMapMarkerAlt,
+  faDumbbell,
+  faEuroSign,
+  faUsers,
+  faChair,
   faCalendarAlt,
   faFileAlt,
   faDownload,
@@ -24,14 +24,14 @@ export default function FormationCard({ formation }: { formation: Formation }) {
       <h3 className="text-lg font-bold text-primary mb-3 flex items-center">
         <FontAwesomeIcon icon={faMountain} className="mr-2" />{formation.titre}
       </h3>
-      
+
       <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
         <div className="flex items-center">
           <FontAwesomeIcon icon={faMapMarkerAlt} className="w-4 mr-2 text-neutral-dark flex-shrink-0" />
           <strong className="w-16 flex-shrink-0">Lieu :</strong>
           <span>{formation.lieu}</span>
         </div>
-        
+
         <div className="flex items-center">
           <FontAwesomeIcon icon={faChair} className="w-4 mr-2 text-neutral-dark flex-shrink-0" />
           <strong className="w-16 flex-shrink-0">Places :</strong>
@@ -82,6 +82,12 @@ export default function FormationCard({ formation }: { formation: Formation }) {
           <strong className="w-16 flex-shrink-0">Org. :</strong>
           <span className="lowercase">{formation.organisateur}</span>
         </div>
+
+        <div className="flex items-center col-span-2">
+          <FontAwesomeIcon icon={faUsers} className="w-4 mr-2 text-neutral-dark flex-shrink-0" />
+          <strong className="w-16 flex-shrink-0">Resp. :</strong>
+          <span className="lowercase">{formation.responsable}</span>
+        </div>
       </div>
 
       {formation.informationStagiaire && (
@@ -113,7 +119,7 @@ export default function FormationCard({ formation }: { formation: Formation }) {
             {formation.documents.map((doc, index) => (
               <li key={index} className="flex items-center text-sm">
                 <FontAwesomeIcon icon={faDownload} className="w-4 mr-2 text-neutral-dark" />
-                <a 
+                <a
                   href={doc.url}
                   target="_blank"
                   rel="noopener noreferrer"
