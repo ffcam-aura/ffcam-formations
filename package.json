@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -24,6 +24,7 @@
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-toast": "^1.2.2",
+    "@sentry/nextjs": "^8",
     "@t3-oss/env-nextjs": "^0.11.1",
     "@testing-library/react": "^16.0.1",
     "@types/cheerio": "^0.22.35",
