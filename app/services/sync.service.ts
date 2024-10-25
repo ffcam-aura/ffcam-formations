@@ -89,7 +89,7 @@ export class SyncService {
     
     for (const formation of formations) {
       try {
-        await FormationsService.upsertFormation(formation);
+        // await FormationsService.upsertFormation(formation);
         succeeded++;
         process.stdout.write(`\r• Progression : ${succeeded}/${formations.length} formations synchronisées`);
       } catch (error) {
