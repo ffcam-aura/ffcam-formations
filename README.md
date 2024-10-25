@@ -62,6 +62,8 @@ Cela garantit que vous ne poussiez jamais de code qui ne passe pas les lint et l
 4. **Poussez** vers la branche (`git push origin feature/new-feature`).
 5. Ouvrez une **Pull Request**.
 
+Merci 🙏🏼
+
 ## License
 
 Ce projet est sous licence [MIT License](./LICENSE).
