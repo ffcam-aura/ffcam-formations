@@ -16,7 +16,7 @@ export function useFormations() {
         setFormations(data);
 
         // Récupérer la dernière synchronisation
-        const responseLastSync = await fetch("/api/sync");
+        const responseLastSync = await fetch("/api/sync/last");
         const lastSync = await responseLastSync.json();
         if (lastSync) {
           setLastSyncDate(lastSync.toString());
