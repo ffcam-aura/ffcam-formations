@@ -6,12 +6,12 @@ export class FormationsService {
         if (dateStr instanceof Date) {
             return dateStr;
         }
-    
+
         if (typeof dateStr === 'string' && dateStr.includes('/')) {
             const [day, month, year] = dateStr.split('/');
             return new Date(`${year}-${month}-${day}`);
         }
-    
+
         return new Date(dateStr);
     }
 
@@ -260,5 +260,20 @@ export class FormationsService {
             firstSeenAt: row.firstSeenAt,
             documents: row.documents || []
         }));
+    }
+    
+    static async getAllDisciplines(): Promise<string[]> {
+        try {
+            const { rows } = await sql`
+                SELECT nom
+                FROM disciplines
+                ORDER BY nom ASC
+            `;
+
+            return rows.map(row => row.nom);
+        } catch (error) {
+            console.error('Error getting disciplines:', error);
+            throw error;
+        }
     }
 }

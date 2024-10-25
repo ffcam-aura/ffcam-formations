@@ -1,10 +1,8 @@
 "use client";
 
 import { useFormations } from "@/app/hooks/useFormations";
-import Navbar from "@/app/components/Navbar";
 import Filters from "@/app/components/Filters";
 import FormationList from "@/app/components/FormationList";
-import Footer from "@/app/components/Footer";
 import { LayoutGrid, List, X } from "lucide-react"
 import { useState, useEffect, useCallback } from "react";
 import { format, parseISO, isAfter } from "date-fns";
@@ -163,8 +161,6 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
         <main className="flex-grow flex items-center justify-center">
           <ClipLoader
             color="#3B82F6"
@@ -172,15 +168,11 @@ export default function Home() {
             speedMultiplier={0.8}
           />
         </main>
-        <Footer lastSyncDate={null} />
-      </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
         <main className="flex-grow container mx-auto p-8">
           <div className="border p-6 rounded-lg shadow-lg bg-white text-center">
             <h2 className="text-2xl font-bold text-red-600 mb-2">Une erreur est survenue</h2>
@@ -190,14 +182,10 @@ export default function Home() {
             </p>
           </div>
         </main>
-        <Footer lastSyncDate={null} />
-      </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
       <main className="flex-grow container mx-auto p-8">
         {showIntro && (
           <Alert className="mb-6 pr-12 relative">
@@ -274,7 +262,5 @@ export default function Home() {
 
         <FormationList formations={filteredFormations} viewMode={viewMode} />
       </main>
-      <Footer lastSyncDate={lastSyncDate} />
-    </div>
   );
 }

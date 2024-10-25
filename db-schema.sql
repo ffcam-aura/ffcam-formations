@@ -66,6 +66,26 @@ CREATE TABLE formations_documents (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Table pour stocker les préférences de notifications des utilisateurs
+CREATE TABLE IF NOT EXISTS user_preferences (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table pour stocker les disciplines sélectionnées par chaque utilisateur
+CREATE TABLE IF NOT EXISTS user_notification_preferences (
+    id SERIAL PRIMARY KEY,
+    user_preference_id INTEGER REFERENCES user_preferences(id) ON DELETE CASCADE,
+    discipline_id INTEGER REFERENCES disciplines(id) ON DELETE CASCADE,
+    enabled BOOLEAN DEFAULT true,
+    last_notified_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_preference_id, discipline_id)
+);  
+
 -- Index pour améliorer les performances
 CREATE INDEX idx_formations_reference ON formations(reference);
 CREATE INDEX idx_formations_discipline ON formations(discipline_id);

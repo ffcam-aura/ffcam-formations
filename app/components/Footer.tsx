@@ -1,19 +1,8 @@
-import { format, parseISO } from "date-fns";
-import { Github, ExternalLink, RefreshCcw } from "lucide-react";
+import { Github, ExternalLink } from "lucide-react";
 import Image from "next/image";
 
-type FooterProps = {
-  lastSyncDate: string | null;
-};
 
-export default function Footer({ lastSyncDate }: FooterProps) {
-  let syncText = "En cours de chargement...";
-  
-  if (lastSyncDate) {
-    syncText = format(parseISO(lastSyncDate), "dd/MM/yyyy 'à' HH:mm");
-  } else if (lastSyncDate === null) {
-    syncText = "Non disponible";
-  }
+export default function Footer() {
 
   return (
     <footer className="bg-gray-50 border-t mt-8">
@@ -65,18 +54,6 @@ export default function Footer({ lastSyncDate }: FooterProps) {
                 </a>
               </li>
             </ul>
-          </div>
-
-          {/* Statut */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-900">Statut</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center gap-2 text-gray-600">
-                <RefreshCcw size={16} />
-                <span>Dernière synchronisation :</span>
-              </div>
-              <p className="text-primary-500 font-medium">{syncText}</p>
-            </div>
           </div>
         </div>
       </div>
