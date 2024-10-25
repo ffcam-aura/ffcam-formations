@@ -71,7 +71,12 @@ export class SyncService {
   }
 
   static async sendSyncReport({ formations, succeeded, errors, duration }: SyncResult) {
-    const stats = generateStats(formations);
+    const stats = {
+        ...generateStats(formations),
+        synchronized: succeeded,
+        errors: errors.length,
+        duration: `${duration.toFixed(2)}s`,
+      };
     const htmlReport = this.generateHtmlReport({ formations, succeeded, errors, duration, stats });
     
     await EmailService.sendEmail({

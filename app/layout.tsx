@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/react";
 import {
   ClerkProvider
 } from '@clerk/nextjs';
@@ -7,6 +8,7 @@ import { Source_Sans_3 } from 'next/font/google';
 import "./globals.css";
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import { Toaster } from '@/components/ui/toaster';
 
 // Configuration de Source Sans 3
 const sourceSans3 = Source_Sans_3({
@@ -27,17 +29,19 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider localization={frFR}>
-    <html lang="fr">
-      <body
-        className={`${sourceSans3.variable} font-sans antialiased bg-background`}
-      >
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        {children}
-      <Footer />
-    </div>
-      </body>
-    </html>
+      <html lang="fr">
+        <body
+          className={`${sourceSans3.variable} font-sans antialiased bg-background`}
+        >
+          <div className="min-h-screen flex flex-col">
+            <Navbar />
+            {children}
+            <Analytics />
+            <Footer />
+            <Toaster />
+          </div>
+        </body>
+      </html>
     </ClerkProvider>
   );
 }
