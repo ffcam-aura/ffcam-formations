@@ -20,4 +20,3 @@ export async function GET() {
     return Response.json({ success: false });
   }
 }
-export const dynamic = 'force-dynamic'
