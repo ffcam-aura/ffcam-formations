@@ -100,3 +100,19 @@ export function parseEmail($formation: cheerio.Cheerio): string | null {
     const emailMatch = scriptContent.match(/mailto:(.*?)"/);
     return emailMatch ? emailMatch[1] : null;
 }
+
+
+export const formatName = (name: string): string => {
+    if (!name) return '';
+    
+    return name
+      .toLowerCase()
+      .split(/[\s-]+/)
+      .map(part => 
+        part
+          .split('\'')
+          .map(subPart => subPart.charAt(0).toUpperCase() + subPart.slice(1))
+          .join('\'')
+      )
+      .join(name.includes('-') ? '-' : ' ');
+  };
