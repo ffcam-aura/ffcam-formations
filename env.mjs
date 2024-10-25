@@ -11,6 +11,7 @@ export const env = createEnv({
         SMTP_PASSWORD: z.string(),
         EMAIL_FROM: z.string().email(),
         EMAIL_SENDER_NAME: z.string(),
+        SYNC_NOTIFICATION_EMAIL: z.string().email(),
     },
     
     runtimeEnv: {
@@ -21,5 +22,6 @@ export const env = createEnv({
         SMTP_PASSWORD: process.env.SMTP_PASSWORD,
         EMAIL_FROM: process.env.EMAIL_FROM,
         EMAIL_SENDER_NAME: process.env.EMAIL_SENDER_NAME,
+        SYNC_NOTIFICATION_EMAIL: process.env.SYNC_NOTIFICATION_EMAIL,
     }
 });
