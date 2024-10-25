@@ -1,4 +1,5 @@
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import {
   ClerkProvider
 } from '@clerk/nextjs';
@@ -37,6 +38,7 @@ export default function RootLayout({
             <Navbar />
             {children}
             <Analytics />
+            <SpeedInsights />
             <Footer />
             <Toaster />
           </div>
