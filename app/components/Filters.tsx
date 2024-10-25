@@ -5,6 +5,7 @@ type FiltersProps = {
     searchQuery: string;
     location: string;
     discipline: string;
+    organisateur: string;
     startDate: string;
     endDate: string;
     availableOnly: boolean;
@@ -12,6 +13,7 @@ type FiltersProps = {
   }) => void;
   locations: string[];
   disciplines: string[];
+  organisateurs: string[];
   showPastFormations: boolean;
 };
 
@@ -19,10 +21,12 @@ export default function Filters({
   onFilterChange,
   locations,
   disciplines,
+  organisateurs,
   showPastFormations,
 }: FiltersProps) {
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>("");
+  const [selectedOrganisateur, setSelectedOrganisateur] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
@@ -34,27 +38,44 @@ export default function Filters({
       searchQuery,
       location: selectedLocation,
       discipline: selectedDiscipline,
+      organisateur: selectedOrganisateur,
       startDate,
       endDate,
       availableOnly: showAvailableOnly,
       showPastFormations: showPast,
     });
-  }, [searchQuery, selectedLocation, selectedDiscipline, startDate, endDate, showAvailableOnly, showPast, onFilterChange]);
+  }, [searchQuery, selectedLocation, selectedDiscipline, selectedOrganisateur, startDate, endDate, showAvailableOnly, showPast, onFilterChange]);
 
   return (
     <div className="border p-6 rounded-lg shadow-lg bg-white mb-6">
-      {/* Barre de recherche principale */}
-      <div className="mb-6">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Rechercher une formation..."
-          className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
-        />
+      {/* Barre de recherche principale et organisateur */}
+      <div className="flex gap-4 mb-6">
+        <div className="flex-1">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Rechercher une formation..."
+            className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
+          />
+        </div>
+        <div className="w-64">
+          <select
+            value={selectedOrganisateur}
+            onChange={(e) => setSelectedOrganisateur(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          >
+            <option value="">Tous les organisateurs</option>
+            {organisateurs.map((organisateur) => (
+              <option key={organisateur} value={organisateur}>
+                {organisateur}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {/* Filtres principaux */}
+      {/* Autres filtres */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div>
           <select

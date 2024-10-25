@@ -23,6 +23,7 @@ type Filters = {
   searchQuery: string;
   location: string;
   discipline: string;
+  organisateur: string;
   startDate: string;
   endDate: string;
   availableOnly: boolean;
@@ -39,6 +40,7 @@ export default function Home() {
     searchQuery: "",
     location: "",
     discipline: "",
+    organisateur: "",
     startDate: "",
     endDate: "",
     availableOnly: false,
@@ -47,6 +49,8 @@ export default function Home() {
 
   const uniqueLocations = Array.from(new Set(formations.map((f) => f.lieu)));
   const uniqueDisciplines = Array.from(new Set(formations.map((f) => f.discipline)));
+  const uniqueOrganisateurs = Array.from(new Set(formations.map((f) => f.organisateur)))
+  .sort((a, b) => a.localeCompare(b, 'fr'));
 
   // Fonction de tri
   const sortFormations = (formations: Formation[], option: string) => {
@@ -110,6 +114,9 @@ export default function Home() {
         // Filtrer par discipline
         const matchesDiscipline = filters.discipline ? formation.discipline === filters.discipline : true;
 
+        // Filtrer par organisateur
+        const matchesOrganisateur = filters.organisateur ? formation.organisateur === filters.organisateur : true;
+
         // Filtrer par plage de dates
         const isInDateRange =
           filters.startDate && filters.endDate
@@ -138,6 +145,7 @@ export default function Home() {
           matchesSearchQuery &&
           matchesLocation &&
           matchesDiscipline &&
+          matchesOrganisateur &&
           isInDateRange &&
           hasAvailablePlaces &&
           shouldShowFormation
@@ -161,106 +169,108 @@ export default function Home() {
 
   if (loading) {
     return (
-        <main className="flex-grow flex items-center justify-center">
-          <ClipLoader
-            color="#3B82F6"
-            size={50}
-            speedMultiplier={0.8}
-          />
-        </main>
+      <main className="flex-grow flex items-center justify-center">
+        <ClipLoader
+          color="#3B82F6"
+          size={50}
+          speedMultiplier={0.8}
+        />
+      </main>
     );
   }
 
   if (error) {
     return (
-        <main className="flex-grow container mx-auto p-8">
-          <div className="border p-6 rounded-lg shadow-lg bg-white text-center">
-            <h2 className="text-2xl font-bold text-red-600 mb-2">Une erreur est survenue</h2>
-            <p className="text-gray-600">{error}</p>
-            <p className="mt-4 text-sm text-gray-500">
-              Veuillez actualiser la page ou réessayer plus tard.
-            </p>
-          </div>
-        </main>
+      <main className="flex-grow container mx-auto p-8">
+        <div className="border p-6 rounded-lg shadow-lg bg-white text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-2">Une erreur est survenue</h2>
+          <p className="text-gray-600">{error}</p>
+          <p className="mt-4 text-sm text-gray-500">
+            Veuillez actualiser la page ou réessayer plus tard.
+          </p>
+        </div>
+      </main>
     );
   }
 
   return (
-      <main className="flex-grow container mx-auto p-8">
-        {showIntro && (
-          <Alert className="mb-6 pr-12 relative">
-            <AlertDescription className="text-sm text-muted-foreground">
-              Explorez facilement toutes les formations FFCAM en un seul endroit !
-              Notre outil récupère les formations publiées sur le site de la FFCAM pour simplifier votre recherche. Nous vous proposerons bientôt des alertes personnalisées selon vos disciplines préférées. 🏔️
-            </AlertDescription>
-            <button
-              onClick={() => setShowIntro(false)}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Fermer le message"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </Alert>
-        )}
-        <h2 className="text-3xl font-bold mb-4 text-center text-primary">
-          Découvrez les formations de la FFCAM
-        </h2>
-        <p className="text-center text-sm text-neutral mb-8">
-          Dernière synchronisation : {lastSyncDate ? format(parseISO(lastSyncDate), "dd/MM/yyyy 'à' HH:mm") : "Non disponible"}
+    <main className="flex-grow container mx-auto p-8">
+      {showIntro && (
+        <Alert className="mb-6 pr-12 relative">
+          <AlertDescription className="text-sm text-muted-foreground">
+            Explorez facilement toutes les formations FFCAM en un seul endroit !
+            Notre outil récupère les formations publiées sur le site de la FFCAM pour simplifier votre recherche. Nous vous proposerons bientôt des alertes personnalisées selon vos disciplines préférées. 🏔️
+          </AlertDescription>
+          <button
+            onClick={() => setShowIntro(false)}
+            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Fermer le message"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </Alert>
+      )}
+
+      <h2 className="text-3xl font-bold mb-4 text-center text-primary">
+        Découvrez les formations de la FFCAM
+      </h2>
+      
+      <p className="text-center text-sm text-neutral mb-8">
+        Dernière synchronisation : {lastSyncDate ? format(parseISO(lastSyncDate), "dd/MM/yyyy 'à' HH:mm") : "Non disponible"}
+      </p>
+
+      <Filters
+        onFilterChange={handleFilterChange}
+        locations={uniqueLocations}
+        disciplines={uniqueDisciplines}
+        organisateurs={uniqueOrganisateurs}
+        showPastFormations={filters.showPastFormations}
+      />
+
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-gray-600">
+          {filteredFormations.length} formation{filteredFormations.length > 1 ? 's' : ''} trouvée{filteredFormations.length > 1 ? 's' : ''}
         </p>
 
-        <Filters
-          onFilterChange={handleFilterChange}
-          locations={uniqueLocations}
-          disciplines={uniqueDisciplines}
-          showPastFormations={filters.showPastFormations}
-        />
+        <div className="flex items-center gap-2">
+          <select
+            onChange={(e) => setSortOption(e.target.value)}
+            value={sortOption}
+            className="px-4 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          >
+            {sortOptions.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
 
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-gray-600">
-            {filteredFormations.length} formation{filteredFormations.length > 1 ? 's' : ''} trouvée{filteredFormations.length > 1 ? 's' : ''}
-          </p>
-
-          <div className="flex items-center gap-2">
-            <select
-              onChange={(e) => setSortOption(e.target.value)}
-              value={sortOption}
-              className="px-4 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          <div className="border rounded-lg overflow-hidden flex bg-white">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-2 ${viewMode === 'grid'
+                ? 'bg-primary text-white'
+                : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              aria-label="Vue grille"
             >
-              {sortOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-
-            <div className="border rounded-lg overflow-hidden flex bg-white">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-2 ${viewMode === 'grid'
-                    ? 'bg-primary text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                aria-label="Vue grille"
-              >
-                <LayoutGrid className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`p-2 ${viewMode === 'list'
-                    ? 'bg-primary text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                aria-label="Vue liste"
-              >
-                <List className="w-5 h-5" />
-              </button>
-            </div>
+              <LayoutGrid className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 ${viewMode === 'list'
+                ? 'bg-primary text-white'
+                : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              aria-label="Vue liste"
+            >
+              <List className="w-5 h-5" />
+            </button>
           </div>
         </div>
+      </div>
 
-
-        <FormationList formations={filteredFormations} viewMode={viewMode} />
-      </main>
+      <FormationList formations={filteredFormations} viewMode={viewMode} />
+    </main>
   );
 }
