@@ -22,7 +22,7 @@ export default function Footer() {
                 />
               </div>
               <p className="text-sm text-gray-600">
-              Un projet créé par les bénévoles du Club Alpin Français de Lyon-Villeurbanne.
+              Un projet créé par les bénévoles du Comité Régional Auverge-Rhone-Alpes de la FFCAM.
               </p>
             </div>
           </div>
@@ -33,7 +33,7 @@ export default function Footer() {
             <ul className="space-y-3 text-sm">
               <li>
                 <a 
-                  href="https://github.com/Club-Alpin-Lyon-Villeurbanne/ffcam-formations"
+                  href="https://github.com/ffcam-aura/ffcam-formations"
                   className="text-gray-600 hover:text-primary-500 inline-flex items-center gap-2 transition-colors"
                   target="_blank"
                   rel="noopener noreferrer"

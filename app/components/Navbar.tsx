@@ -1,4 +1,4 @@
-import { Github } from "lucide-react";
+import { BellRing, Github } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
@@ -41,7 +41,7 @@ export default function Navbar() {
                 À propos
               </Link>
               <a 
-                href="https://github.com/Club-Alpin-Lyon-Villeurbanne/ffcam-formations"
+                href="https://github.com/ffcam-aura/ffcam-formations"
                 target="_blank"
                 rel="noopener noreferrer" 
                 className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-primary-500 transition-colors inline-flex items-center space-x-2"
@@ -66,13 +66,13 @@ export default function Navbar() {
                 </SignUpButton>
               </SignedOut>
               <SignedIn>
-                {/* <Link
+                <Link
                   href="/notifications"
                   className="p-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary-500 transition-colors"
                   title="Gérer vos notifications"
                 >
                   <BellRing size={20} />
-                </Link> */}
+                </Link>
                 <UserButton
                   appearance={{
                     elements: {

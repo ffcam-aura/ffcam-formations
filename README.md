@@ -10,7 +10,7 @@ Voila ce que fait l'appli:
 - les mettre à dispo via une API
 - les afficher sur la page d'accueil
 
-L'appli est déployée sur [https://ffcam.tech](https://ffcam.tech) grâce à Vercel. Pour le moment, le compte Vercel utilisé est gratuit et lié à mon compte perso.
+L'appli est déployée sur [https://@ffcam-aura.fr](https://ffcam-aura.fr) grâce à Vercel. Pour le moment, le compte Vercel utilisé est gratuit et lié à mon compte perso.
 
 ## Fonctionnalités
 
@@ -28,7 +28,7 @@ L'appli est déployée sur [https://ffcam.tech](https://ffcam.tech) grâce à Ve
 1. Clonez le projet :
 
    ```bash
-   git clone git@github.com:Club-Alpin-Lyon-Villeurbanne/ffcam-formations.git
+   git clone git@github.com:ffcam-aura/ffcam-formations.git
    ```
 
 2. Installez les dépendances :
