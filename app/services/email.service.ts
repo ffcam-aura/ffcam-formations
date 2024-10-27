@@ -16,7 +16,7 @@ export class EmailService {
             pass: env.SMTP_PASSWORD,
         }
     });
-
+    
     static async sendEmail({ to, subject, html }: EmailOptions): Promise<void> {
         const mailOptions = {
             from: env.EMAIL_FROM,

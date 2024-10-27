@@ -24,12 +24,12 @@ export class UserService {
         }
     }
 
-    static async updateNotificationPreferences(userId: string, disciplines: string[]): Promise<void> {
+    static async updateNotificationPreferences(userId: string, email: string, disciplines: string[]): Promise<void> {
         try {
             // Assure que l'utilisateur existe dans user_preferences
             const { rows: [userPref] } = await sql`
-                INSERT INTO user_preferences (user_id)
-                VALUES (${userId})
+                INSERT INTO user_preferences (user_id, email)
+                VALUES (${userId}, ${email})
                 ON CONFLICT (user_id) 
                 DO UPDATE SET updated_at = CURRENT_TIMESTAMP
                 RETURNING id
@@ -110,18 +110,27 @@ export class UserService {
     /**
      * Récupère tous les utilisateurs qui doivent être notifiés pour une discipline donnée
      */
-    static async getUsersToNotifyForDiscipline(discipline: string): Promise<string[]> {
+    static async getUsersToNotifyForDiscipline(discipline: string): Promise<Array<{userId: string, email: string}>> {
         try {
             const { rows } = await sql`
-                SELECT DISTINCT up.user_id
+                SELECT DISTINCT 
+                    up.user_id,
+                    up.email
                 FROM user_preferences up
                 JOIN user_notification_preferences unp ON up.id = unp.user_preference_id
                 JOIN disciplines d ON unp.discipline_id = d.id
                 WHERE d.nom = ${discipline}
                 AND unp.enabled = true
+                AND (
+                    unp.last_notified_at IS NULL 
+                    OR unp.last_notified_at < NOW() - INTERVAL '24 hours'
+                )
             `;
             
-            return rows.map(row => row.user_id);
+            return rows.map(row => ({
+                userId: row.user_id,
+                email: row.email
+            }));
         } catch (error) {
             console.error('Error getting users to notify:', error);
             throw error;

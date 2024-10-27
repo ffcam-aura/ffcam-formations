@@ -1,3 +1,4 @@
+// vitest.config.js
 import { defineConfig } from 'vitest/config'
 import path from 'path'
 
@@ -15,7 +16,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './app')
+      '@': path.resolve(__dirname, './')  // Pointe vers la racine au lieu de ./app
     }
   }
 })

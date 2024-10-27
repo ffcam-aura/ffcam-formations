@@ -145,7 +145,7 @@ export default function Filters({
             className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors cursor-pointer"
           />
           <span className="group-hover:text-gray-900 transition-colors">
-            Inclure les formations passées
+            Inclure les formations passées (à partir du 22 octobre 2024)
           </span>
         </label>
       </div>

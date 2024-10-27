@@ -261,7 +261,7 @@ export class FormationsService {
             documents: row.documents || []
         }));
     }
-    
+
     static async getAllDisciplines(): Promise<string[]> {
         try {
             const { rows } = await sql`
@@ -273,6 +273,90 @@ export class FormationsService {
             return rows.map(row => row.nom);
         } catch (error) {
             console.error('Error getting disciplines:', error);
+            throw error;
+        }
+    }
+
+    static async getRecentFormations(hours: number): Promise<Formation[]> {
+        try {
+            const { rows } = await sql.query(
+                `WITH base_formations AS (
+                    SELECT 
+                        f.id,
+                        f.reference,
+                        f.titre,
+                        d.nom as discipline,
+                        f.information_stagiaire as "informationStagiaire",
+                        f.nombre_participants as "nombreParticipants",
+                        f.places_restantes as "placesRestantes",
+                        h.nom as hebergement,
+                        COALESCE(f.tarif, 0) as tarif,
+                        l.nom as lieu,
+                        f.organisateur,
+                        f.responsable,
+                        f.email_contact as "emailContact",
+                        f.first_seen_at::text as "firstSeenAt"
+                    FROM formations f
+                    JOIN disciplines d ON f.discipline_id = d.id
+                    JOIN lieux l ON f.lieu_id = l.id
+                    JOIN types_hebergement h ON f.hebergement_id = h.id
+                    WHERE f.created_at >= NOW() - ($1 || ' hours')::interval
+                    AND f.status = 'active'
+                ),
+                formation_dates AS (
+                    SELECT 
+                        f.id,
+                        array_agg(DISTINCT TO_CHAR(fd.date_debut, 'YYYY-MM-DD')) FILTER (WHERE fd.date_debut IS NOT NULL) as dates
+                    FROM base_formations f
+                    LEFT JOIN formations_dates fd ON f.id = fd.formation_id
+                    GROUP BY f.id
+                ),
+                formation_docs AS (
+                    SELECT 
+                        f.id,
+                        COALESCE(
+                            json_agg(
+                                json_build_object(
+                                    'type', fd.type,
+                                    'nom', fd.nom,
+                                    'url', fd.url
+                                )
+                            ) FILTER (WHERE fd.id IS NOT NULL),
+                            '[]'::json
+                        ) as documents
+                    FROM base_formations f
+                    LEFT JOIN formations_documents fd ON f.id = fd.formation_id
+                    GROUP BY f.id
+                )
+                SELECT
+                    f.*,
+                    COALESCE(fd.dates, ARRAY[]::text[]) as dates,
+                    COALESCE(d.documents, '[]'::json) as documents
+                FROM base_formations f
+                LEFT JOIN formation_dates fd ON f.id = fd.id
+                LEFT JOIN formation_docs d ON f.id = d.id`,
+                [hours]
+            );
+    
+            return rows.map(row => ({
+                reference: row.reference,
+                titre: row.titre,
+                dates: row.dates || [],
+                lieu: row.lieu,
+                informationStagiaire: row.informationStagiaire || '',
+                nombreParticipants: Number(row.nombreParticipants),
+                placesRestantes: row.placesRestantes !== null ? Number(row.placesRestantes) : null,
+                hebergement: row.hebergement,
+                tarif: Number(row.tarif),
+                discipline: row.discipline,
+                organisateur: row.organisateur,
+                responsable: row.responsable,
+                emailContact: row.emailContact,
+                documents: Array.isArray(row.documents) ? row.documents : [],
+                firstSeenAt: row.firstSeenAt
+            }));
+        } catch (error) {
+            console.error('Error getting recent formations:', error);
             throw error;
         }
     }

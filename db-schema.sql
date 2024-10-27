@@ -70,6 +70,7 @@ CREATE TABLE formations_documents (
 CREATE TABLE IF NOT EXISTS user_preferences (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -84,37 +85,4 @@ CREATE TABLE IF NOT EXISTS user_notification_preferences (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_preference_id, discipline_id)
-);  
-
--- Index pour améliorer les performances
-CREATE INDEX idx_formations_reference ON formations(reference);
-CREATE INDEX idx_formations_discipline ON formations(discipline_id);
-CREATE INDEX idx_formations_lieu ON formations(lieu_id);
-CREATE INDEX idx_formations_dates_formation ON formations_dates(formation_id);
-CREATE INDEX idx_formations_dates_debut ON formations_dates(date_debut);
-CREATE INDEX idx_formations_documents_formation ON formations_documents(formation_id);
-
--- Fonction pour mettre à jour le timestamp updated_at
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
--- Triggers pour mettre à jour automatiquement updated_at
-CREATE TRIGGER update_formations_modtime
-    BEFORE UPDATE ON formations
-    FOR EACH ROW
-    EXECUTE PROCEDURE update_updated_at_column();
-
-CREATE TRIGGER update_formations_dates_modtime
-    BEFORE UPDATE ON formations_dates
-    FOR EACH ROW
-    EXECUTE PROCEDURE update_updated_at_column();
-
-CREATE TRIGGER update_formations_documents_modtime
-    BEFORE UPDATE ON formations_documents
-    FOR EACH ROW
-    EXECUTE PROCEDURE update_updated_at_column();
+);

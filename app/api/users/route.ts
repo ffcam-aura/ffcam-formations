@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server'
+import { auth, currentUser } from '@clerk/nextjs/server'
 import { UserService } from '@/app/services/users.service';
 import { NextResponse } from 'next/server';
 
@@ -27,8 +27,19 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        // Récupère les informations de l'utilisateur depuis Clerk
+        const user = await currentUser();
+        if (!user?.emailAddresses?.[0]?.emailAddress) {
+            return NextResponse.json(
+                { error: 'User email not found' },
+                { status: 400 }
+            );
+        }
+
+        const email = user.emailAddresses[0].emailAddress;
         const { disciplines } = await request.json();
-        await UserService.updateNotificationPreferences(userId, disciplines);
+        
+        await UserService.updateNotificationPreferences(userId, email, disciplines);
         
         return NextResponse.json({ success: true });
     } catch (error) {
