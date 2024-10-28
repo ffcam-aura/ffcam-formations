@@ -5,6 +5,8 @@ import path from 'path'
 export default defineConfig({
   test: {
     environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./vitest.setup.ts'],
     include: ['**/*.test.ts', '**/*.test.tsx'],
     exclude: ['**/node_modules/**', '**/dist/**', '**/cypress/**', '**/.{idea,git,cache,output,temp}/**'],
     reporters: ['verbose'],

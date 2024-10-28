@@ -1,0 +1,183 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NotificationService } from './notifications.service';
+import { UserService } from './users.service';
+import { EmailService } from './email.service';
+import { sql } from '@vercel/postgres';
+import { Formation } from '@/types/formation';
+
+// Données de test définies comme constante globale
+const mockFormations: Formation[] = [
+  {
+    reference: 'TEST123ESCA',
+    titre: 'Formation Test Escalade',
+    discipline: 'Escalade',
+    informationStagiaire: 'Formation découverte escalade en falaise.',
+    nombreParticipants: 8,
+    placesRestantes: 5,
+    tarif: 250,
+    lieu: 'Chamonix',
+    organisateur: 'CAF Chamonix',
+    responsable: 'Jean Dupont',
+    emailContact: 'jean.dupont@example.com',
+    dates: ['2024-07-01', '2024-07-05'],
+    documents: [
+      {
+        type: 'inscription',
+        nom: 'Formulaire d\'inscription',
+        url: 'https://example.com/docs/inscription-escalade.pdf'
+      }
+    ],
+    hebergement: 'REFUGE FFCAM',
+    firstSeenAt: new Date().toISOString()
+  },
+  {
+    reference: 'TEST456ALPI',
+    titre: 'Stage Alpinisme Initiation',
+    discipline: 'Alpinisme',
+    informationStagiaire: 'Stage d\'initiation à l\'alpinisme.',
+    nombreParticipants: 6,
+    placesRestantes: 3,
+    tarif: 450,
+    lieu: 'Argentière',
+    organisateur: 'CAF Haute-Savoie',
+    responsable: 'Marie Martin',
+    emailContact: 'marie.martin@example.com',
+    dates: ['2024-07-15', '2024-07-20'],
+    documents: [
+      {
+        type: 'inscription',
+        nom: 'Dossier d\'inscription',
+        url: 'https://example.com/docs/inscription-alpinisme.pdf'
+      }
+    ],
+    hebergement: 'REFUGE FFCAM',
+    firstSeenAt: new Date().toISOString()
+  },
+  {
+    reference: 'TEST789SKI',
+    titre: 'Ski de Randonnée Perfectionnement',
+    discipline: 'Ski de Randonnée',
+    informationStagiaire: 'Stage de perfectionnement en ski de randonnée.',
+    nombreParticipants: 6,
+    placesRestantes: 2,
+    tarif: 380,
+    lieu: 'La Grave',
+    organisateur: 'CAF Briançon',
+    responsable: 'Pierre Durand',
+    emailContact: 'pierre.durand@example.com',
+    dates: ['2024-01-10', '2024-01-15'],
+    documents: [],
+    hebergement: 'GITE',
+    firstSeenAt: new Date().toISOString()
+  }
+];
+
+vi.mock('@vercel/postgres', () => ({
+  sql: Object.assign(
+    vi.fn().mockResolvedValue({ rows: [] }),
+    {
+      query: vi.fn().mockResolvedValue({ rows: [] }),
+    }
+  )
+}));
+
+vi.mock('./users.service', () => ({
+  UserService: {
+    getUsersToNotifyForDiscipline: vi.fn(),
+    updateLastNotified: vi.fn()
+  }
+}));
+
+vi.mock('./email.service', () => ({
+  EmailService: {
+    sendEmail: vi.fn()
+  }
+}));
+
+describe('NotificationService', () => {
+  const mockUsers = [
+    { userId: 'user1', email: 'user1@test.com' },
+    { userId: 'user2', email: 'user2@test.com' }
+  ];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    
+    // Configuration des mocks avec les résultats par défaut
+    vi.mocked(sql).mockImplementation((strings, ...values) => {
+      return Promise.resolve({ rows: [{ last_notified_at: null }] });
+    });
+    vi.mocked(UserService.getUsersToNotifyForDiscipline).mockResolvedValue(mockUsers);
+    vi.mocked(UserService.updateLastNotified).mockResolvedValue(undefined);
+    vi.mocked(EmailService.sendEmail).mockResolvedValue(undefined);
+  });
+
+  describe('notifyBatchNewFormations', () => {
+    it('devrait notifier tous les utilisateurs éligibles', async () => {
+      // Mock pour simuler qu'aucun utilisateur n'a été notifié récemment
+      vi.mocked(sql).mockImplementation(() => 
+        Promise.resolve({ rows: [{ last_notified_at: null }] })
+      );
+
+      const result = await NotificationService.notifyBatchNewFormations([mockFormations[0]]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].usersNotified).toBe(1);  // 1 utilisateur par email
+      expect(result[0].errors).toHaveLength(0);
+      expect(EmailService.sendEmail).toHaveBeenCalledTimes(1); // 1 email avec toutes les formations
+    });
+
+    it('devrait traiter un lot de formations', async () => {
+      const results = await NotificationService.notifyBatchNewFormations(mockFormations);
+
+      expect(results).toHaveLength(3); // nombre de formations
+      results.forEach(result => {
+        expect(result.usersNotified).toBe(1); // 1 utilisateur par email
+        expect(result.errors).toHaveLength(0);
+      });
+    });
+
+    it('devrait continuer même si une formation échoue', async () => {
+      // Mock une erreur pour la première discipline
+      vi.mocked(UserService.getUsersToNotifyForDiscipline)
+        .mockRejectedValueOnce(new Error('Test error'))
+        .mockResolvedValue(mockUsers);
+
+      const results = await NotificationService.notifyBatchNewFormations(mockFormations);
+
+      expect(results).toHaveLength(3);
+      expect(results[0].errors.length).toBeGreaterThan(0); // La première formation a une erreur
+      expect(results[1].usersNotified).toBe(1);
+      expect(results[2].usersNotified).toBe(1);
+    });
+
+    it('devrait respecter la limite de notification par discipline', async () => {
+      // Mock différentes réponses pour différentes requêtes SQL
+      let callCount = 0;
+      vi.mocked(sql).mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // Pour Escalade: déjà notifié récemment
+          return Promise.resolve({ 
+            rows: [{ last_notified_at: new Date().toISOString() }] 
+          });
+        }
+        // Pour les autres: pas de notification récente
+        return Promise.resolve({ 
+          rows: [{ last_notified_at: null }] 
+        });
+      });
+
+      const results = await NotificationService.notifyBatchNewFormations([
+        mockFormations[0], // Escalade
+        mockFormations[1], // Alpinisme
+        mockFormations[2]  // Ski
+      ]);
+
+      expect(results).toHaveLength(3);
+      expect(results[0].usersNotified).toBe(0);  // Escalade: déjà notifié
+      expect(results[1].usersNotified).toBe(1);  // Alpinisme: 1 notification envoyée
+      expect(results[2].usersNotified).toBe(1);  // Ski: 1 notification envoyée
+    });
+  });
+});

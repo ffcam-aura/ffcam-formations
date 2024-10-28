@@ -25,7 +25,7 @@ export default function Home() {
   if (loading) {
     return (
       <main className="flex-grow flex items-center justify-center">
-        <ClipLoader color="#3B82F6" size={50} speedMultiplier={0.8} />
+        <ClipLoader color="#3B82F6" size={50} speedMultiplier={0.8} data-testid="spinner" />
       </main>
     );
   }
@@ -47,12 +47,14 @@ export default function Home() {
   return (
     <main className="flex-grow container mx-auto p-8">
       <FormationsHeader 
+        data-testid="formations-header"
         showIntro={showIntro}
         setShowIntro={setShowIntro}
         lastSyncDate={lastSyncDate}
       />
 
       <Filters
+       data-testid="filters"
         onFilterChange={setFilters}
         locations={uniqueLocations}
         disciplines={uniqueDisciplines}
@@ -61,6 +63,7 @@ export default function Home() {
       />
 
       <FormationsToolbar 
+      data-testid="formations-toolbar"
         formationCount={filteredFormations.length}
         sortOption={sortOption}
         setSortOption={setSortOption}
@@ -68,7 +71,7 @@ export default function Home() {
         setViewMode={setViewMode}
       />
 
-      <FormationList formations={filteredFormations} viewMode={viewMode} />
+      <FormationList formations={filteredFormations} viewMode={viewMode} data-testid="formation-list" />
     </main>
   );
 }

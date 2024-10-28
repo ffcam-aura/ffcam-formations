@@ -279,64 +279,59 @@ export class FormationsService {
 
     static async getRecentFormations(hours: number): Promise<Formation[]> {
         try {
-            const { rows } = await sql.query(
-                `WITH base_formations AS (
-                    SELECT 
-                        f.id,
-                        f.reference,
-                        f.titre,
-                        d.nom as discipline,
-                        f.information_stagiaire as "informationStagiaire",
-                        f.nombre_participants as "nombreParticipants",
-                        f.places_restantes as "placesRestantes",
-                        h.nom as hebergement,
-                        COALESCE(f.tarif, 0) as tarif,
-                        l.nom as lieu,
-                        f.organisateur,
-                        f.responsable,
-                        f.email_contact as "emailContact",
-                        f.first_seen_at::text as "firstSeenAt"
-                    FROM formations f
-                    JOIN disciplines d ON f.discipline_id = d.id
-                    JOIN lieux l ON f.lieu_id = l.id
-                    JOIN types_hebergement h ON f.hebergement_id = h.id
-                    WHERE f.created_at >= NOW() - ($1 || ' hours')::interval
+            const { rows } = await sql`
+                SELECT 
+                    f.reference,
+                    f.titre,
+                    f.information_stagiaire as "informationStagiaire",
+                    f.nombre_participants as "nombreParticipants",
+                    f.places_restantes as "placesRestantes",
+                    f.tarif,
+                    f.organisateur,
+                    f.responsable,
+                    f.email_contact as "emailContact",
+                    f.first_seen_at as "firstSeenAt",
+                    f.last_seen_at as "lastSeenAt",
+                    d.nom as discipline,
+                    l.nom as lieu,
+                    h.nom as hebergement,
+                    array_agg(DISTINCT fd.date_debut::text) as dates,
+                    COALESCE(
+                        json_agg(
+                            json_build_object(
+                                'type', doc.type,
+                                'nom', doc.nom,
+                                'url', doc.url
+                            )
+                        ) FILTER (WHERE doc.type IS NOT NULL),
+                        '[]'
+                    ) as documents
+                FROM formations f
+                JOIN disciplines d ON f.discipline_id = d.id
+                JOIN lieux l ON f.lieu_id = l.id
+                JOIN types_hebergement h ON f.hebergement_id = h.id
+                LEFT JOIN formations_dates fd ON f.id = fd.formation_id
+                LEFT JOIN formations_documents doc ON f.id = doc.formation_id
+                WHERE (f.created_at >= NOW() - ${hours + ' hours'}::interval
+                      OR f.last_seen_at >= NOW() - ${hours + ' hours'}::interval)
                     AND f.status = 'active'
-                ),
-                formation_dates AS (
-                    SELECT 
-                        f.id,
-                        array_agg(DISTINCT TO_CHAR(fd.date_debut, 'YYYY-MM-DD')) FILTER (WHERE fd.date_debut IS NOT NULL) as dates
-                    FROM base_formations f
-                    LEFT JOIN formations_dates fd ON f.id = fd.formation_id
-                    GROUP BY f.id
-                ),
-                formation_docs AS (
-                    SELECT 
-                        f.id,
-                        COALESCE(
-                            json_agg(
-                                json_build_object(
-                                    'type', fd.type,
-                                    'nom', fd.nom,
-                                    'url', fd.url
-                                )
-                            ) FILTER (WHERE fd.id IS NOT NULL),
-                            '[]'::json
-                        ) as documents
-                    FROM base_formations f
-                    LEFT JOIN formations_documents fd ON f.id = fd.formation_id
-                    GROUP BY f.id
-                )
-                SELECT
-                    f.*,
-                    COALESCE(fd.dates, ARRAY[]::text[]) as dates,
-                    COALESCE(d.documents, '[]'::json) as documents
-                FROM base_formations f
-                LEFT JOIN formation_dates fd ON f.id = fd.id
-                LEFT JOIN formation_docs d ON f.id = d.id`,
-                [hours]
-            );
+                GROUP BY 
+                    f.reference,
+                    f.titre,
+                    f.information_stagiaire,
+                    f.nombre_participants,
+                    f.places_restantes,
+                    f.tarif,
+                    f.organisateur,
+                    f.responsable,
+                    f.email_contact,
+                    f.first_seen_at,
+                    f.last_seen_at,
+                    d.nom,
+                    l.nom,
+                    h.nom
+                ORDER BY f.last_seen_at DESC
+            `;
     
             return rows.map(row => ({
                 reference: row.reference,
@@ -352,8 +347,9 @@ export class FormationsService {
                 organisateur: row.organisateur,
                 responsable: row.responsable,
                 emailContact: row.emailContact,
-                documents: Array.isArray(row.documents) ? row.documents : [],
-                firstSeenAt: row.firstSeenAt
+                documents: row.documents || [],
+                firstSeenAt: row.firstSeenAt,
+                lastSeenAt: row.lastSeenAt
             }));
         } catch (error) {
             console.error('Error getting recent formations:', error);
