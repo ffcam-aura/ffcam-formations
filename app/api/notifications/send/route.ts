@@ -1,7 +1,20 @@
-import { FormationsService } from '@/services/formations.service';
-import { NotificationService } from '@/services/notifications.service';
+import { prisma } from "@/lib/prisma";
+import { NotificationRepository } from "@/repositories/NotificationRepository";
+import { EmailService } from "@/services/email.service";
+import { EmailTemplateRenderer } from "@/services/emailTemplateRenderer.service";
+import { FormationsService } from "@/services/formations.service";
+import { NotificationService } from "@/services/notifications.service";
+import { UserService } from "@/services/users.service";
 
 export async function GET(request: Request) {
+  const emailRenderer = new EmailTemplateRenderer();
+  const notificationRepo = new NotificationRepository(prisma);
+  const notificationService = new NotificationService(
+    notificationRepo,
+    emailRenderer,
+    EmailService,
+    UserService
+  );
   const authHeader = request.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return new Response('Unauthorized', {
@@ -22,7 +35,7 @@ export async function GET(request: Request) {
     }
 
     // Envoie les notifications
-    const notificationResults = await NotificationService.notifyBatchNewFormations(recentFormations);
+    const notificationResults = await notificationService.notifyBatchNewFormations(recentFormations);
 
     // Calcule les statistiques de notification
     const stats = {
