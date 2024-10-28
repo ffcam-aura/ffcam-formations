@@ -1,7 +1,7 @@
 // app/notifications/page.tsx
 import type { Metadata } from 'next';
 import { FormationsService } from '@/services/formations.service';
-import Preference from '@/app/ui/NotificationsForm';
+import NotificationsForm from '@/components/features/notifications/NotificationsForm';
 
 export const metadata: Metadata = {
   title: 'Notifications | FFCAM Formations',
@@ -17,6 +17,6 @@ export default async function NotificationsPage() {
   }));
 
   return (
-    <Preference initialDisciplines={formattedDisciplines} />
+    <NotificationsForm initialDisciplines={formattedDisciplines} />
   );
 }

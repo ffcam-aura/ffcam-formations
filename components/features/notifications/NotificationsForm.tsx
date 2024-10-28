@@ -16,11 +16,11 @@ type Discipline = {
   label: string;
 };
 
-interface PreferencesFormProps {
+interface NotificationsFormProps {
   initialDisciplines: Discipline[];
 }
 
-export default function PreferencesForm({ initialDisciplines }: PreferencesFormProps) {
+export default function NotificationsForm({ initialDisciplines }: NotificationsFormProps) {
   const { user } = useUser();
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
