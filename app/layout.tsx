@@ -6,8 +6,8 @@ import { frFR } from '@clerk/localizations';
 import type { Metadata } from "next";
 import { Source_Sans_3 } from 'next/font/google';
 import "./globals.css";
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
+import Navbar from '@/components/features/layout/Navbar';
+import Footer from '@/components/features/layout/Footer';
 import { Toaster } from '@/components/ui/toaster';
 
 // Configuration de Source Sans 3

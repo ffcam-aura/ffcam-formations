@@ -1,13 +1,13 @@
 import * as cheerio from 'cheerio';
-import { Formation } from '@/app/types/formation';
-import { parseOrganisateur } from '@/app/utils/formation-parser';
+import { Formation } from '@/types/formation';
+import { parseOrganisateur } from '@/utils/formation-parser';
 import {
     extractText,
     parseDocuments,
     parseDates,
     parseTarif,
     parseEmail
-} from '@/app/utils/formation-parser';
+} from '@/utils/formation-parser';
 
 export class FFCAMScraper {
     private static BASE_URL = 'https://www.ffcam.fr/les-formations.html';

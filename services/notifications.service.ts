@@ -1,7 +1,7 @@
 import { sql } from '@vercel/postgres';
-import { EmailService } from '@/app/services/email.service';
-import { UserService } from '@/app/services/users.service';
-import { Formation } from '@/app/types/formation';
+import { EmailService } from '@/services/email.service';
+import { UserService } from '@/services/users.service';
+import { Formation } from '@/types/formation';
 
 interface NotificationResult {
   formation: Formation;

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Formation } from "@/app/types/formation";
+import { Formation } from "@/types/formation";
 import { format } from "date-fns";
-import { formatName } from "../utils/formation-parser";
+import { formatName } from "@/utils/formation-parser";
 
 export default function FormationCard({ formation }: { formation: Formation }) {
   const [showEmail, setShowEmail] = useState(false);

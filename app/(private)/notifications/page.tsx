@@ -1,7 +1,7 @@
 // app/notifications/page.tsx
 import type { Metadata } from 'next';
-import { FormationsService } from '@/app/services/formations.service';
-import Preference from '@/app/components/NotificationsForm';
+import { FormationsService } from '@/services/formations.service';
+import Preference from '@/app/ui/NotificationsForm';
 
 export const metadata: Metadata = {
   title: 'Notifications | FFCAM Formations',

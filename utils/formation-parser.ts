@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio';
-import { FormationDocument } from '@/app/types/formation';
+import { FormationDocument } from '@/types/formation';
 
 
 /**

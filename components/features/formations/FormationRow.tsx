@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Formation } from "@/app/types/formation";
+import { Formation } from "@/types/formation";
 import { format } from "date-fns";
 import { ChevronDown, ChevronUp, Info } from "lucide-react";
 

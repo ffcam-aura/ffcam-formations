@@ -10,7 +10,7 @@ Voila ce que fait l'appli:
 - les mettre à dispo via une API
 - les afficher sur la page d'accueil
 
-L'appli est déployée sur [https://@ffcam-aura.fr](https://ffcam-aura.fr) grâce à Vercel. Pour le moment, le compte Vercel utilisé est gratuit et lié à mon compte perso.
+L'appli est déployée sur [https://ffcam-aura.fr](https://ffcam-aura.fr) grâce à Vercel. Pour le moment, le compte Vercel utilisé est gratuit et lié à mon compte perso.
 
 ## Fonctionnalités
 

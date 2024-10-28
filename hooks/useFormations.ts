@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Formation } from "@/app/types/formation";
+import { Formation } from "@/types/formation";
 
 export function useFormations() {
   const [formations, setFormations] = useState<Formation[]>([]);

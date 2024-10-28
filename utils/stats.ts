@@ -1,4 +1,4 @@
-import { Formation } from '@/app/types/formation';
+import { Formation } from '@/types/formation';
 
 export function generateStats(formations: Formation[]) {
   const disciplineDistribution = formations.reduce((acc, f) => {

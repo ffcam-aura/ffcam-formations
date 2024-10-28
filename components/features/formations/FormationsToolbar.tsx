@@ -1,5 +1,5 @@
 import { LayoutGrid, List } from "lucide-react";
-import { sortOptions } from "@/app/lib/constants";
+import { sortOptions } from "@/lib/constants";
 
 type FormationsToolbarProps = {
   formationCount: number;

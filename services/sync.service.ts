@@ -1,7 +1,7 @@
-import { FFCAMScraper } from '@/app/lib/scraper';
-import { FormationsService } from '@/app/services/formations.service';
-import { EmailService } from '@/app/services/email.service';
-import { Formation } from '@/app/types/formation';
+import { FFCAMScraper } from '@/lib/scraper';
+import { FormationsService } from '@/services/formations.service';
+import { EmailService } from '@/services/email.service';
+import { Formation } from '@/types/formation';
 import util from 'util';
 import { env } from '@/env.mjs';
 

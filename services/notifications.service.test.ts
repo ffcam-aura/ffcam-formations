@@ -4,7 +4,7 @@ import { NotificationService } from './notifications.service';
 import { UserService } from './users.service';
 import { EmailService } from './email.service';
 import { sql } from '@vercel/postgres';
-import { Formation } from '@/app/types/formation';
+import { Formation } from '@/types/formation';
 
 // Données de test
 const testFormations: Formation[] = [

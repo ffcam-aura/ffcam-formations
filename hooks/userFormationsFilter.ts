@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Formation } from "@/app/types/formation";
+import { Formation } from "@/types/formation";
 import { formatFilters, sortFormations } from '@/lib/formationFilter';
 
 export type Filters = {

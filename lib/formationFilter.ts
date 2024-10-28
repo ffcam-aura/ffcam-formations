@@ -1,6 +1,6 @@
 // lib/formatFilters.ts
-import { Filters } from "@/app/hooks/userFormationsFilter";
-import { Formation } from "@/app/types/formation";
+import { Filters } from "@/hooks/userFormationsFilter";
+import { Formation } from "@/types/formation";
 import { parseISO, isAfter } from "date-fns";
 
 export function formatFilters(formations: Formation[], filters: Filters): Formation[] {

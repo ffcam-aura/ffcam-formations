@@ -1,5 +1,5 @@
-import { FormationsService } from '@/app/services/formations.service';
-import { NotificationService } from '@/app/services/notifications.service';
+import { FormationsService } from '@/services/formations.service';
+import { NotificationService } from '@/services/notifications.service';
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');

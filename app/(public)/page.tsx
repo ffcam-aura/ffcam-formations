@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useFormations } from "@/app/hooks/useFormations";
-import Filters from "@/app/components/Filters";
-import FormationList from "@/app/components/FormationList";
+import { useFormations } from "@/hooks/useFormations";
+import Filters from "@/components/features/formations/FormationsFilters";
+import FormationList from "@/components/features/formations/FormationList";
 import { ClipLoader } from "react-spinners";
-import { useFormationFilters } from "./hooks/userFormationsFilter";
-import { FormationsHeader } from "./components/FormationsHeader";
-import { FormationsToolbar } from "./components/FormationsToolbar";
+import { useFormationFilters } from "@/hooks/userFormationsFilter";
+import { FormationsHeader } from "@/components/features/formations/FormationsHeader";
+import { FormationsToolbar } from "@/components/features/formations/FormationsToolbar";
 
 export default function Home() {
   const { formations, lastSyncDate, loading, error } = useFormations();

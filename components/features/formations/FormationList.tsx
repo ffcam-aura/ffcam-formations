@@ -1,6 +1,6 @@
-import { Formation } from "@/app/types/formation";
-import FormationCard from "./FormationCard";
-import FormationRow from "./FormationRow";
+import { Formation } from "@/types/formation";
+import FormationCard from "@/components/features/formations/FormationCard";
+import FormationRow from "@/components/features/formations/FormationRow";
 
 interface FormationListProps {
   formations: Formation[];

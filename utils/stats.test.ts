@@ -1,7 +1,7 @@
 // utils/__tests__/stats.test.ts
 import { describe, expect, it } from 'vitest';
 import { generateStats } from './stats';
-import type { Formation } from '@/app/types/formation';
+import type { Formation } from '@/types/formation';
 
 describe('generateStats', () => {
   // Données de test

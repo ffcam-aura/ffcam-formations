@@ -1,5 +1,5 @@
 import { sql } from '@vercel/postgres';
-import { Formation } from '@/app/types/formation';
+import { Formation } from '@/types/formation';
 
 export class FormationsService {
     private static parseDate(dateStr: string | Date): Date {
