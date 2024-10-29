@@ -4,33 +4,33 @@ export class NotificationRepository {
   constructor(private prisma: PrismaClient) {}
 
   async getLastNotification(userId: string, discipline: string) {
-    return await this.prisma.userNotificationPreference.findFirst({
+    return await this.prisma.user_notification_preferences.findFirst({
       where: {
-        userPreference: {
-          userId: userId,
+        user_preferences: {
+          user_id: userId,
         },
-        discipline: {
+        disciplines: {
           nom: discipline,
         },
       },
       select: {
-        lastNotifiedAt: true,
+        last_notified_at: true,
       },
     });
   }
 
   async updateLastNotified(userId: string, discipline: string) {
-    await this.prisma.userNotificationPreference.updateMany({
+    await this.prisma.user_notification_preferences.updateMany({
       where: {
-        userPreference: {
-          userId: userId,
+        user_preferences: {
+          user_id: userId,
         },
-        discipline: {
+        disciplines: {
           nom: discipline,
         },
       },
       data: {
-        lastNotifiedAt: new Date(),
+        last_notified_at: new Date(),
       },
     });
   }

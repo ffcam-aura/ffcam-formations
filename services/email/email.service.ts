@@ -30,7 +30,7 @@ export class EmailService {
             console.log(`Email ${mailOptions.subject} send to ${to}`);
           } catch (error) {
             console.error("Error sending email: ", error);
-            throw error; // Re-throw the error after capturing it
+            throw error;
           }
       
     }

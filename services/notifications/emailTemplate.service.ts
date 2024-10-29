@@ -62,26 +62,27 @@ export class EmailTemplateRenderer {
   
     private renderFormationDetails(formation: Formation): string {
       const details = [
-        { icon: '📍', label: 'Lieu', value: formation.lieu },
-        { icon: '📅', label: 'Dates', value: formation.dates.join(' au ') },
-        ...this.renderOptionalInformation(formation),
-        { 
-          icon: '👥', 
-          label: 'Participants', 
-          value: `${formation.nombreParticipants} maximum${
-            formation.placesRestantes ? ` (${formation.placesRestantes} places restantes)` : ''
-          }` 
-        },
-        formation.tarif && { icon: '💰', label: 'Tarif', value: `${formation.tarif}€` },
-        { icon: '🏠', label: 'Hébergement', value: formation.hebergement },
-        { icon: '👤', label: 'Organisateur', value: formation.organisateur },
-        { icon: '👨‍🏫', label: 'Responsable', value: formation.responsable },
-        formation.emailContact && { icon: '✉️', label: 'Contact', value: formation.emailContact }
-      ].filter(Boolean);
+          { icon: '📍', label: 'Lieu', value: formation.lieu },
+          { icon: '📅', label: 'Dates', value: formation.dates.join(' au ') },
+          ...this.renderOptionalInformation(formation),
+          { 
+            icon: '👥', 
+            label: 'Participants', 
+            value: `${formation.nombreParticipants} maximum${
+              formation.placesRestantes ? ` (${formation.placesRestantes} places restantes)` : ''
+            }` 
+          },
+          formation.tarif ? { icon: '💰', label: 'Tarif', value: `${formation.tarif}€` } : null,
+          { icon: '🏠', label: 'Hébergement', value: formation.hebergement },
+          { icon: '👤', label: 'Organisateur', value: formation.organisateur },
+          { icon: '👨‍🏫', label: 'Responsable', value: formation.responsable },
+          formation.emailContact ? { icon: '✉️', label: 'Contact', value: formation.emailContact } : null
+      ].filter((detail): detail is { icon: string; label: string; value: string } => Boolean(detail));
   
-      return details.map(detail => this.renderDetailLine(detail!)).join('') + 
+      return details.map(detail => this.renderDetailLine(detail)).join('') + 
              this.renderDocuments(formation.documents);
-    }
+  }
+  
   
     private renderOptionalInformation(formation: Formation): Array<{ icon: string; label: string; value: string; }> {
       return formation.informationStagiaire 

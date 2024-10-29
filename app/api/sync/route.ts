@@ -1,4 +1,4 @@
-import { SyncService } from '@/services/sync.service';
+import { SyncService } from '@/services/formation/sync.service';
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');

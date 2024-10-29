@@ -1,7 +1,7 @@
 import { NotificationRepository } from "@/repositories/NotificationRepository";
-import { EmailTemplateRenderer } from "./emailTemplateRenderer.service";
-import { EmailService } from "./email.service";
-import { UserService } from "./users.service";
+import { EmailTemplateRenderer } from "./emailTemplate.service";
+import { EmailService } from "@/services/email/email.service";
+import { UserService } from "@/services/user/users.service";
 import { Formation } from "@/types/formation";
 import { NotificationProcessor, UserNotificationData } from "./notificationProcessor.service";
 import { prisma } from "@/lib/prisma";
@@ -25,10 +25,9 @@ export class NotificationService {
 
   async notifyBatchNewFormations(formations: Formation[]): Promise<NotificationResult[]> {
     try {
-      // Passer le userService au NotificationProcessor
       const notificationProcessor = new NotificationProcessor(
         this.notificationRepo,
-        this.userService  // Passer le service
+        this.userService
       );
 
       return await prisma.$transaction(async () => {

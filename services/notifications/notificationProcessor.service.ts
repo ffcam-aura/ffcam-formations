@@ -1,6 +1,10 @@
 import { NotificationRepository } from "@/repositories/NotificationRepository";
 import { Formation } from "@/types/formation";
-import { UserService } from "./users.service";
+import { UserService } from "@/services/user/users.service";
+import { UserRepository } from "@/repositories/UserRepository";
+
+const userRepository = new UserRepository();
+const userService = new UserService(userRepository);
 
 export interface UserNotificationData {
     email: string;
@@ -33,7 +37,7 @@ export interface UserNotificationData {
       formations: Formation[],
       userNotifications: Map<string, UserNotificationData>
     ): Promise<void> {
-      const usersToNotify = await this.userService.getUsersToNotifyForDiscipline(discipline);
+      const usersToNotify = await userService.getUsersToNotifyForDiscipline(discipline);
       
       for (const {userId, email} of usersToNotify) {
         if (await this.shouldNotifyUser(userId, discipline)) {
@@ -49,11 +53,12 @@ export interface UserNotificationData {
   
     private async shouldNotifyUser(userId: string, discipline: string): Promise<boolean> {
       const lastNotification = await this.notificationRepo.getLastNotification(userId, discipline);
-      if (!lastNotification?.lastNotifiedAt) return true;
+      if (!lastNotification?.last_notified_at) return true;
   
-      const timeSinceLastNotification = new Date().getTime() - lastNotification.lastNotifiedAt.getTime();
+      const timeSinceLastNotification = new Date().getTime() - lastNotification.last_notified_at.getTime();
       return timeSinceLastNotification > 24 * 60 * 60 * 1000;
-    }
+  }
+  
   
     private addFormationsForUser(
       userId: string,

@@ -1,10 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { NotificationRepository } from "@/repositories/NotificationRepository";
-import { EmailService } from "@/services/email.service";
-import { EmailTemplateRenderer } from "@/services/emailTemplateRenderer.service";
-import { FormationsService } from "@/services/formations.service";
-import { NotificationService } from "@/services/notifications.service";
-import { UserService } from "@/services/users.service";
+import { EmailService } from "@/services/email/email.service";
+import { EmailTemplateRenderer } from "@/services/notifications/emailTemplate.service";
+import { FormationService } from "@/services/formation/formations.service";
+import { NotificationService } from "@/services/notifications/notifications.service";
+import { UserService } from "@/services/user/users.service";
+import { FormationRepository } from "@/repositories/FormationRepository";
+
+const formationRepository = new FormationRepository();
+const formationService = new FormationService(formationRepository);
 
 export async function GET(request: Request) {
   const emailRenderer = new EmailTemplateRenderer();
@@ -24,7 +28,7 @@ export async function GET(request: Request) {
 
   try {
     // Récupère les formations des dernières 24h
-    const recentFormations = await FormationsService.getRecentFormations(24);
+    const recentFormations = await formationService.getRecentFormations(24);
     
     if (recentFormations.length === 0) {
       return Response.json({

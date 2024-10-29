@@ -1,7 +1,10 @@
-// app/notifications/page.tsx
 import type { Metadata } from 'next';
-import { FormationsService } from '@/services/formations.service';
+import { FormationService } from '@/services/formation/formations.service';
 import NotificationsForm from '@/components/features/notifications/NotificationsForm';
+import { FormationRepository } from '@/repositories/FormationRepository';
+
+const formationRepository = new FormationRepository();
+const formationService = new FormationService(formationRepository);
 
 export const metadata: Metadata = {
   title: 'Notifications | FFCAM Formations',
@@ -9,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function NotificationsPage() {
-  const disciplines = await FormationsService.getAllDisciplines();
+  const disciplines = await formationService.getAllDisciplines();
   
   const formattedDisciplines = disciplines.map(discipline => ({
     id: discipline,

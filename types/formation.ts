@@ -23,7 +23,8 @@ export const formationSchema = z.object({
   responsable: z.string(),
   emailContact: z.string().nullable(),
   documents: z.array(formationDocumentSchema).default([]),
-  firstSeenAt: z.string()
+  firstSeenAt: z.string(),
+  lastSeenAt: z.string()
 });
 
 export type Formation = z.infer<typeof formationSchema>;

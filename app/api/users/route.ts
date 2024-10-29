@@ -1,6 +1,10 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
-import { UserService } from '@/services/users.service';
+import { UserService } from '@/services/user/users.service';
 import { NextResponse } from 'next/server';
+import { UserRepository } from '@/repositories/UserRepository';
+
+const userRepository = new UserRepository();
+const userService = new UserService(userRepository);
 
 export async function GET() {
     try {
@@ -9,7 +13,7 @@ export async function GET() {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const preferences = await UserService.getNotificationPreferences(userId);
+        const preferences = await userService.getNotificationPreferences(userId);
         return NextResponse.json(preferences);
     } catch (error) {
         console.error('Error fetching user preferences:', error);
@@ -39,7 +43,7 @@ export async function POST(request: Request) {
         const email = user.emailAddresses[0].emailAddress;
         const { disciplines } = await request.json();
         
-        await UserService.updateNotificationPreferences(userId, email, disciplines);
+        await userService.updateNotificationPreferences(userId, email, disciplines);
         
         return NextResponse.json({ success: true });
     } catch (error) {

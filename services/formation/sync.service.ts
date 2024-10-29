@@ -1,9 +1,14 @@
 import { FFCAMScraper } from '@/lib/scraper';
-import { FormationsService } from '@/services/formations.service';
-import { EmailService } from '@/services/email.service';
+import { EmailService } from '@/services/email/email.service';
 import { Formation } from '@/types/formation';
 import util from 'util';
 import { env } from '@/env.mjs';
+import { FormationRepository } from '@/repositories/FormationRepository';
+import { FormationService } from './formations.service';
+
+
+const formationRepository = new FormationRepository();
+const formationService = new FormationService(formationRepository);
 
 interface SyncError {
     reference: string;
@@ -53,7 +58,7 @@ interface HtmlReportData {
 
 export class SyncService {
     static async getLastSyncDate() {
-        return FormationsService.getLastSync();
+        return formationService.getLastSync();
     }
 
     static async synchronize(): Promise<SyncResult> {
@@ -92,7 +97,7 @@ export class SyncService {
             try {
                 // const isNew = await FormationsService.isNewFormation(formation.reference);
 
-                await FormationsService.upsertFormation(formation);
+                await formationService.upsertFormation(formation);
                 succeeded++;
                 // if (true) { // TODO A CHANGER
                 //     newFormations.push(formation);
