@@ -6,7 +6,6 @@ import { env } from '@/env.mjs';
 import { FormationRepository } from '@/repositories/FormationRepository';
 import { FormationService } from './formations.service';
 
-
 const formationRepository = new FormationRepository();
 const formationService = new FormationService(formationRepository);
 
@@ -57,6 +56,8 @@ interface HtmlReportData {
 }
 
 export class SyncService {
+    private static readonly BATCH_SIZE = 50;
+
     static async getLastSyncDate() {
         return formationService.getLastSync();
     }
@@ -65,56 +66,64 @@ export class SyncService {
         const startTime = new Date();
         console.log('\n🔍 Démarrage du scraping des formations FFCAM...\n');
 
-        const formations = await FFCAMScraper.scrapeFormations();
-        await this.logFormations(formations);
+        try {
+            const formations = await FFCAMScraper.scrapeFormations();
+            await this.logFormations(formations);
 
-        const { succeeded, errors } = await this.syncFormations(formations);
+            const { succeeded, errors } = await this.syncFormations(formations);
 
-        const endTime = new Date();
-        const duration = (endTime.getTime() - startTime.getTime()) / 1000;
+            const endTime = new Date();
+            const duration = (endTime.getTime() - startTime.getTime()) / 1000;
 
-        return {
-            formations,
-            succeeded,
-            errors,
-            duration,
-            stats: {
-                total: formations.length,
-                synchronized: succeeded,
-                errors: errors.length,
-                duration: `${duration.toFixed(2)}s`,
-            }
-        };
+            const result = {
+                formations,
+                succeeded,
+                errors,
+                duration,
+                stats: {
+                    total: formations.length,
+                    synchronized: succeeded,
+                    errors: errors.length,
+                    duration: `${duration.toFixed(2)}s`,
+                }
+            };
+
+            return result;
+        } catch (error) {
+            throw error;
+        }
     }
 
     private static async syncFormations(formations: Formation[]) {
         console.log('\n💾 SYNCHRONISATION AVEC LA BASE DE DONNÉES:');
         let succeeded = 0;
         const errors: SyncError[] = [];
-        // const newFormations: Formation[] = [];
 
-        for (const formation of formations) {
+        // Traiter les formations par lots
+        for (let i = 0; i < formations.length; i += this.BATCH_SIZE) {
+            const batch = formations.slice(i, i + this.BATCH_SIZE);
             try {
-                // const isNew = await FormationsService.isNewFormation(formation.reference);
-
-                await formationService.upsertFormation(formation);
-                succeeded++;
-                // if (true) { // TODO A CHANGER
-                //     newFormations.push(formation);
-                // }
+                await formationService.upsertFormations(batch);
+                succeeded += batch.length;
                 process.stdout.write(`\r• Progression : ${succeeded}/${formations.length} formations synchronisées`);
             } catch (error) {
-                console.error(`\n❌ Échec pour ${formation.reference}:`, error);
-                errors.push({
-                    reference: formation.reference,
-                    error: error instanceof Error ? error.message : String(error)
-                });
+                console.error(`\n❌ Échec pour le lot ${Math.floor(i / this.BATCH_SIZE) + 1}:`, error);
+                // Fallback : traitement individuel en cas d'échec du lot
+                for (const formation of batch) {
+                    try {
+                        await formationService.upsertFormation(formation);
+                        succeeded++;
+                        process.stdout.write(`\r• Progression : ${succeeded}/${formations.length} formations synchronisées`);
+                    } catch (formationError) {
+                        console.error(`\n❌ Échec pour ${formation.reference}:`, formationError);
+                        errors.push({
+                            reference: formation.reference,
+                            error: formationError instanceof Error ? formationError.message : String(formationError)
+                        });
+                    }
+                }
             }
         }
-        // if (newFormations.length > 0) {
-        //     console.log(`\n📧 Envoi des notifications pour ${newFormations.length} nouvelles formations...`);
-        //     await NotificationService.notifyBatchNewFormations(newFormations);
-        // }
 
         return { succeeded, errors };
     }
@@ -223,14 +232,13 @@ export class SyncService {
 
     private static generateHtmlReport(data: HtmlReportData): string {
         return `
-      <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-        <h1 style="color: #2563eb;">📊 Rapport de synchronisation FFCAM</h1>
-        
-        ${this.generateSyncStatusSection(data.succeeded, data.formations.length, data.errors, data.duration)}
-        ${this.generateStatsSection(data.stats)}
-        ${data.errors.length > 0 ? this.generateErrorsSection(data.errors) : ''}
-      </div>
-    `;
+            <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+                <h1 style="color: #2563eb;">📊 Rapport de synchronisation FFCAM</h1>
+                ${this.generateSyncStatusSection(data.succeeded, data.formations.length, data.errors, data.duration)}
+                ${this.generateStatsSection(data.stats)}
+                ${data.errors.length > 0 ? this.generateErrorsSection(data.errors) : ''}
+            </div>
+        `;
     }
 
     private static generateSyncStatusSection(
@@ -241,83 +249,83 @@ export class SyncService {
     ): string {
         const isSuccess = errors.length === 0;
         return `
-      <div style="background-color: ${isSuccess ? '#ecfdf5' : '#fef2f2'}; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <h2 style="color: ${isSuccess ? '#065f46' : '#991b1b'}; margin-top: 0;">
-          ${isSuccess ? '✅ Synchronisation réussie' : '⚠️ Synchronisation avec erreurs'}
-        </h2>
-        <p>
-          <strong>📊 Formations traitées :</strong> ${succeeded}/${total}<br>
-          <strong>⏱️ Durée :</strong> ${duration.toFixed(2)} secondes
-        </p>
-      </div>
-    `;
+            <div style="background-color: ${isSuccess ? '#ecfdf5' : '#fef2f2'}; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h2 style="color: ${isSuccess ? '#065f46' : '#991b1b'}; margin-top: 0;">
+                    ${isSuccess ? '✅ Synchronisation réussie' : '⚠️ Synchronisation avec erreurs'}
+                </h2>
+                <p>
+                    <strong>📊 Formations traitées :</strong> ${succeeded}/${total}<br>
+                    <strong>⏱️ Durée :</strong> ${duration.toFixed(2)} secondes
+                </p>
+            </div>
+        `;
     }
 
     private static generateStatsSection(stats: FormationStats): string {
         return `
-      <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <h3 style="color: #1e293b; margin-top: 0;">📊 Statistiques</h3>
-        <ul style="list-style: none; padding: 0;">
-          <li>📋 Nombre total de formations : ${stats.total}</li>
-          <li>📍 Lieux uniques : ${stats.uniqueLocations}</li>
-          <li>🎯 Disciplines : ${stats.uniqueDisciplines}</li>
-          <li>🎫 Places restantes : ${stats.placesRestantes.total}</li>
-        </ul>
+            <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #1e293b; margin-top: 0;">📊 Statistiques</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li>📋 Nombre total de formations : ${stats.total}</li>
+                    <li>📍 Lieux uniques : ${stats.uniqueLocations}</li>
+                    <li>🎯 Disciplines : ${stats.uniqueDisciplines}</li>
+                    <li>🎫 Places restantes : ${stats.placesRestantes.total}</li>
+                </ul>
 
-        <h4 style="color: #1e293b;">📊 Distribution par discipline :</h4>
-        <ul style="list-style: none; padding: 0;">
-          ${Object.entries(stats.disciplines)
-                .sort(([, a], [, b]) => b - a)
-                .map(([discipline, count]) =>
-                    `<li>📌 ${discipline}: ${count} formations</li>`
-                ).join('')}
-        </ul>
+                <h4 style="color: #1e293b;">📊 Distribution par discipline :</h4>
+                <ul style="list-style: none; padding: 0;">
+                    ${Object.entries(stats.disciplines)
+                        .sort(([, a], [, b]) => b - a)
+                        .map(([discipline, count]) =>
+                            `<li>📌 ${discipline}: ${count} formations</li>`
+                        ).join('')}
+                </ul>
 
-        <p>
-          <strong>📅 Période couverte :</strong> du ${stats.dateRange.min.toLocaleDateString('fr-FR')} 
-          au ${stats.dateRange.max.toLocaleDateString('fr-FR')}
-        </p>
-      </div>
-    `;
+                <p>
+                    <strong>📅 Période couverte :</strong> du ${stats.dateRange.min.toLocaleDateString('fr-FR')} 
+                    au ${stats.dateRange.max.toLocaleDateString('fr-FR')}
+                </p>
+            </div>
+        `;
     }
 
     private static generateErrorsSection(errors: SyncError[]): string {
         return `
-      <div style="background-color: #fff1f2; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <h3 style="color: #991b1b; margin-top: 0;">⚠️ Erreurs rencontrées</h3>
-        <ul style="list-style: none; padding: 0;">
-          ${errors.map(error =>
-            `<li style="margin-bottom: 10px;">
-              <strong>❌ ${error.reference}</strong>: ${error.error}
-            </li>`
-        ).join('')}
-        </ul>
-      </div>
-    `;
+            <div style="background-color: #fff1f2; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #991b1b; margin-top: 0;">⚠️ Erreurs rencontrées</h3>
+                <ul style="list-style: none; padding: 0;">
+                    ${errors.map(error =>
+                        `<li style="margin-bottom: 10px;">
+                            <strong>❌ ${error.reference}</strong>: ${error.error}
+                        </li>`
+                    ).join('')}
+                </ul>
+            </div>
+        `;
     }
 
     private static generateErrorReport(errorMessage: string, formations: Formation[] = [], succeeded = 0): string {
         return `
-      <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-        <h1 style="color: #dc2626;">❌ Erreur critique de synchronisation FFCAM</h1>
-        
-        <div style="background-color: #fff1f2; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h2 style="color: #991b1b; margin-top: 0;">⚠️ Détails de l'erreur</h2>
-          <pre style="background-color: #fee2e2; padding: 15px; border-radius: 4px; overflow-x: auto;">
-            ${errorMessage}
-          </pre>
-        </div>
+            <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+                <h1 style="color: #dc2626;">❌ Erreur critique de synchronisation FFCAM</h1>
+                
+                <div style="background-color: #fff1f2; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h2 style="color: #991b1b; margin-top: 0;">⚠️ Détails de l'erreur</h2>
+                    <pre style="background-color: #fee2e2; padding: 15px; border-radius: 4px; overflow-x: auto;">
+                        ${errorMessage}
+                    </pre>
+                </div>
 
-        ${formations.length > 0 ? `
-          <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #1e293b; margin-top: 0;">ℹ️ État avant l'erreur</h3>
-            <ul style="list-style: none; padding: 0;">
-              <li>📊 Formations récupérées : ${formations.length}</li>
-              <li>✅ Formations synchronisées : ${succeeded}</li>
-            </ul>
-          </div>
-        ` : ''}
-      </div>
-    `;
+                ${formations.length > 0 ? `
+                    <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h3 style="color: #1e293b; margin-top: 0;">ℹ️ État avant l'erreur</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            <li>📊 Formations récupérées : ${formations.length}</li>
+                            <li>✅ Formations synchronisées : ${succeeded}</li>
+                        </ul>
+                    </div>
+                ` : ''}
+            </div>
+        `;
     }
 }
