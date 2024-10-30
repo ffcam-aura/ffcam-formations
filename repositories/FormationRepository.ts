@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { Formation } from "@/types/formation";
-import { Prisma } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
+
+type RelationType = 'disciplines' | 'lieux' | 'types_hebergement';
+type CacheKey = 'disciplines' | 'lieux' | 'hebergements';
 
 export interface IFormationRepository {
     upsertFormations(formations: Formation[]): Promise<void>;
@@ -19,9 +22,13 @@ export class FormationRepository implements IFormationRepository {
         disciplines: true,
         lieux: true,
         types_hebergement: true,
-        formations_dates: true,
+        formations_dates: {
+            orderBy: {
+                date_debut: 'asc'
+            }
+        },
         formations_documents: true
-    };
+    } as const;
 
     private relationCache = {
         disciplines: new Map<string, number>(),
@@ -29,14 +36,75 @@ export class FormationRepository implements IFormationRepository {
         hebergements: new Map<string, number>()
     };
 
-    /**
-     * Précharge et met en cache toutes les relations nécessaires
-     */
+    private async createMissingRelations(
+        table: RelationType,
+        allValues: Set<string>,
+        existingRecords: { id: number; nom: string }[]
+    ): Promise<void> {
+        const existingNames = new Set(existingRecords.map(r => r.nom));
+        const missingValues = Array.from(allValues).filter(v => !existingNames.has(v));
+
+        if (missingValues.length === 0) return;
+
+        // Créer les relations manquantes selon le type
+        switch (table) {
+            case 'disciplines':
+                await prisma.disciplines.createMany({
+                    data: missingValues.map(nom => ({ nom })),
+                    skipDuplicates: true
+                });
+                break;
+            case 'lieux':
+                await prisma.lieux.createMany({
+                    data: missingValues.map(nom => ({ nom })),
+                    skipDuplicates: true
+                });
+                break;
+            case 'types_hebergement':
+                await prisma.types_hebergement.createMany({
+                    data: missingValues.map(nom => ({ nom })),
+                    skipDuplicates: true
+                });
+                break;
+        }
+
+        // Récupérer les nouvelles relations créées
+        const newRecords = await this.getNewRecords(table, missingValues);
+        this.updateCache(table, newRecords);
+    }
+
+    private async getNewRecords(table: RelationType, values: string[]) {
+        switch (table) {
+            case 'disciplines':
+                return await prisma.disciplines.findMany({
+                    where: { nom: { in: values } },
+                    select: { id: true, nom: true }
+                });
+            case 'lieux':
+                return await prisma.lieux.findMany({
+                    where: { nom: { in: values } },
+                    select: { id: true, nom: true }
+                });
+            case 'types_hebergement':
+                return await prisma.types_hebergement.findMany({
+                    where: { nom: { in: values } },
+                    select: { id: true, nom: true }
+                });
+        }
+    }
+
+    private updateCache(table: RelationType, records: { id: number; nom: string }[]) {
+        const cacheKey: CacheKey = table === 'types_hebergement' ? 'hebergements' : table;
+        records.forEach(r => this.relationCache[cacheKey].set(r.nom, r.id));
+    }
+
     private async preloadRelations(formations: Formation[]): Promise<void> {
         // Extraire les valeurs uniques
         const disciplines = new Set(formations.map(f => f.discipline));
         const lieux = new Set(formations.map(f => f.lieu));
-        const hebergements = new Set(formations.filter(f => f.hebergement).map(f => f.hebergement));
+        const hebergements = new Set(
+            formations.filter(f => f.hebergement).map(f => f.hebergement)
+        );
 
         // Charger les relations existantes en parallèle
         const [existingDisciplines, existingLieux, existingHebergements] = await Promise.all([
@@ -67,38 +135,6 @@ export class FormationRepository implements IFormationRepository {
         ]);
     }
 
-    /**
-     * Crée les relations manquantes pour une table donnée
-     */
-    private async createMissingRelations(
-        table: 'disciplines' | 'lieux' | 'types_hebergement',
-        allValues: Set<string>,
-        existingRecords: { id: number; nom: string }[]
-    ): Promise<void> {
-        const existingNames = new Set(existingRecords.map(r => r.nom));
-        const missingValues = Array.from(allValues).filter(v => !existingNames.has(v));
-
-        if (missingValues.length === 0) return;
-
-        // Créer les relations manquantes en batch
-        await prisma[table].createMany({
-            data: missingValues.map(nom => ({ nom })),
-            skipDuplicates: true
-        });
-
-        // Mettre à jour le cache avec les nouvelles relations
-        const newRecords = await prisma[table].findMany({
-            where: { nom: { in: missingValues } },
-            select: { id: true, nom: true }
-        });
-
-        const cacheKey = table === 'types_hebergement' ? 'hebergements' : table;
-        newRecords.forEach(r => this.relationCache[cacheKey].set(r.nom, r.id));
-    }
-
-    /**
-     * Met à jour ou crée un lot de formations
-     */
     async upsertFormations(formations: Formation[]): Promise<void> {
         // Pré-charger toutes les relations
         await this.preloadRelations(formations);
@@ -110,9 +146,6 @@ export class FormationRepository implements IFormationRepository {
         }
     }
 
-    /**
-     * Traite un lot de formations dans une seule transaction
-     */
     private async processBatch(formations: Formation[]): Promise<void> {
         await prisma.$transaction(async (tx) => {
             // Préparer les données des formations
@@ -189,16 +222,10 @@ export class FormationRepository implements IFormationRepository {
         });
     }
 
-    /**
-     * Met à jour ou crée une formation individuelle
-     */
     async upsertFormation(formation: Formation): Promise<void> {
         await this.upsertFormations([formation]);
     }
 
-    /**
-     * Trouve une formation par sa référence
-     */
     async findFormationByReference(reference: string): Promise<Formation | null> {
         const formation = await prisma.formations.findUnique({
             where: { reference },
@@ -210,9 +237,6 @@ export class FormationRepository implements IFormationRepository {
         return this.mapFormationToDTO(formation);
     }
 
-    /**
-     * Récupère toutes les formations
-     */
     async findAllFormations(): Promise<Formation[]> {
         const formations = await prisma.formations.findMany({
             where: { status: 'active' },
@@ -223,9 +247,6 @@ export class FormationRepository implements IFormationRepository {
         return formations.map(this.mapFormationToDTO);
     }
 
-    /**
-     * Récupère toutes les disciplines
-     */
     async findAllDisciplines(): Promise<string[]> {
         const disciplines = await prisma.disciplines.findMany({
             orderBy: { nom: 'asc' },
@@ -234,9 +255,6 @@ export class FormationRepository implements IFormationRepository {
         return disciplines.map(d => d.nom);
     }
 
-    /**
-     * Récupère la date de dernière synchronisation
-     */
     async getLastSync(): Promise<Date | null> {
         const result = await prisma.formations.aggregate({
             _max: {
@@ -246,9 +264,6 @@ export class FormationRepository implements IFormationRepository {
         return result._max.last_seen_at;
     }
 
-    /**
-     * Récupère les formations récentes
-     */
     async findRecentFormations(hours: number): Promise<Formation[]> {
         const date = new Date(Date.now() - hours * 60 * 60 * 1000);
 
@@ -271,9 +286,6 @@ export class FormationRepository implements IFormationRepository {
         return formations.map(this.mapFormationToDTO);
     }
 
-    /**
-     * Convertit une formation de la base de données en DTO
-     */
     private mapFormationToDTO(formation: any): Formation {
         return {
             reference: formation.reference,
