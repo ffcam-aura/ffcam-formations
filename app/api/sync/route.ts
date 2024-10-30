@@ -1,3 +1,4 @@
+export const maxDuration = 60;
 import { SyncService } from '@/services/formation/sync.service';
 
 export async function GET(request: Request) {
