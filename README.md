@@ -10,7 +10,7 @@ Voila ce que fait l'appli:
 - les mettre à dispo via une API
 - les afficher sur la page d'accueil
 
-L'appli est déployée sur [https://ffcam-aura.fr](https://ffcam-aura.fr) grâce à Vercel. Pour le moment, le compte Vercel utilisé est gratuit et lié à mon compte perso.
+L'appli est déployée sur [https://formations.ffcam-aura.fr](https://formations.ffcam-aura.fr) grâce à Vercel. Pour le moment, le compte Vercel utilisé est gratuit et lié à mon compte perso.
 
 ## Fonctionnalités
 
@@ -21,7 +21,7 @@ L'appli est déployée sur [https://ffcam-aura.fr](https://ffcam-aura.fr) grâce
 
 ## Technologies
 
-- **Next.js**, **React**, **Tailwind CSS**, **TypeScript**, **Date-fns**
+- **Next.js**, **React**, **Tailwind CSS**, **TypeScript**, **Date-fns**, **Prisma**
   
 ## Installation
 
@@ -42,7 +42,7 @@ L'appli est déployée sur [https://ffcam-aura.fr](https://ffcam-aura.fr) grâce
 Lancez le projet en mode développement :
 
 ```bash
-pnpm run dev
+pnpm dev
 ```
 
 ## Pré-déploiement avec Husky

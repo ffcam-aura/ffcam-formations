@@ -120,7 +120,7 @@ export class EmailTemplateRenderer {
     private renderFormationLink(formation: Formation): string {
       return `
         <div style="margin-top: 20px;">
-          <a href="${process.env.NEXT_PUBLIC_APP_URL}/formations/${formation.reference}"
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}"
              style="background-color: #2563eb; color: white; padding: 10px 20px; 
                     text-decoration: none; border-radius: 5px; display: inline-block;">
             Voir les détails
