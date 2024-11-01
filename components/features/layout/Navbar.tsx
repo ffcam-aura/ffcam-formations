@@ -28,22 +28,22 @@ export default function Navbar() {
           {/* Navigation */}
           <div className="hidden md:flex items-center space-x-6">
             <div className="flex items-center space-x-4">
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-primary-500 transition-colors"
               >
                 Accueil
               </Link>
-              <Link 
-                href="#" 
+              <Link
+                href="/a-propos"
                 className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-primary-500 transition-colors"
               >
                 À propos
               </Link>
-              <a 
+              <a
                 href="https://github.com/ffcam-aura/ffcam-formations"
                 target="_blank"
-                rel="noopener noreferrer" 
+                rel="noopener noreferrer"
                 className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-primary-500 transition-colors inline-flex items-center space-x-2"
               >
                 <Github size={16} />
