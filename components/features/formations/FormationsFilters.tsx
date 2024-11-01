@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 type FiltersProps = {
   onFilterChange: (filters: {
-    searchQuery: string;
+    searchQueryInput: string;
     location: string;
     discipline: string;
     organisateur: string;
@@ -12,16 +12,21 @@ type FiltersProps = {
     showPastFormations: boolean;
   }) => void;
   locations: string[];
+  searchQueryInput: string;
   disciplines: string[];
+  selectedDiscipline: string;
   organisateurs: string[];
+  availableOnly: boolean;
   showPastFormations: boolean;
 };
 
 export default function Filters({
   onFilterChange,
+  searchQueryInput,
   locations,
   disciplines,
   organisateurs,
+  availableOnly,
   showPastFormations,
 }: FiltersProps) {
   const [selectedLocation, setSelectedLocation] = useState<string>("");
@@ -29,13 +34,13 @@ export default function Filters({
   const [selectedOrganisateur, setSelectedOrganisateur] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
-  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [showAvailableOnly, setShowAvailableOnly] = useState(availableOnly);
+  const [searchQuery, setSearchQuery] = useState(searchQueryInput);
   const [showPast, setShowPast] = useState(showPastFormations);
 
   useEffect(() => {
     onFilterChange({
-      searchQuery,
+      searchQueryInput: searchQuery,
       location: selectedLocation,
       discipline: selectedDiscipline,
       organisateur: selectedOrganisateur,
@@ -48,7 +53,6 @@ export default function Filters({
 
   return (
     <div className="border p-6 rounded-lg shadow-lg bg-white mb-6">
-      {/* Barre de recherche principale et organisateur */}
       <div className="flex gap-4 mb-6">
         <div className="flex-1">
           <input
@@ -75,7 +79,6 @@ export default function Filters({
         </div>
       </div>
 
-      {/* Autres filtres */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div>
           <select
@@ -123,7 +126,6 @@ export default function Filters({
         </div>
       </div>
 
-      {/* Options supplémentaires */}
       <div className="space-y-3 border-t pt-4 text-neutral-dark">
         <label className="flex items-center space-x-3 cursor-pointer group">
           <input
