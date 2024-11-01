@@ -3,7 +3,7 @@ import { Formation } from "@/types/formation";
 import { formatFilters, sortFormations } from '@/lib/formationFilter';
 
 export type Filters = {
-  searchQuery: string;
+  searchQueryInput: string;
   location: string;
   discipline: string;
   organisateur: string;
@@ -13,17 +13,19 @@ export type Filters = {
   showPastFormations: boolean;
 };
 
-export function useFormationFilters(formations: Formation[], sortOption: string) {
-  const [filters, setFilters] = useState<Filters>({
-    searchQuery: "",
-    location: "",
-    discipline: "",
-    organisateur: "",
-    startDate: "",
-    endDate: "",
-    availableOnly: false,
-    showPastFormations: false,
-  });
+export function useFormationFilters(formations: Formation[], sortOption: string, searchParams: URLSearchParams) {
+  const initialFilters: Filters = {
+    searchQueryInput: searchParams.get("searchQuery") || "",
+    location: searchParams.get("location") || "",
+    discipline: searchParams.get("discipline") || "",
+    organisateur: searchParams.get("organisateur") || "",
+    startDate: searchParams.get("startDate") || "",
+    endDate: searchParams.get("endDate") || "",
+    availableOnly: true,
+    showPastFormations: searchParams.get("showPastFormations") === "true",
+  };
+  console.log(initialFilters);
+  const [filters, setFilters] = useState<Filters>(initialFilters);
   const [filteredFormations, setFilteredFormations] = useState(formations);
 
   useEffect(() => {

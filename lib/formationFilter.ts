@@ -1,4 +1,3 @@
-// lib/formatFilters.ts
 import { Filters } from "@/hooks/userFormationsFilter";
 import { Formation } from "@/types/formation";
 import { parseISO, isAfter } from "date-fns";
@@ -8,9 +7,9 @@ export function formatFilters(formations: Formation[], filters: Filters): Format
 
   return formations.filter((formation) => {
     // Recherche par titre ou description
-    const matchesSearchQuery = filters.searchQuery
-      ? formation.titre.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-        formation.informationStagiaire.toLowerCase().includes(filters.searchQuery.toLowerCase())
+    const matchesSearchQuery = filters.searchQueryInput
+      ? formation.titre.toLowerCase().includes(filters.searchQueryInput.toLowerCase()) ||
+        formation.informationStagiaire.toLowerCase().includes(filters.searchQueryInput.toLowerCase())
       : true;
 
     // Filtrer par lieu

@@ -8,19 +8,33 @@ import { ClipLoader } from "react-spinners";
 import { useFormationFilters } from "@/hooks/userFormationsFilter";
 import { FormationsHeader } from "@/components/features/formations/FormationsHeader";
 import { FormationsToolbar } from "@/components/features/formations/FormationsToolbar";
+import { useSearchParams } from "next/navigation";
+import { FilterValues } from "@/types/filters";
 
 export default function Home() {
+  const searchParams = useSearchParams();
   const { formations, lastSyncDate, loading, error } = useFormations();
   const [showIntro, setShowIntro] = useState(true);
   const [sortOption, setSortOption] = useState('date-asc');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  
+
   const uniqueLocations = Array.from(new Set(formations.map((f) => f.lieu)));
   const uniqueDisciplines = Array.from(new Set(formations.map((f) => f.discipline)));
   const uniqueOrganisateurs = Array.from(new Set(formations.map((f) => f.organisateur)))
     .sort((a, b) => a.localeCompare(b, 'fr'));
 
-  const { filters, setFilters, filteredFormations } = useFormationFilters(formations, sortOption);
+  const initialFilters: FilterValues = {
+    searchQuery: searchParams.get('searchQuery') || '',
+    location: searchParams.get('location') || '',
+    discipline: searchParams.get('discipline') || '',
+    organisateur: searchParams.get('organisateur') || '',
+    startDate: searchParams.get('startDate') || '',
+    endDate: searchParams.get('endDate') || '',
+    availableOnly: searchParams.get('availableOnly') === 'true',
+    showPastFormations: searchParams.get('showPastFormations') === 'true',
+  };
+
+  const { filters, setFilters, filteredFormations } = useFormationFilters(formations, sortOption, initialFilters);
 
   if (loading) {
     return (
@@ -46,7 +60,7 @@ export default function Home() {
 
   return (
     <main className="flex-grow container mx-auto p-8">
-      <FormationsHeader 
+      <FormationsHeader
         data-testid="formations-header"
         showIntro={showIntro}
         setShowIntro={setShowIntro}
@@ -54,16 +68,20 @@ export default function Home() {
       />
 
       <Filters
-       data-testid="filters"
+        data-testid="filters"
         onFilterChange={setFilters}
+        searchQueryInput={filters.searchQueryInput}
         locations={uniqueLocations}
         disciplines={uniqueDisciplines}
+        selectedDiscipline={filters.discipline}
         organisateurs={uniqueOrganisateurs}
+        availableOnly={filters.availableOnly}
         showPastFormations={filters.showPastFormations}
+        initialFilters={filters}
       />
 
-      <FormationsToolbar 
-      data-testid="formations-toolbar"
+      <FormationsToolbar
+        data-testid="formations-toolbar"
         formationCount={filteredFormations.length}
         sortOption={sortOption}
         setSortOption={setSortOption}
