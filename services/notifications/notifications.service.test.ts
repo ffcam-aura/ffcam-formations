@@ -1,10 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Mock } from 'vitest';
 import { NotificationService } from './notifications.service';
-import { NotificationRepository } from '@/repositories/NotificationRepository';
-import { EmailTemplateRenderer } from './emailTemplate.service';
-import { EmailService } from '../email/email.service';
-import { UserService } from '../user/users.service';
 import { NotificationProcessor } from './notificationProcessor.service';
 import { prisma } from '@/lib/prisma';
 

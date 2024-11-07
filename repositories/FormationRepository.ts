@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Formation } from "@/types/formation";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 type RelationType = 'disciplines' | 'lieux' | 'types_hebergement';
 type CacheKey = 'disciplines' | 'lieux' | 'hebergements';
@@ -286,11 +286,11 @@ export class FormationRepository implements IFormationRepository {
         return formations.map(this.mapFormationToDTO);
     }
 
-    private mapFormationToDTO(formation: any): Formation {
+    private mapFormationToDTO(formation: Prisma.formationsGetPayload<{ include: typeof this.formationInclude }>): Formation {
         return {
             reference: formation.reference,
             titre: formation.titre,
-            dates: formation.formations_dates?.map((d: any) => d.date_debut.toISOString()) || [],
+            dates: formation.formations_dates?.map((d) => d.date_debut.toISOString()) || [],
             lieu: formation.lieux?.nom || '',
             informationStagiaire: formation.information_stagiaire || '',
             nombreParticipants: Number(formation.nombre_participants),
@@ -303,7 +303,7 @@ export class FormationRepository implements IFormationRepository {
             emailContact: formation.email_contact,
             firstSeenAt: formation.first_seen_at,
             lastSeenAt: formation.last_seen_at,
-            documents: formation.formations_documents?.map((doc: any) => ({
+            documents: formation.formations_documents?.map((doc) => ({
                 type: doc.type,
                 nom: doc.nom,
                 url: doc.url

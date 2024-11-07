@@ -12,7 +12,7 @@ export default defineConfig({
     reporters: ['verbose'],
     coverage: {
       reporter: ['text', 'json', 'html'],
-      include: ['app/**/*.ts', 'app/**/*.tsx'],
+      include: ['app/**/*.ts', 'app/**/*.tsx', '**/*.tsx', '**/*.ts'],
       exclude: ['app/**/*.test.ts', 'app/**/*.test.tsx']
     },
   },
