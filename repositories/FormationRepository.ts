@@ -286,8 +286,10 @@ export class FormationRepository implements IFormationRepository {
         return formations.map(this.mapFormationToDTO);
     }
 
-    private mapFormationToDTO(formation: Prisma.formationsGetPayload<{ include: typeof this.formationInclude }>): Formation {
+    private mapFormationToDTO(formation: any): Formation {
         return {
+            ...formation,
+            disciplines: formation.disciplines ? [formation.disciplines] : [],
             reference: formation.reference,
             titre: formation.titre,
             dates: formation.formations_dates?.map((d) => d.date_debut.toISOString()) || [],
