@@ -2,6 +2,7 @@ import { NotificationRepository } from "@/repositories/NotificationRepository";
 import { Formation } from "@/types/formation";
 import { UserService } from "@/services/user/users.service";
 import { UserRepository } from "@/repositories/UserRepository";
+import { isSameDay } from "date-fns";
 
 const userRepository = new UserRepository();
 const userService = new UserService(userRepository);
@@ -39,12 +40,26 @@ export interface UserNotificationData {
     ): Promise<void> {
       const usersToNotify = await userService.getUsersToNotifyForDiscipline(discipline);
       
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+    
+      const todaysFormations = formations.filter(f => 
+        f.discipline === discipline && 
+        f.firstSeenAt &&
+        isSameDay(new Date(f.firstSeenAt), today)
+      );
+    
+      // Si aucune formation du jour, on peut éviter de traiter les utilisateurs
+      if (todaysFormations.length === 0) {
+        return;
+      }
+    
       for (const {userId, email} of usersToNotify) {
         if (await this.shouldNotifyUser(userId, discipline)) {
           this.addFormationsForUser(
             userId,
             email,
-            formations.filter(f => f.discipline === discipline),
+            todaysFormations,
             userNotifications
           );
         }
