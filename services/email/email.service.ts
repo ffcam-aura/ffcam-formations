@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { env } from '@/env.mjs';
+import { env } from '@/env.ts';
 
 interface EmailOptions {
     to: string | string[];
@@ -18,10 +18,11 @@ export class EmailService {
     });
     
     static async sendEmail({ to, subject, html }: EmailOptions): Promise<void> {
+        const changedSubject = env.VERCEL_ENV === 'production' ? subject : `[DEV] ${subject}`;
         const mailOptions = {
             from: env.EMAIL_FROM,
             to: to,
-            subject: subject,
+            subject: changedSubject,
             html: html,
           };
       
