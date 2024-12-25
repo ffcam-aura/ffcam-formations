@@ -20,9 +20,10 @@ export function useUrlFilters() {
 
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        params.set(key, value.toString());
+        const urlKey = key === 'searchQuery' ? 'recherche' : key;
+        params.set(urlKey, value.toString());
       } else {
-        params.delete(key);
+        params.delete(key === 'searchQuery' ? 'recherche' : key);
       }
     });
 
@@ -30,7 +31,7 @@ export function useUrlFilters() {
   }, [pathname, router, searchParams]);
 
   const getFiltersFromUrl = () => ({
-    searchQuery: searchParams.get('searchQuery') || '',
+    searchQuery: searchParams.get('recherche') || '',
     location: searchParams.get('location') || '',
     discipline: searchParams.get('discipline') || '',
     organisateur: searchParams.get('organisateur') || '',

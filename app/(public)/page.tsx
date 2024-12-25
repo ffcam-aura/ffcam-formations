@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFormations } from "@/hooks/useFormations";
 import Filters from "@/components/features/formations/FormationsFilters";
 import FormationList from "@/components/features/formations/FormationList";
@@ -15,7 +15,25 @@ export default function Home() {
   const [showIntro, setShowIntro] = useState(true);
   const [sortOption, setSortOption] = useState('date-asc');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  
+  const [loadingMessage, setLoadingMessage] = useState(0);
+
+  const loadingMessages = [
+    "Chargement des formations...",
+    "Récupération des données...",
+    "Préparation de l'affichage...",
+    "C'est presque prêt...",
+  ];
+
+  useEffect(() => {
+    if (!loading) return;
+
+    const interval = setInterval(() => {
+      setLoadingMessage((prev) => (prev + 1) % loadingMessages.length);
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [loading]);
+
   const uniqueLocations = Array.from(new Set(formations.map((f) => f.lieu)));
   const uniqueDisciplines = Array.from(new Set(formations.map((f) => f.discipline)));
   const uniqueOrganisateurs = Array.from(new Set(formations.map((f) => f.organisateur)))
@@ -25,8 +43,11 @@ export default function Home() {
 
   if (loading) {
     return (
-      <main className="flex-grow flex items-center justify-center">
+      <main className="flex-grow flex flex-col items-center justify-center gap-4">
         <ClipLoader color="#3B82F6" size={50} speedMultiplier={0.8} data-testid="spinner" />
+        <p className="text-gray-600 animate-fade-in">
+          {loadingMessages[loadingMessage]}
+        </p>
       </main>
     );
   }
