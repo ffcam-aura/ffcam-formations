@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useUrlFilters } from '@/hooks/useUrlFilters';
 
 type FiltersProps = {
   onFilterChange: (filters: {
@@ -24,6 +25,8 @@ export default function Filters({
   organisateurs,
   showPastFormations,
 }: FiltersProps) {
+  const { updateUrl, getFiltersFromUrl } = useUrlFilters();
+  const urlFilters = getFiltersFromUrl();
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>("");
   const [selectedOrganisateur, setSelectedOrganisateur] = useState<string>("");
@@ -34,7 +37,7 @@ export default function Filters({
   const [showPast, setShowPast] = useState(showPastFormations);
 
   useEffect(() => {
-    onFilterChange({
+    const filters = {
       searchQuery,
       location: selectedLocation,
       discipline: selectedDiscipline,
@@ -43,8 +46,23 @@ export default function Filters({
       endDate,
       availableOnly: showAvailableOnly,
       showPastFormations: showPast,
-    });
-  }, [searchQuery, selectedLocation, selectedDiscipline, selectedOrganisateur, startDate, endDate, showAvailableOnly, showPast, onFilterChange]);
+    };
+
+    onFilterChange(filters);
+    updateUrl(filters);
+  }, [searchQuery, selectedLocation, selectedDiscipline, selectedOrganisateur, startDate, endDate, showAvailableOnly, showPast]);
+
+  // Initialiser les filtres depuis l'URL au chargement
+  useEffect(() => {
+    setSearchQuery(urlFilters.searchQuery);
+    setSelectedLocation(urlFilters.location);
+    setSelectedDiscipline(urlFilters.discipline);
+    setSelectedOrganisateur(urlFilters.organisateur);
+    setStartDate(urlFilters.startDate);
+    setEndDate(urlFilters.endDate);
+    setShowAvailableOnly(urlFilters.availableOnly);
+    setShowPast(urlFilters.showPastFormations);
+  }, []);
 
   const handleReset = () => {
     setSearchQuery("");
