@@ -295,8 +295,12 @@ export class FormationRepository implements IFormationRepository {
             dates: formation.formations_dates?.map((d) => d.date_debut.toISOString()) || [],
             lieu: formation.lieux?.nom || '',
             informationStagiaire: formation.information_stagiaire || '',
-            nombreParticipants: Number(formation.nombre_participants),
-            placesRestantes: formation.places_restantes ? Number(formation.places_restantes) : null,
+            nombreParticipants: formation.nombre_participants !== null && formation.nombre_participants !== undefined 
+                ? Number(formation.nombre_participants)
+                : null,
+            placesRestantes: formation.places_restantes !== null && formation.places_restantes !== undefined 
+                ? Number(formation.places_restantes) 
+                : null,
             hebergement: formation.types_hebergement?.nom || '',
             tarif: Number(formation.tarif),
             discipline: formation.disciplines?.nom || '',
