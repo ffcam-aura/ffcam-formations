@@ -21,7 +21,23 @@ L'appli est déployée sur [https://formations.ffcam-aura.fr](https://formations
 
 ## Technologies
 
-- **Next.js**, **React**, **Tailwind CSS**, **TypeScript**, **Date-fns**, **Prisma**
+- **Frontend** : Next.js, React, Tailwind CSS, TypeScript
+- **Base de données** : PostgreSQL avec Prisma ORM
+- **Authentification** : Clerk
+- **Autres** : Date-fns, Sentry, Vercel Analytics
+
+## Environnements
+
+### Développement local
+- **Base de données** : Supabase
+- **Authentification** : Clerk (clés de test)
+- **Email** : Brevo SMTP
+
+### Production
+- **Hébergement** : Vercel
+- **Base de données** : Neon PostgreSQL (via Vercel Marketplace)
+- **Authentification** : Clerk (clés de production)
+- **Email** : Brevo SMTP
   
 ## Installation
 
@@ -53,6 +69,99 @@ Avant chaque push, **Husky** s'assure que votre code passe les tests de linting 
 - **Build** : `pnpm build`
 
 Cela garantit que vous ne poussiez jamais de code qui ne passe pas les lint et le build et vous fasse perdre du temps sur **Vercel**.
+
+## API
+
+L'application expose plusieurs endpoints API :
+
+### Formations
+
+#### `GET /api/formations`
+Récupère la liste des formations avec pagination et filtrage.
+
+**Paramètres de requête :**
+- `page` (optionnel) : Numéro de page (défaut: 1)
+- `limit` (optionnel) : Nombre d'éléments par page (défaut: 12)
+- `discipline` (optionnel) : Filtrer par discipline
+- `lieu` (optionnel) : Filtrer par lieu
+- `organisateur` (optionnel) : Filtrer par organisateur
+- `dateDebut` (optionnel) : Date de début (YYYY-MM-DD)
+- `dateFin` (optionnel) : Date de fin (YYYY-MM-DD)
+- `disponibilite` (optionnel) : Formations avec places disponibles (true/false)
+- `searchQuery` (optionnel) : Recherche textuelle
+
+**Réponse :**
+```json
+{
+  "formations": [...],
+  "total": 150,
+  "totalPages": 13,
+  "page": 1,
+  "limit": 12
+}
+```
+
+### Synchronisation
+
+#### `GET /api/sync`
+Lance la synchronisation manuelle des formations depuis le site FFCAM.
+
+**Authentification requise :**
+```bash
+curl -X GET "http://localhost:3000/api/sync" \
+  -H "Authorization: Bearer YOUR_CRON_SECRET"
+```
+
+**Réponse :**
+```json
+{
+  "success": true,
+  "message": "Synchronisation terminée",
+  "stats": {
+    "totalFormations": 150,
+    "newFormations": 5,
+    "updatedFormations": 12,
+    "disciplines": 8,
+    "lieux": 25
+  }
+}
+```
+
+#### `GET /api/sync/last`
+Récupère la date de dernière synchronisation.
+
+**Réponse :**
+```json
+"2024-01-15T04:00:00.000Z"
+```
+
+### Notifications
+
+#### `GET /api/notifications/send`
+Envoie les notifications email pour les nouvelles formations (24h).
+
+**Authentification requise :**
+```bash
+curl -X GET "http://localhost:3000/api/notifications/send" \
+  -H "Authorization: Bearer YOUR_CRON_SECRET"
+```
+
+### Utilisateurs
+
+#### `GET /api/users`
+Récupère les préférences de notification de l'utilisateur connecté.
+*Authentification Clerk requise.*
+
+#### `POST /api/users`
+Met à jour les préférences de notification de l'utilisateur.
+*Authentification Clerk requise.*
+
+**Corps de la requête :**
+```json
+{
+  "disciplines": ["Alpinisme", "Escalade"]
+}
+```
 
 ## Contribuer
 
