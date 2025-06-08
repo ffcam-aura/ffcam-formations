@@ -6,6 +6,43 @@ const formationRepository = new FormationRepository();
 const formationService = new FormationService(formationRepository);
 
 export async function GET() {
-  const allFormations = await formationService.getAllFormations();
-  return NextResponse.json(allFormations);
+  try {
+    const allFormations = await formationService.getAllFormations();
+    return NextResponse.json(allFormations);
+  } catch (error) {
+    console.error('Erreur API /formations:', error);
+    
+    // Gestion des erreurs spécifiques
+    if (error?.name === 'PrismaClientInitializationError') {
+      return NextResponse.json(
+        { 
+          error: 'SERVICE_UNAVAILABLE',
+          message: 'Le service est temporairement indisponible. Veuillez réessayer dans quelques instants.',
+          details: 'Connexion à la base de données impossible'
+        }, 
+        { status: 503 }
+      );
+    }
+
+    if (error?.name === 'PrismaClientKnownRequestError') {
+      return NextResponse.json(
+        { 
+          error: 'DATABASE_ERROR',
+          message: 'Erreur lors de la récupération des données. Veuillez réessayer.',
+          details: 'Erreur de requête base de données'
+        }, 
+        { status: 500 }
+      );
+    }
+
+    // Erreur générique
+    return NextResponse.json(
+      { 
+        error: 'INTERNAL_SERVER_ERROR',
+        message: 'Une erreur inattendue s&apos;est produite. Veuillez réessayer plus tard.',
+        details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      }, 
+      { status: 500 }
+    );
+  }
 }
