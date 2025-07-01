@@ -1,4 +1,5 @@
 import { Formation } from "@/types/formation";
+import { format } from "date-fns";
 
 export class EmailTemplateRenderer {
     render(formations: Formation[]): string {
@@ -63,7 +64,7 @@ export class EmailTemplateRenderer {
     private renderFormationDetails(formation: Formation): string {
       const details = [
           { icon: '📍', label: 'Lieu', value: formation.lieu },
-          { icon: '📅', label: 'Dates', value: formation.dates.join(' au ') },
+          { icon: '📅', label: 'Dates', value: formation.dates.map(date => this.formatDate(date)).join(' au ') },
           ...this.renderOptionalInformation(formation),
           { 
             icon: '👥', 
@@ -150,5 +151,9 @@ export class EmailTemplateRenderer {
           </p>
         </div>
       `;
+    }
+  
+    private formatDate(dateString: string): string {
+      return format(new Date(dateString), "dd/MM/yyyy");
     }
   }
