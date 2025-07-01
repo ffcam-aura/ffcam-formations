@@ -56,7 +56,7 @@ export class EmailTemplateRenderer {
           <ul style="list-style: none; padding: 0;">
             ${this.renderFormationDetails(formation)}
           </ul>
-          ${this.renderFormationLink(formation)}
+          // ${this.renderFormationLink(formation)}
         </div>
       `;
     }
