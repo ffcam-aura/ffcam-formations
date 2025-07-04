@@ -1,5 +1,4 @@
 import { Formation } from "@/types/formation";
-import { format } from "date-fns";
 
 export class EmailTemplateRenderer {
     render(formations: Formation[]): string {
@@ -64,7 +63,7 @@ export class EmailTemplateRenderer {
     private renderFormationDetails(formation: Formation): string {
       const details = [
           { icon: '📍', label: 'Lieu', value: formation.lieu },
-          { icon: '📅', label: 'Dates', value: formation.dates.map(date => this.formatDate(date)).join(' au ') },
+          { icon: '📅', label: 'Dates', value: this.formatDateRange(formation.dates) },
           ...this.renderOptionalInformation(formation),
           { 
             icon: '👥', 
@@ -154,6 +153,50 @@ export class EmailTemplateRenderer {
     }
   
     private formatDate(dateString: string): string {
-      return format(new Date(dateString), "dd/MM/yyyy");
+      // Gérer les cas d'erreur
+      if (!dateString || dateString.trim() === '') {
+        return 'Date non spécifiée';
+      }
+      
+      try {
+        const date = new Date(dateString);
+        
+        // Vérifier si la date est valide
+        if (isNaN(date.getTime())) {
+          return 'Date invalide';
+        }
+        
+        // Formater la date en français
+        return date.toLocaleDateString('fr-FR');
+      } catch (error) {
+        console.error('Erreur lors du formatage de la date:', error);
+        return 'Date invalide';
+      }
+    }
+
+    private formatDateRange(dates: string[]): string {
+      if (!dates || dates.length === 0) return "Dates non spécifiées";
+      
+      // Filtrer les dates vides ou invalides
+      const validDates = dates.filter(date => {
+        if (!date || date.trim() === '') return false;
+        try {
+          const parsedDate = new Date(date);
+          return !isNaN(parsedDate.getTime());
+        } catch {
+          return false;
+        }
+      });
+      
+      if (validDates.length === 0) return "Dates non spécifiées";
+      
+      // Trier les dates dans l'ordre chronologique
+      const sortedDates = [...validDates].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+      
+      if (sortedDates.length === 1) {
+        return this.formatDate(sortedDates[0]);
+      }
+
+      return `du ${this.formatDate(sortedDates[0])} au ${this.formatDate(sortedDates[sortedDates.length - 1])}`;
     }
   }

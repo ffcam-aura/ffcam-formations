@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { AlertCircle, InfoIcon, Search } from "lucide-react";
+import { AlertCircle, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -127,14 +127,6 @@ export default function NotificationsForm({ initialDisciplines }: NotificationsF
     <div className="container max-w-3xl mx-auto p-4">
       <Card>
         <CardHeader>
-          <Alert className="mb-6">
-            <InfoIcon className="h-4 w-4" />
-            <AlertDescription>
-              La notification des nouvelles formations est actuellement en version bêta jusqu&apos;à fin octobre 2024.
-              Pendant cette phase de test, vous pourriez recevoir quelques notifications de test pour nous aider à valider le système.
-              Nous vous remercions de votre compréhension et de votre participation à l&apos;amélioration de ce service.
-            </AlertDescription>
-          </Alert>
 
           {loadError && (
             <Alert variant="destructive" className="mb-6">
