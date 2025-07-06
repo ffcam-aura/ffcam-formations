@@ -65,6 +65,14 @@ export default function Footer() {
                   Roadmap
                 </a>
               </li>
+              <li>
+                <Link
+                  href="/politique-confidentialite"
+                  className="text-gray-600 hover:text-primary-500 transition-colors"
+                >
+                  Politique de confidentialité
+                </Link>
+              </li>
             </ul>
           </div>
 
