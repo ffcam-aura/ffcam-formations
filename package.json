@@ -13,12 +13,12 @@
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "postinstall": "prisma generate",
-    "vercel:deploy": "./scripts/deploy.sh",
-    "vercel:force": "git push vercel main --force",
-    "vercel:cli": "./scripts/deploy-vercel-cli.sh",
-    "vercel:prod": "./scripts/deploy-vercel-cli.sh --prod",
-    "vercel:preview": "vercel",
-    "vercel:status": "vercel ls"
+    "deploy": "./scripts/deploy.sh",
+    "deploy:force": "git push vercel main --force",
+    "deploy:cli": "./scripts/deploy-vercel-cli.sh",
+    "deploy:prod": "./scripts/deploy-vercel-cli.sh --prod",
+    "deploy:preview": "vercel",
+    "deploy:status": "vercel ls"
   },
   "dependencies": {
     "@clerk/localizations": "^3.4.0",

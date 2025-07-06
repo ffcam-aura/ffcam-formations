@@ -8,10 +8,10 @@ Ce dossier contient les scripts pour faciliter le déploiement sur Vercel.
 
 ```bash
 # Déploiement standard
-pnpm vercel:deploy
+pnpm deploy
 
 # Force push (attention !)
-pnpm vercel:force
+pnpm deploy:force
 ```
 
 Cette méthode utilise le remote Git `vercel` configuré dans votre projet.
@@ -28,15 +28,15 @@ npm i -g vercel
 vercel login
 
 # Déploiement en preview
-pnpm vercel:cli
+pnpm deploy:cli
 # ou
-pnpm vercel:preview
+pnpm deploy:preview
 
 # Déploiement en production
-pnpm vercel:prod
+pnpm deploy:prod
 
 # Voir le statut des déploiements
-pnpm vercel:status
+pnpm deploy:status
 ```
 
 ## Configuration
@@ -75,7 +75,7 @@ vercel link
 1. Développer et tester localement
 2. Commiter vos changements
 3. Pousser vers le repo principal : `git push origin main`
-4. Déployer sur Vercel : `pnpm vercel:deploy`
+4. Déployer sur Vercel : `pnpm deploy`
 
 ## Avantages de chaque méthode
 
