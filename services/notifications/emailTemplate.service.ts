@@ -1,4 +1,5 @@
 import { Formation } from "@/types/formation";
+import { getFormationUrl } from "@/utils/slug";
 
 export class EmailTemplateRenderer {
     render(formations: Formation[]): string {
@@ -55,7 +56,7 @@ export class EmailTemplateRenderer {
           <ul style="list-style: none; padding: 0;">
             ${this.renderFormationDetails(formation)}
           </ul>
-          // ${this.renderFormationLink(formation)}
+          ${this.renderFormationLink(formation)}
         </div>
       `;
     }
@@ -118,12 +119,16 @@ export class EmailTemplateRenderer {
     }
   
     private renderFormationLink(formation: Formation): string {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://formations.ffcam-aura.fr';
+      const formationUrl = `${baseUrl}${getFormationUrl(formation)}`;
+
       return `
-        <div style="margin-top: 20px;">
-          <a href="${process.env.NEXT_PUBLIC_APP_URL}"
-             style="background-color: #2563eb; color: white; padding: 10px 20px; 
-                    text-decoration: none; border-radius: 5px; display: inline-block;">
-            Voir les détails
+        <div style="margin-top: 20px; text-align: center;">
+          <a href="${formationUrl}"
+             style="background-color: #2563eb; color: white; padding: 12px 24px;
+                    text-decoration: none; border-radius: 5px; display: inline-block;
+                    font-weight: 500; font-size: 14px;">
+            Voir les détails de la formation
           </a>
         </div>
       `;
@@ -139,14 +144,17 @@ export class EmailTemplateRenderer {
           </a>
         </p>
   
-        <div style="color: #64748b; font-size: 0.75rem; margin-top: 20px; 
+        <div style="color: #64748b; font-size: 0.75rem; margin-top: 20px;
                     border-top: 1px solid #e2e8f0; padding-top: 10px;">
           <p style="margin: 5px 0;">
-            Cet email a été envoyé automatiquement par le Club Alpin Français.
+            Cet email a été envoyé automatiquement par le système de notification des formations FFCAM.
           </p>
           <p style="margin: 5px 0;">
-            Vous recevez cet email car vous êtes inscrit aux notifications pour les disciplines suivantes : 
+            Vous recevez cet email car vous êtes inscrit aux notifications pour les disciplines suivantes :
             ${disciplines.join(', ')}.
+          </p>
+          <p style="margin: 5px 0;">
+            Toutes les formations sont consultables sur <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://formations.ffcam-aura.fr'}" style="color: #2563eb; text-decoration: none;">formations.ffcam-aura.fr</a>
           </p>
         </div>
       `;
