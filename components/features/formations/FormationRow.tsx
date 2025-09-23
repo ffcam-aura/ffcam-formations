@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { Formation } from "@/types/formation";
-import { CalendarDays, MapPin, Euro, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
+import { CalendarDays, MapPin, Euro, ArrowRight, AlertCircle } from "lucide-react";
 import { getFormationUrl } from "@/utils/slug";
 import { motion } from "framer-motion";
 import { formatDateRange } from "@/utils/dateUtils";
 import { isUrgentFormation, isCompleteFormation } from "@/utils/formationStatus";
-import { useState } from "react";
+import { useNavigation } from "@/contexts/NavigationContext";
 
 interface FormationRowProps {
   formation: Formation;
@@ -16,7 +16,7 @@ interface FormationRowProps {
 export default function FormationRow({ formation }: FormationRowProps) {
   const isUrgent = isUrgentFormation(formation);
   const isComplete = isCompleteFormation(formation);
-  const [isLoading, setIsLoading] = useState(false);
+  const { startNavigation } = useNavigation();
 
   return (
     <motion.li
@@ -46,6 +46,7 @@ export default function FormationRow({ formation }: FormationRowProps) {
               <h3 className="text-base font-semibold text-gray-900 mt-1">
                 <Link
                   href={getFormationUrl(formation)}
+                  onClick={startNavigation}
                   className="hover:text-primary-600 transition-colors"
                 >
                   {formation.titre}
@@ -74,30 +75,21 @@ export default function FormationRow({ formation }: FormationRowProps) {
           <motion.div className="flex-shrink-0" whileHover="hover" whileTap={{ scale: 0.95 }}>
             <Link
               href={getFormationUrl(formation)}
-              onClick={() => setIsLoading(true)}
+              onClick={startNavigation}
               className="relative inline-flex items-center px-4 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg overflow-hidden whitespace-nowrap"
             >
               <span className="relative z-10 flex items-center gap-1">
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="ml-1">Chargement...</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="hidden sm:inline">Plus de détails</span>
-                    <span className="sm:hidden">Détails</span>
-                    <motion.span
-                      className="inline-flex"
-                      variants={{
-                        hover: { x: 3 }
-                      }}
-                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                    >
-                      <ArrowRight className="w-4 h-4" />
-                    </motion.span>
-                  </>
-                )}
+                <span className="hidden sm:inline">Plus de détails</span>
+                <span className="sm:hidden">Détails</span>
+                <motion.span
+                  className="inline-flex"
+                  variants={{
+                    hover: { x: 3 }
+                  }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                >
+                  <ArrowRight className="w-4 h-4" />
+                </motion.span>
               </span>
             </Link>
           </motion.div>
