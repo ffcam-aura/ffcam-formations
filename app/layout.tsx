@@ -10,6 +10,7 @@ import Navbar from '@/components/features/layout/Navbar';
 import Footer from '@/components/features/layout/Footer';
 import { Toaster } from '@/components/ui/toaster';
 import { OrganizationStructuredData, WebSiteStructuredData } from '@/components/seo/StructuredData';
+import PageLoader from '@/components/ui/page-loader';
 
 // Configuration de Source Sans 3
 const sourceSans3 = Source_Sans_3({
@@ -89,6 +90,7 @@ export default function RootLayout({
         >
           <div className="min-h-screen flex flex-col">
             <Navbar />
+            <PageLoader />
             {children}
             <Analytics />
             <Footer />

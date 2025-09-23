@@ -3,14 +3,16 @@
 import Link from "next/link";
 import { Formation } from "@/types/formation";
 import { getFormationUrl } from "@/utils/slug";
-import { CalendarDays, MapPin, Euro, AlertCircle, ArrowRight } from "lucide-react";
+import { CalendarDays, MapPin, Euro, AlertCircle, ArrowRight, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { formatDateRange } from "@/utils/dateUtils";
 import { isUrgentFormation, isCompleteFormation } from "@/utils/formationStatus";
+import { useState } from "react";
 
 export default function FormationCard({ formation }: { formation: Formation }) {
   const isUrgent = isUrgentFormation(formation);
   const isComplete = isCompleteFormation(formation);
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <motion.div
@@ -95,19 +97,29 @@ export default function FormationCard({ formation }: { formation: Formation }) {
         <motion.div whileHover="hover" whileTap={{ scale: 0.98 }}>
           <Link
             href={getFormationUrl(formation)}
+            onClick={() => setIsLoading(true)}
             className="relative inline-flex items-center justify-center w-full px-4 py-3 sm:py-2.5 min-h-[44px] bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg overflow-hidden group touch-manipulation"
           >
             <span className="relative z-10 flex items-center">
-              Plus de détails
-              <motion.span
-                className="ml-2 inline-flex"
-                variants={{
-                  hover: { x: 5 }
-                }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              >
-                <ArrowRight className="w-4 h-4" />
-              </motion.span>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Chargement...
+                </>
+              ) : (
+                <>
+                  Plus de détails
+                  <motion.span
+                    className="ml-2 inline-flex"
+                    variants={{
+                      hover: { x: 5 }
+                    }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </motion.span>
+                </>
+              )}
             </span>
             <motion.div
               className="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-700"
