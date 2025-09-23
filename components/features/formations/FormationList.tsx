@@ -17,21 +17,11 @@ export default function FormationList({ formations, viewMode }: FormationListPro
           ))}
         </ul>
       ) : (
-        <div>
-          <div className="hidden md:grid grid-cols-7 gap-4 px-4 py-2 bg-gray-100 rounded-t-lg font-medium text-sm text-gray-600 border-b">
-            <div className="col-span-2">Formation</div>
-            <div>Discipline</div>
-            <div>Lieu</div>
-            <div>Date</div>
-            <div>Prix</div>
-            <div>Places</div>
-          </div>
-          <ul className="space-y-4 mt-4">
-            {formations.map((formation) => (
-              <FormationRow key={formation.reference} formation={formation} />
-            ))}
-          </ul>
-        </div>
+        <ul className="space-y-3">
+          {formations.map((formation) => (
+            <FormationRow key={formation.reference} formation={formation} />
+          ))}
+        </ul>
       )}
     </>
   );

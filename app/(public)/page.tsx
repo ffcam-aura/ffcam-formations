@@ -9,6 +9,7 @@ import { useFormationFilters } from "@/hooks/userFormationsFilter";
 import { FormationsHeader } from "@/components/features/formations/FormationsHeader";
 import { FormationsToolbar } from "@/components/features/formations/FormationsToolbar";
 import { ErrorDisplay } from "@/components/ui/error-display";
+import { HeroSection } from "@/components/features/formations/HeroSection";
 
 export default function Home() {
   const { formations, lastSyncDate, loading, error, retry, retryCount } = useFormations();
@@ -67,7 +68,9 @@ export default function Home() {
 
   return (
     <main className="flex-grow container mx-auto p-8">
-      <FormationsHeader 
+      <HeroSection />
+
+      <FormationsHeader
         data-testid="formations-header"
         showIntro={showIntro}
         setShowIntro={setShowIntro}

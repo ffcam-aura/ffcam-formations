@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { FormationRepository } from '@/repositories/FormationRepository';
 import { FormationService } from '@/services/formation/formations.service';
+import { generateFormationSlug } from '@/utils/slug';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Revalidate every hour
@@ -51,13 +52,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
 
-    // Pour l'instant, on n'inclut pas les lieux dans le sitemap car les URLs avec
-    // des noms de lieux complets ne sont pas optimales pour le SEO
-    // À terme, il faudrait créer des pages dédiées avec des slugs propres
+    // Récupérer toutes les formations pour créer les URLs individuelles
+    const formations = await formationService.getAllFormations();
+
+    // Filtrer les formations futures uniquement
+    const activeFormations = formations.filter(formation => {
+      const lastDate = formation.dates[formation.dates.length - 1];
+      return lastDate && new Date(lastDate) >= new Date();
+    });
+
+    const formationPages: MetadataRoute.Sitemap = activeFormations.map(formation => ({
+      url: `${baseUrl}/formation/${generateFormationSlug(formation)}`,
+      lastModified: new Date(formation.lastSeenAt),
+      changeFrequency: 'weekly' as const,
+      priority: 0.6,
+    }));
 
     return [
       ...staticPages,
       ...disciplinePages,
+      ...formationPages.slice(0, 1000), // Limiter à 1000 formations pour éviter un sitemap trop gros
     ];
   } catch (error) {
     console.error('Erreur lors de la génération du sitemap:', error);

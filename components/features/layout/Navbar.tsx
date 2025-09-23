@@ -47,7 +47,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo and title */}
-          <div className="flex items-center space-x-4">
+          <Link href="/" className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
             <div className="relative h-10 w-10">
               <Image
                 src="/ffcam.png"
@@ -61,7 +61,7 @@ export default function Navbar() {
             <div className="flex flex-col">
               <span className="text-lg font-semibold text-primary-500">Formations FFCAM</span>
             </div>
-          </div>
+          </Link>
 
           {/* Mobile menu button */}
           <button

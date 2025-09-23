@@ -92,7 +92,7 @@ export default function Filters({
           <select
             value={selectedOrganisateur}
             onChange={(e) => setSelectedOrganisateur(e.target.value)}
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
           >
             <option value="">Tous les organisateurs</option>
             {organisateurs.map((organisateur) => (
@@ -110,7 +110,7 @@ export default function Filters({
           <select
             value={selectedLocation}
             onChange={(e) => setSelectedLocation(e.target.value)}
-            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
           >
             <option value="">Tous les lieux</option>
             {locations.map((location) => (
@@ -125,7 +125,7 @@ export default function Filters({
           <select
             value={selectedDiscipline}
             onChange={(e) => setSelectedDiscipline(e.target.value)}
-            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
           >
             <option value="">Toutes les disciplines</option>
             {disciplines.map((discipline) => (
@@ -136,19 +136,23 @@ export default function Filters({
           </select>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2">
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-          />
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-          />
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              placeholder="Date de début"
+              className="flex-1 px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            />
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              placeholder="Date de fin"
+              className="flex-1 px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            />
+          </div>
         </div>
       </div>
 
