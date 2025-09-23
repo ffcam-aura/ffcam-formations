@@ -51,31 +51,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
 
-    // Récupérer toutes les formations pour extraire les lieux uniques
-    const formations = await formationService.getAllFormations();
-    const lieuxSet = new Set<string>();
-
-    formations.forEach(formation => {
-      if (formation.lieu && formation.lieu.trim() !== '') {
-        lieuxSet.add(formation.lieu);
-      }
-    });
-
-    const lieux = Array.from(lieuxSet).sort();
-
-    const lieuPages: MetadataRoute.Sitemap = lieux
-      .filter(lieu => lieu && lieu.trim() !== '')
-      .map(lieu => ({
-        url: `${baseUrl}?lieu=${encodeURIComponent(lieu)}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.5,
-      }));
+    // Pour l'instant, on n'inclut pas les lieux dans le sitemap car les URLs avec
+    // des noms de lieux complets ne sont pas optimales pour le SEO
+    // À terme, il faudrait créer des pages dédiées avec des slugs propres
 
     return [
       ...staticPages,
       ...disciplinePages,
-      ...lieuPages,
     ];
   } catch (error) {
     console.error('Erreur lors de la génération du sitemap:', error);
