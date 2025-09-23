@@ -1,4 +1,4 @@
-import { Github, ExternalLink, MapPin, Users } from "lucide-react";
+import { Github, ExternalLink, MapPin, Users, FileText } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -94,7 +94,7 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a 
+                <a
                   href="https://www.ffcam.fr/les-formations.html"
                   className="text-gray-600 hover:text-primary-500 inline-flex items-center gap-2 transition-colors group"
                   target="_blank"
@@ -102,6 +102,17 @@ export default function Footer() {
                 >
                   <ExternalLink size={16} className="group-hover:text-primary-500" />
                   Formations FFCAM officielles
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.ffcam.fr/export/liste_des_actions.pdf"
+                  className="text-gray-600 hover:text-primary-500 inline-flex items-center gap-2 transition-colors group"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <FileText size={16} className="group-hover:text-primary-500" />
+                  Cahier des formations (PDF)
                 </a>
               </li>
               <li>

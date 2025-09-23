@@ -1,5 +1,5 @@
 "use client";
-import { BellRing, Github, Menu, X } from "lucide-react";
+import { BellRing, Github, Menu, X, FileText } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
@@ -79,6 +79,15 @@ export default function Navbar() {
               <NavLink href="/">Accueil</NavLink>
               <NavLink href="/a-propos">À propos</NavLink>
               <a
+                href="https://www.ffcam.fr/export/liste_des_actions.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-primary-500 transition-colors inline-flex items-center space-x-2"
+              >
+                <FileText size={16} />
+                <span>Cahier des formations</span>
+              </a>
+              <a
                 href="https://github.com/ffcam-aura/ffcam-formations"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -137,6 +146,16 @@ export default function Navbar() {
             <NavLink href="/a-propos" onClick={closeMenu}>
               À propos
             </NavLink>
+            <a
+              href="https://www.ffcam.fr/export/liste_des_actions.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-primary-500 transition-colors inline-flex items-center space-x-2"
+              onClick={closeMenu}
+            >
+              <FileText size={16} />
+              <span>Cahier des formations</span>
+            </a>
             <a
               href="https://github.com/ffcam-aura/ffcam-formations"
               target="_blank"
