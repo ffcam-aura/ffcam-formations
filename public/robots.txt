@@ -1,0 +1,25 @@
+# Robots.txt pour FFCAM Formations
+# https://formations.ffcam-aura.fr
+
+# Autoriser tous les robots
+User-agent: *
+Allow: /
+
+# Bloquer les pages privées et d'authentification
+Disallow: /api/
+Disallow: /notifications
+Disallow: /sign-in
+Disallow: /sign-up
+
+# Spécifique à Google
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+# Spécifique à Bing
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Sitemap
+Sitemap: https://formations.ffcam-aura.fr/sitemap.xml
