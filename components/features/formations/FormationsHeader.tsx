@@ -33,11 +33,11 @@ export function FormationsHeader({ showIntro, setShowIntro, lastSyncDate }: Form
           <div className="absolute -left-12 top-4 bg-primary text-primary-foreground px-12 py-1 -rotate-45 text-xs font-semibold shadow-md">
             Nouveau !
           </div>
-          
+
           <AlertDescription className="text-sm text-muted-foreground flex items-center justify-between gap-8 py-2">
             <span className="pl-8">
               <span className="text-2xl mr-2">🔔</span>
-              Vous pouvez désormais recevoir des alertes par mail lorsqu&apos;une nouvelle formation est publiée. 
+              Vous pouvez désormais recevoir des alertes par mail lorsqu&apos;une nouvelle formation est publiée.
               Pour cela, il suffit de créer un compte gratuit.
             </span>
             <SignUpButton mode="modal">
@@ -52,7 +52,7 @@ export function FormationsHeader({ showIntro, setShowIntro, lastSyncDate }: Form
       <h2 className="text-3xl font-bold mb-4 text-center text-primary">
         Découvrez les formations de la FFCAM
       </h2>
-      
+
       <p className="text-center text-sm text-neutral mb-8">
         Dernière synchronisation : {lastSyncDate ? format(parseISO(lastSyncDate), "dd/MM/yyyy 'à' HH:mm") : "Non disponible"}
       </p>

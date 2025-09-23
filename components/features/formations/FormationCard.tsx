@@ -1,37 +1,24 @@
+'use client';
+
 import Link from "next/link";
 import { Formation } from "@/types/formation";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { getFormationUrl } from "@/utils/slug";
-import { CalendarDays, MapPin, Euro, ChevronRight, AlertCircle } from "lucide-react";
+import { CalendarDays, MapPin, Euro, AlertCircle, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { formatDateRange } from "@/utils/dateUtils";
+import { isUrgentFormation, isCompleteFormation } from "@/utils/formationStatus";
 
 export default function FormationCard({ formation }: { formation: Formation }) {
-  // Format de date court : "15-17 mars" ou "15 mars"
-  const formatDateRange = (dates: string[]): string => {
-    if (!dates || dates.length === 0) return "Dates à confirmer";
-
-    const sortedDates = [...dates].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-    const firstDate = new Date(sortedDates[0]);
-    const lastDate = new Date(sortedDates[sortedDates.length - 1]);
-
-    if (sortedDates.length === 1) {
-      return format(firstDate, "d MMMM", { locale: fr });
-    }
-
-    // Si même mois
-    if (firstDate.getMonth() === lastDate.getMonth()) {
-      return `${format(firstDate, "d")}-${format(lastDate, "d MMMM", { locale: fr })}`;
-    }
-
-    // Mois différents
-    return `${format(firstDate, "d MMM", { locale: fr })} - ${format(lastDate, "d MMM", { locale: fr })}`;
-  };
-
-  const isUrgent = formation.placesRestantes !== null && formation.placesRestantes > 0 && formation.placesRestantes <= 3;
-  const isComplete = formation.placesRestantes === 0;
+  const isUrgent = isUrgentFormation(formation);
+  const isComplete = isCompleteFormation(formation);
 
   return (
-    <div className="h-full flex flex-col bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-lg transition-all duration-200 overflow-hidden">
+    <motion.div
+      className="h-full flex flex-col bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-lg transition-all duration-200 overflow-hidden"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -4, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.3 }}>
       {/* Header avec discipline et badges */}
       <div className="p-5 pb-0">
         <div className="flex items-start justify-between mb-3">
@@ -76,7 +63,7 @@ export default function FormationCard({ formation }: { formation: Formation }) {
 
           <div className="flex items-center text-sm text-gray-600">
             <CalendarDays className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" />
-            <span>{formatDateRange(formation.dates)}</span>
+            <span>{formatDateRange(formation.dates, 'long')}</span>
           </div>
 
           <div className="flex items-center text-sm">
@@ -103,16 +90,36 @@ export default function FormationCard({ formation }: { formation: Formation }) {
         </div>
       </div>
 
-      {/* Bouton CTA - toujours en bas avec zone de tap mobile-friendly */}
+      {/* Bouton CTA avec animation */}
       <div className="p-5 pt-0 mt-auto">
-        <Link
-          href={getFormationUrl(formation)}
-          className="inline-flex items-center justify-center w-full px-4 py-3 sm:py-2.5 min-h-[44px] bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors group touch-manipulation"
-        >
-          Plus de détails
-          <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-        </Link>
+        <motion.div whileHover="hover" whileTap={{ scale: 0.98 }}>
+          <Link
+            href={getFormationUrl(formation)}
+            className="relative inline-flex items-center justify-center w-full px-4 py-3 sm:py-2.5 min-h-[44px] bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg overflow-hidden group touch-manipulation"
+          >
+            <span className="relative z-10 flex items-center">
+              Plus de détails
+              <motion.span
+                className="ml-2 inline-flex"
+                variants={{
+                  hover: { x: 5 }
+                }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              >
+                <ArrowRight className="w-4 h-4" />
+              </motion.span>
+            </span>
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-700"
+              initial={{ x: "-100%" }}
+              variants={{
+                hover: { x: 0 }
+              }}
+              transition={{ type: "tween", duration: 0.3 }}
+            />
+          </Link>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

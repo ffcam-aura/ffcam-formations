@@ -12,13 +12,14 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ObfuscatedEmail from '@/components/features/formations/ObfuscatedEmail';
 import ObfuscatedInscriptionButton from '@/components/features/formations/ObfuscatedInscriptionButton';
+import { formatDate, formatFullDateRange } from '@/utils/dateUtils';
 
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 async function getFormation(slug: string): Promise<Formation | null> {
@@ -47,7 +48,8 @@ async function getFormation(slug: string): Promise<Formation | null> {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const formation = await getFormation(params.slug);
+  const { slug } = await params;
+  const formation = await getFormation(slug);
 
   if (!formation) {
     return {
@@ -78,27 +80,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-}
-
-function formatDateRange(dates: string[]): string {
-  if (dates.length === 0) return 'Dates non définies';
-  if (dates.length === 1) return formatDate(dates[0]);
-
-  const firstDate = formatDate(dates[0]);
-  const lastDate = formatDate(dates[dates.length - 1]);
-
-  return `Du ${firstDate} au ${lastDate}`;
-}
-
 export default async function FormationPage({ params }: PageProps) {
-  const formation = await getFormation(params.slug);
+  const { slug } = await params;
+  const formation = await getFormation(slug);
 
   if (!formation) {
     notFound();
@@ -192,7 +176,7 @@ export default async function FormationPage({ params }: PageProps) {
                     <CalendarDays className="w-5 h-5 text-gray-400 mt-0.5" />
                     <div>
                       <p className="text-sm text-gray-600">Dates</p>
-                      <p className="font-medium">{formatDateRange(formation.dates)}</p>
+                      <p className="font-medium">{formatFullDateRange(formation.dates)}</p>
                       <p className="text-sm text-gray-500">{formation.dates.length} jour(s)</p>
                     </div>
                   </div>

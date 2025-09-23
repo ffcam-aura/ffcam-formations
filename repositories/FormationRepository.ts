@@ -292,7 +292,7 @@ export class FormationRepository implements IFormationRepository {
             disciplines: formation.disciplines ? [formation.disciplines] : [],
             reference: formation.reference,
             titre: formation.titre,
-            dates: formation.formations_dates?.map((d) => d.date_debut.toISOString()) || [],
+            dates: formation.formations_dates?.map((d: any) => d.date_debut.toISOString()) || [],
             lieu: formation.lieux?.nom || '',
             informationStagiaire: formation.information_stagiaire || '',
             nombreParticipants: formation.nombre_participants !== null && formation.nombre_participants !== undefined 
@@ -309,7 +309,7 @@ export class FormationRepository implements IFormationRepository {
             emailContact: formation.email_contact,
             firstSeenAt: formation.first_seen_at,
             lastSeenAt: formation.last_seen_at,
-            documents: formation.formations_documents?.map((doc) => ({
+            documents: formation.formations_documents?.map((doc: any) => ({
                 type: doc.type,
                 nom: doc.nom,
                 url: doc.url

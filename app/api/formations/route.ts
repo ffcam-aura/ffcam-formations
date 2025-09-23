@@ -11,9 +11,11 @@ export async function GET() {
     return NextResponse.json(allFormations);
   } catch (error) {
     console.error('Erreur API /formations:', error);
-    
+
+    const err = error as Error;
+
     // Gestion des erreurs spécifiques
-    if (error?.name === 'PrismaClientInitializationError') {
+    if (err?.name === 'PrismaClientInitializationError') {
       return NextResponse.json(
         { 
           error: 'SERVICE_UNAVAILABLE',
@@ -24,7 +26,7 @@ export async function GET() {
       );
     }
 
-    if (error?.name === 'PrismaClientKnownRequestError') {
+    if (err?.name === 'PrismaClientKnownRequestError') {
       return NextResponse.json(
         { 
           error: 'DATABASE_ERROR',
@@ -40,7 +42,7 @@ export async function GET() {
       { 
         error: 'INTERNAL_SERVER_ERROR',
         message: 'Une erreur inattendue s&apos;est produite. Veuillez réessayer plus tard.',
-        details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+        details: process.env.NODE_ENV === 'development' ? err?.message : undefined
       }, 
       { status: 500 }
     );

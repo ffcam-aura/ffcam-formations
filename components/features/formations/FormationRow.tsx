@@ -1,41 +1,25 @@
+'use client';
+
 import Link from "next/link";
 import { Formation } from "@/types/formation";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { CalendarDays, MapPin, Euro, ChevronRight, AlertCircle } from "lucide-react";
+import { CalendarDays, MapPin, Euro, ArrowRight, AlertCircle } from "lucide-react";
 import { getFormationUrl } from "@/utils/slug";
+import { motion } from "framer-motion";
+import { formatDateRange } from "@/utils/dateUtils";
+import { isUrgentFormation, isCompleteFormation } from "@/utils/formationStatus";
 
 interface FormationRowProps {
   formation: Formation;
 }
 
 export default function FormationRow({ formation }: FormationRowProps) {
-  // Format de date court
-  const formatDateRange = (dates: string[]): string => {
-    if (!dates || dates.length === 0) return "Dates à confirmer";
-
-    const sortedDates = [...dates].sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-    const firstDate = new Date(sortedDates[0]);
-    const lastDate = new Date(sortedDates[sortedDates.length - 1]);
-
-    if (sortedDates.length === 1) {
-      return format(firstDate, "d MMM", { locale: fr });
-    }
-
-    // Si même mois
-    if (firstDate.getMonth() === lastDate.getMonth() && firstDate.getFullYear() === lastDate.getFullYear()) {
-      return `${format(firstDate, "d")}-${format(lastDate, "d MMM", { locale: fr })}`;
-    }
-
-    // Mois différents
-    return `${format(firstDate, "d MMM", { locale: fr })} - ${format(lastDate, "d MMM", { locale: fr })}`;
-  };
-
-  const isUrgent = formation.placesRestantes !== null && formation.placesRestantes > 0 && formation.placesRestantes <= 3;
-  const isComplete = formation.placesRestantes === 0;
+  const isUrgent = isUrgentFormation(formation);
+  const isComplete = isCompleteFormation(formation);
 
   return (
-    <li className="bg-white rounded-lg border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all duration-200 overflow-hidden">
+    <motion.li
+      className="bg-white rounded-lg border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all duration-200 overflow-hidden"
+      whileHover={{ x: 4, transition: { duration: 0.2 } }}>
       <div className="p-4">
         <div className="flex items-center gap-4">
           {/* Colonne Formation avec badges */}
@@ -75,7 +59,7 @@ export default function FormationRow({ formation }: FormationRowProps) {
               </div>
               <div className="flex items-center gap-1.5 text-gray-600 lg:min-w-[140px]">
                 <CalendarDays className="w-4 h-4 text-gray-400" />
-                <span className="text-sm whitespace-nowrap">{formatDateRange(formation.dates)}</span>
+                <span className="text-sm whitespace-nowrap">{formatDateRange(formation.dates, 'short')}</span>
               </div>
               <div className="hidden lg:flex items-center gap-1.5 min-w-[80px]">
                 <Euro className="w-4 h-4 text-gray-400" />
@@ -84,17 +68,27 @@ export default function FormationRow({ formation }: FormationRowProps) {
             </div>
           </div>
 
-          {/* Bouton CTA avec zone de tap mobile-friendly */}
-          <div className="flex-shrink-0">
+          {/* Bouton CTA avec animation */}
+          <motion.div className="flex-shrink-0" whileHover="hover" whileTap={{ scale: 0.95 }}>
             <Link
               href={getFormationUrl(formation)}
-              className="inline-flex items-center px-4 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors group whitespace-nowrap"
+              className="relative inline-flex items-center px-4 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg overflow-hidden whitespace-nowrap"
             >
-              <span className="hidden sm:inline">Plus de détails</span>
-              <span className="sm:hidden">Détails</span>
-              <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+              <span className="relative z-10 flex items-center gap-1">
+                <span className="hidden sm:inline">Plus de détails</span>
+                <span className="sm:hidden">Détails</span>
+                <motion.span
+                  className="inline-flex"
+                  variants={{
+                    hover: { x: 3 }
+                  }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                >
+                  <ArrowRight className="w-4 h-4" />
+                </motion.span>
+              </span>
             </Link>
-          </div>
+          </motion.div>
         </div>
 
         {/* Infos mobiles uniquement (tablette a les infos inline maintenant) */}
@@ -106,7 +100,7 @@ export default function FormationRow({ formation }: FormationRowProps) {
             </div>
             <div className="flex items-center gap-1.5 text-gray-600">
               <CalendarDays className="w-4 h-4 text-gray-400" />
-              <span>{formatDateRange(formation.dates)}</span>
+              <span>{formatDateRange(formation.dates, 'short')}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Euro className="w-4 h-4 text-gray-400" />
@@ -131,6 +125,6 @@ export default function FormationRow({ formation }: FormationRowProps) {
           </div>
         </div>
       </div>
-    </li>
+    </motion.li>
   );
 }
