@@ -3,6 +3,8 @@ import { FormationService } from '@/services/formation/formations.service';
 import NotificationsForm from '@/components/features/notifications/NotificationsForm';
 import { FormationRepository } from '@/repositories/FormationRepository';
 
+export const dynamic = 'force-dynamic';
+
 const formationRepository = new FormationRepository();
 const formationService = new FormationService(formationRepository);
 
@@ -12,8 +14,16 @@ export const metadata: Metadata = {
 };
 
 export default async function NotificationsPage() {
-  const disciplines = await formationService.getAllDisciplines();
-  
+  let disciplines: string[] = [];
+
+  try {
+    disciplines = await formationService.getAllDisciplines();
+  } catch (error) {
+    console.error('Erreur lors de la récupération des disciplines:', error);
+    // Utiliser des disciplines par défaut si la base n'est pas accessible
+    disciplines = [];
+  }
+
   const formattedDisciplines = disciplines.map(discipline => ({
     id: discipline,
     label: discipline
