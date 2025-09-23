@@ -23,10 +23,10 @@ const sourceSans3 = Source_Sans_3({
 export const metadata: Metadata = {
   metadataBase: new URL('https://formations.ffcam-aura.fr'),
   title: {
-    template: '%s | Formations FFCAM Auvergne-Rhône-Alpes',
-    default: 'Formations FFCAM - Trouvez votre prochaine formation montagne',
+    template: '%s | Formations FFCAM',
+    default: 'Formations FFCAM - Alpinisme, Escalade, Ski',
   },
-  description: 'Découvrez et inscrivez-vous aux formations FFCAM en Auvergne-Rhône-Alpes : alpinisme, escalade, ski de randonnée, canyoning. Alertes personnalisées disponibles.',
+  description: 'Formations FFCAM : alpinisme, escalade, ski de randonnée. Inscriptions en ligne et alertes personnalisées.',
   keywords: ['FFCAM', 'formations', 'montagne', 'alpinisme', 'escalade', 'ski de randonnée', 'canyoning', 'Auvergne-Rhône-Alpes', 'CAF', 'Club Alpin Français'],
   authors: [{ name: 'FFCAM Auvergne-Rhône-Alpes' }],
   creator: 'FFCAM Auvergne-Rhône-Alpes',
@@ -37,10 +37,10 @@ export const metadata: Metadata = {
     telephone: false,
   },
   openGraph: {
-    title: 'Formations FFCAM Auvergne-Rhône-Alpes',
-    description: 'Découvrez toutes les formations montagne FFCAM : alpinisme, escalade, ski de randonnée. Inscriptions et alertes personnalisées.',
+    title: 'Formations FFCAM - Alpinisme, Escalade, Ski',
+    description: 'Formations montagne FFCAM : inscriptions en ligne et alertes personnalisées.',
     url: 'https://formations.ffcam-aura.fr',
-    siteName: 'Formations FFCAM AURA',
+    siteName: 'Formations FFCAM',
     type: 'website',
     locale: 'fr_FR',
     images: [
