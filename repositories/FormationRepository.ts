@@ -307,8 +307,8 @@ export class FormationRepository implements IFormationRepository {
             organisateur: formation.organisateur,
             responsable: formation.responsable,
             emailContact: formation.email_contact,
-            firstSeenAt: formation.first_seen_at,
-            lastSeenAt: formation.last_seen_at,
+            firstSeenAt: formation.first_seen_at.toISOString(),
+            lastSeenAt: formation.last_seen_at.toISOString(),
             documents: formation.formations_documents?.map((doc: any) => ({
                 type: doc.type,
                 nom: doc.nom,

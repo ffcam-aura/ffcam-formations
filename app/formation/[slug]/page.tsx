@@ -342,7 +342,7 @@ export default async function FormationPage({ params }: PageProps) {
               </Card>
 
               {/* Alerte si peu de places */}
-              {formation.placesRestantes && formation.placesRestantes > 0 && formation.placesRestantes <= 3 && (
+              {formation.placesRestantes !== null && formation.placesRestantes > 0 && formation.placesRestantes <= 3 && (
                 <Alert className="mt-4 border-orange-200 bg-orange-50">
                   <AlertDescription className="text-orange-800">
                     ⚠️ Attention : il ne reste que {formation.placesRestantes} place{formation.placesRestantes > 1 ? 's' : ''} !
