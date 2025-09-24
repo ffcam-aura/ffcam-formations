@@ -1,5 +1,6 @@
 export const maxDuration = 60;
 import { SyncService } from '@/services/formation/sync.service';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
@@ -15,7 +16,7 @@ export async function GET(request: Request) {
 
     return Response.json({ success: true });
   } catch (error) {
-    console.error('Error in sync process:', error);
+    logger.error('Erreur API /api/sync', error);
     await SyncService.sendErrorReport(error);
 
     return Response.json({ success: false });

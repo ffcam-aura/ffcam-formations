@@ -2,6 +2,7 @@
 import { Filters } from "@/hooks/userFormationsFilter";
 import { Formation } from "@/types/formation";
 import { parseISO, isAfter } from "date-fns";
+import { logger } from "@/lib/logger";
 
 export function formatFilters(formations: Formation[], filters: Filters): Formation[] {
   const today = new Date();
@@ -43,7 +44,7 @@ export function formatFilters(formations: Formation[], filters: Filters): Format
               
               return formationDate >= startDate && formationDate <= endDate;
             } catch (error) {
-              console.error(`Erreur lors du parsing de la date: ${date}`, error);
+              logger.debug(`Erreur lors du parsing de la date: ${date}`, { error: error instanceof Error ? error.message : String(error) });
               return false;
             }
           })
@@ -62,7 +63,7 @@ export function formatFilters(formations: Formation[], filters: Filters): Format
         const formationDate = parseISO(date);
         return !isNaN(formationDate.getTime()) && isAfter(formationDate, today);
       } catch (error) {
-        console.error(`Erreur lors du parsing de la date: ${date}`, error);
+        logger.debug(`Erreur lors du parsing de la date: ${date}`, { error: error instanceof Error ? error.message : String(error) });
         return false;
       }
     });

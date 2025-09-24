@@ -5,6 +5,7 @@ import util from 'util';
 import { env } from '@/env.ts';
 import { FormationRepository } from '@/repositories/FormationRepository';
 import { FormationService } from './formations.service';
+import { logger } from '@/lib/logger';
 
 const formationRepository = new FormationRepository();
 const formationService = new FormationService(formationRepository);
@@ -64,7 +65,7 @@ export class SyncService {
 
     static async synchronize(): Promise<SyncResult> {
         const startTime = new Date();
-        console.log('\n🔍 Démarrage du scraping des formations FFCAM...\n');
+        logger.info('Démarrage du scraping des formations FFCAM');
 
         try {
             const formations = await FFCAMScraper.scrapeFormations();
@@ -95,7 +96,7 @@ export class SyncService {
     }
 
     private static async syncFormations(formations: Formation[]) {
-        console.log('\n💾 SYNCHRONISATION AVEC LA BASE DE DONNÉES:');
+        logger.info('Début de la synchronisation avec la base de données', { total: formations.length });
         let succeeded = 0;
         const errors: SyncError[] = [];
 
@@ -107,7 +108,10 @@ export class SyncService {
                 succeeded += batch.length;
                 process.stdout.write(`\r• Progression : ${succeeded}/${formations.length} formations synchronisées`);
             } catch (error) {
-                console.error(`\n❌ Échec pour le lot ${Math.floor(i / this.BATCH_SIZE) + 1}:`, error);
+                logger.error('Erreur synchronisation lot', error as Error, {
+                    batchNumber: Math.floor(i / this.BATCH_SIZE) + 1,
+                    batchSize: batch.length
+                });
                 // Fallback : traitement individuel en cas d'échec du lot
                 for (const formation of batch) {
                     try {
@@ -115,7 +119,9 @@ export class SyncService {
                         succeeded++;
                         process.stdout.write(`\r• Progression : ${succeeded}/${formations.length} formations synchronisées`);
                     } catch (formationError) {
-                        console.error(`\n❌ Échec pour ${formation.reference}:`, formationError);
+                        logger.error('Erreur synchronisation formation', formationError as Error, {
+                            reference: formation.reference
+                        });
                         errors.push({
                             reference: formation.reference,
                             error: formationError instanceof Error ? formationError.message : String(formationError)
@@ -156,10 +162,10 @@ export class SyncService {
     }
 
     private static async logFormations(formations: Formation[]) {
-        console.log('📋 FORMATIONS TROUVÉES :\n');
-        formations.forEach((f, index) => {
-            console.log(`\n=== Formation ${index + 1}/${formations.length} ===`);
-            console.log(util.inspect({
+        logger.info('Formations trouvées', {
+            total: formations.length,
+            formations: formations.map((f, index) => ({
+                index: index + 1,
                 reference: f.reference,
                 titre: f.titre,
                 dates: f.dates,
@@ -167,13 +173,7 @@ export class SyncService {
                 discipline: f.discipline,
                 placesRestantes: f.placesRestantes !== null ? f.placesRestantes : 'Non spécifié',
                 tarif: f.tarif > 0 ? `${f.tarif}€` : 'Non spécifié',
-            }, {
-                depth: null,
-                colors: true,
-                maxArrayLength: null,
-                compact: false
-            }));
-            console.log('─'.repeat(50));
+            }))
         });
 
         const stats = this.generateStats(formations);
@@ -213,21 +213,26 @@ export class SyncService {
     }
 
     private static logStats(stats: FormationStats) {
-        console.log(`\n📊 STATISTIQUES :`);
-        console.log(`📋 Nombre total de formations : ${stats.total}`);
-        console.log(`🎯 Disciplines uniques : ${stats.uniqueDisciplines}`);
-        console.log(`📍 Lieux uniques : ${stats.uniqueLocations}`);
-        console.log(`🎫 Places restantes totales : ${stats.placesRestantes.total} sur ${stats.placesRestantes.formations} formations`);
-        console.log(`💶 Formations avec tarif : ${stats.tarifs.formations}/${stats.total}`);
-
-        console.log('\n📊 DISTRIBUTION PAR DISCIPLINE :');
-        Object.entries(stats.disciplines)
-            .sort(([, a], [, b]) => b - a)
-            .forEach(([discipline, count]) => {
-                console.log(`📌 ${discipline}: ${count} formations`);
-            });
-
-        console.log(`\n📅 PÉRIODE COUVERTE : du ${stats.dateRange.min.toLocaleDateString('fr-FR')} au ${stats.dateRange.max.toLocaleDateString('fr-FR')}`);
+        logger.info('Statistiques de synchronisation', {
+            total: stats.total,
+            disciplinesUniques: stats.uniqueDisciplines,
+            lieuxUniques: stats.uniqueLocations,
+            placesRestantes: {
+                total: stats.placesRestantes.total,
+                formations: stats.placesRestantes.formations
+            },
+            formationsAvecTarif: stats.tarifs.formations,
+            distributionParDiscipline: Object.entries(stats.disciplines)
+                .sort(([, a], [, b]) => b - a)
+                .reduce((acc, [discipline, count]) => ({
+                    ...acc,
+                    [discipline]: count
+                }), {}),
+            periodeCouverte: {
+                debut: stats.dateRange.min.toLocaleDateString('fr-FR'),
+                fin: stats.dateRange.max.toLocaleDateString('fr-FR')
+            }
+        });
     }
 
     private static generateHtmlReport(data: HtmlReportData): string {

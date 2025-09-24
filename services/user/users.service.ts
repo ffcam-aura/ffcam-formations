@@ -1,4 +1,5 @@
 import { IUserRepository } from "@/repositories/UserRepository";
+import { logger } from "@/lib/logger";
 
 export class UserService {
     constructor(private readonly userRepository: IUserRepository) {}
@@ -7,7 +8,7 @@ export class UserService {
         try {
             return await this.userRepository.findNotificationPreferences(userId);
         } catch (error) {
-            console.error('Error getting user preferences:', error);
+            logger.error('Error getting user preferences', error as Error, { userId });
             throw error;
         }
     }
@@ -29,7 +30,7 @@ export class UserService {
                 );
             }
         } catch (error) {
-            console.error('Error updating user preferences:', error);
+            logger.error('Error updating user preferences', error as Error, { userId, email, disciplines });
             throw error;
         }
     }
@@ -39,7 +40,7 @@ export class UserService {
             const count = await this.userRepository.countNotificationPreferences(userId, discipline);
             return count > 0;
         } catch (error) {
-            console.error('Error checking notification status:', error);
+            logger.error('Error checking notification status', error as Error, { userId, discipline });
             throw error;
         }
     }
@@ -48,7 +49,7 @@ export class UserService {
         try {
             await this.userRepository.updateLastNotified(userId, discipline);
         } catch (error) {
-            console.error('Error updating last notified timestamp:', error);
+            logger.error('Error updating last notified timestamp', error as Error, { userId, discipline });
             throw error;
         }
     }
@@ -61,7 +62,7 @@ export class UserService {
                 email: user.email
             }));
         } catch (error) {
-            console.error('Error getting users to notify:', error);
+            logger.error('Error getting users to notify', error as Error, { discipline });
             throw error;
         }
     }

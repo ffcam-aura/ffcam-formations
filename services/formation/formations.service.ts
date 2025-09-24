@@ -1,5 +1,6 @@
 import { Formation } from "@/types/formation";
 import { IFormationRepository } from "@/repositories/FormationRepository";
+import { logger } from "@/lib/logger";
 
 export class FormationService {
     private static readonly BATCH_SIZE = 50;
@@ -38,7 +39,7 @@ export class FormationService {
                 await this.formationRepository.upsertFormations(formationsWithParsedDates);
             }
         } catch (error) {
-            console.error(`Error upserting formations batch:`, error);
+            logger.error('Error upserting formations batch', error as Error, { batchSize: formations.length });
             throw error;
         }
     }
@@ -55,7 +56,7 @@ export class FormationService {
             };
             await this.formationRepository.upsertFormation(formationWithParsedDates);
         } catch (error) {
-            console.error(`Error upserting formation ${formation.reference}:`, error);
+            logger.error('Error upserting formation', error as Error, { reference: formation.reference });
             throw error;
         }
     }
@@ -67,7 +68,7 @@ export class FormationService {
         try {
             return await this.formationRepository.getLastSync();
         } catch (error) {
-            console.error('Error getting last sync date:', error);
+            logger.error('Error getting last sync date', error as Error);
             throw error;
         }
     }
@@ -79,7 +80,7 @@ export class FormationService {
         try {
             return await this.formationRepository.findFormationByReference(reference);
         } catch (error) {
-            console.error(`Error getting formation by reference ${reference}:`, error);
+            logger.error('Error getting formation by reference', error as Error, { reference });
             throw error;
         }
     }
@@ -91,7 +92,7 @@ export class FormationService {
         try {
             return await this.formationRepository.findAllFormations();
         } catch (error) {
-            console.error('Error getting all formations:', error);
+            logger.error('Error getting all formations', error as Error);
             throw error;
         }
     }
@@ -103,7 +104,7 @@ export class FormationService {
         try {
             return await this.formationRepository.findAllDisciplines();
         } catch (error) {
-            console.error('Error getting disciplines:', error);
+            logger.error('Error getting disciplines', error as Error);
             throw error;
         }
     }
@@ -116,7 +117,7 @@ export class FormationService {
         try {
             return await this.formationRepository.findRecentFormations(hours);
         } catch (error) {
-            console.error('Error getting recent formations:', error);
+            logger.error('Error getting recent formations', error as Error, { hours });
             throw error;
         }
     }
@@ -129,7 +130,7 @@ export class FormationService {
             const formation = await this.getFormationByReference(reference);
             return formation !== null;
         } catch (error) {
-            console.error(`Error checking formation existence ${reference}:`, error);
+            logger.error('Error checking formation existence', error as Error, { reference });
             throw error;
         }
     }
@@ -146,7 +147,7 @@ export class FormationService {
                 f.dates.some(date => new Date(date) > new Date())
             );
         } catch (error) {
-            console.error('Error getting available formations:', error);
+            logger.error('Error getting available formations', error as Error);
             throw error;
         }
     }
@@ -159,7 +160,7 @@ export class FormationService {
             const allFormations = await this.getAllFormations();
             return allFormations.filter(f => f.discipline === discipline);
         } catch (error) {
-            console.error(`Error getting formations for discipline ${discipline}:`, error);
+            logger.error('Error getting formations for discipline', error as Error, { discipline });
             throw error;
         }
     }
@@ -172,7 +173,7 @@ export class FormationService {
             const allFormations = await this.getAllFormations();
             return allFormations.filter(f => f.lieu === location);
         } catch (error) {
-            console.error(`Error getting formations for location ${location}:`, error);
+            logger.error('Error getting formations for location', error as Error, { location });
             throw error;
         }
     }
@@ -190,7 +191,10 @@ export class FormationService {
                 })
             );
         } catch (error) {
-            console.error('Error getting formations by date range:', error);
+            logger.error('Error getting formations by date range', error as Error, {
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString()
+            });
             throw error;
         }
     }

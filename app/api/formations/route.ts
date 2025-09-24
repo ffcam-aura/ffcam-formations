@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { FormationService } from '@/services/formation/formations.service';
 import { FormationRepository } from '@/repositories/FormationRepository';
+import { logger } from '@/lib/logger';
 
 const formationRepository = new FormationRepository();
 const formationService = new FormationService(formationRepository);
@@ -10,7 +11,7 @@ export async function GET() {
     const allFormations = await formationService.getAllFormations();
     return NextResponse.json(allFormations);
   } catch (error) {
-    console.error('Erreur API /formations:', error);
+    logger.error('Erreur API /api/formations', error);
 
     const err = error as Error;
 

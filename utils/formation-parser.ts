@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio';
 import { FormationDocument } from '@/types/formation';
+import { logger } from '@/lib/logger';
 
 
 /**
@@ -92,7 +93,9 @@ export function parseEmail($formation: cheerio.Cheerio): string | null {
         try {
             return getDecryptedEmailFromCharCodeArray(charCodes);
         } catch (error) {
-            console.error('Error decrypting email:', error);
+            logger.debug('Error decrypting email', {
+                error: error instanceof Error ? error.message : String(error)
+            });
             return null;
         }
     }

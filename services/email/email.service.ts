@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { env } from '@/env.ts';
+import { logger } from '@/lib/logger';
 
 interface EmailOptions {
     to: string | string[];
@@ -28,9 +29,13 @@ export class EmailService {
       
           try {
             await this.transporter.sendMail(mailOptions);
-            console.log(`Email ${mailOptions.subject} send to ${to}`);
+            logger.info(`Email sent to ${Array.isArray(to) ? to.join(', ') : to}`, {
+                subject: mailOptions.subject
+            });
           } catch (error) {
-            console.error("Error sending email: ", error);
+            logger.error(`Failed to send email to ${Array.isArray(to) ? to.join(', ') : to}`, error, {
+                subject: mailOptions.subject
+            });
             throw error;
           }
       

@@ -5,6 +5,7 @@ import { UserService } from "@/services/user/users.service";
 import { Formation } from "@/types/formation";
 import { NotificationProcessor, UserNotificationData } from "./notificationProcessor.service";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 interface NotificationResult {
   formation: Formation;
@@ -35,7 +36,9 @@ export class NotificationService {
         return await this.sendNotifications(userNotifications);
       });
     } catch (error) {
-      console.error('Error in batch notification:', error);
+      logger.error('Error in batch notification', error as Error, {
+        formationCount: formations.length
+      });
       throw error;
     }
   }

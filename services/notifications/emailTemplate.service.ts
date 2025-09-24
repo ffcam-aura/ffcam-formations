@@ -1,5 +1,6 @@
 import { Formation } from "@/types/formation";
 import { getFormationUrl } from "@/utils/slug";
+import { logger } from "@/lib/logger";
 
 export class EmailTemplateRenderer {
     render(formations: Formation[]): string {
@@ -177,7 +178,7 @@ export class EmailTemplateRenderer {
         // Formater la date en français
         return date.toLocaleDateString('fr-FR');
       } catch (error) {
-        console.error('Erreur lors du formatage de la date:', error);
+        logger.error('Erreur lors du formatage de la date', error as Error, { dateString });
         return 'Date invalide';
       }
     }

@@ -6,6 +6,7 @@ import { FormationService } from "@/services/formation/formations.service";
 import { NotificationService } from "@/services/notifications/notifications.service";
 import { UserService } from "@/services/user/users.service";
 import { FormationRepository } from "@/repositories/FormationRepository";
+import { logger } from "@/lib/logger";
 
 const formationRepository = new FormationRepository();
 const formationService = new FormationService(formationRepository);
@@ -56,8 +57,8 @@ export async function GET(request: Request) {
     });
 
   } catch (error) {
-    console.error('Error sending notifications:', error);
-    return Response.json({ 
+    logger.error('Erreur API /api/notifications/send', error);
+    return Response.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });

@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next';
 import { FormationRepository } from '@/repositories/FormationRepository';
 import { FormationService } from '@/services/formation/formations.service';
 import { generateFormationSlug } from '@/utils/slug';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Revalidate every hour
@@ -74,7 +75,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...formationPages.slice(0, 1000), // Limiter à 1000 formations pour éviter un sitemap trop gros
     ];
   } catch (error) {
-    console.error('Erreur lors de la génération du sitemap:', error);
+    logger.error('Erreur lors de la génération du sitemap', error as Error);
     // Retourner au minimum les pages statiques en cas d'erreur
     return staticPages;
   }

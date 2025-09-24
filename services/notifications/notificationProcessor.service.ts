@@ -2,8 +2,17 @@ import { NotificationRepository } from "@/repositories/NotificationRepository";
 import { Formation } from "@/types/formation";
 import { UserService } from "@/services/user/users.service";
 import { UserRepository } from "@/repositories/UserRepository";
-import { isSameDay } from "date-fns";
+import {
+  filterTodaysFormations,
+  shouldNotifyBasedOnTime,
+  groupFormationsByUser,
+  extractUniqueDisciplines,
+  getStartOfDay,
+  UserFormationData
+} from "./notificationLogic";
 
+// Ces instances globales seront progressivement supprimées
+// Gardées temporairement pour la compatibilité
 const userRepository = new UserRepository();
 const userService = new UserService(userRepository);
 
@@ -13,15 +22,29 @@ export interface UserNotificationData {
   }
   
   export class NotificationProcessor {
+    private actualUserService: UserService;
+    private dateProvider: () => Date;
+
     constructor(
       private notificationRepo: NotificationRepository,
-      private userService: typeof UserService
-    ) {}
+      userServiceOrType: UserService | typeof UserService,
+      dateProvider?: () => Date
+    ) {
+      // Support pour l'ancien et le nouveau pattern
+      if (userServiceOrType === UserService || typeof userServiceOrType === 'function') {
+        // Ancien pattern avec typeof UserService
+        this.actualUserService = userService; // Utilise la variable globale
+      } else {
+        // Nouveau pattern avec instance
+        this.actualUserService = userServiceOrType as UserService;
+      }
+      this.dateProvider = dateProvider || (() => new Date());
+    }
   
     async processFormations(formations: Formation[]): Promise<Map<string, UserNotificationData>> {
       const userNotifications = new Map<string, UserNotificationData>();
-      const disciplines = [...new Set(formations.map(f => f.discipline))];
-  
+      const disciplines = extractUniqueDisciplines(formations);
+
       for (const discipline of disciplines) {
         await this.processFormationsForDiscipline(
           discipline,
@@ -29,7 +52,7 @@ export interface UserNotificationData {
           userNotifications
         );
       }
-  
+
       return userNotifications;
     }
   
@@ -38,16 +61,12 @@ export interface UserNotificationData {
       formations: Formation[],
       userNotifications: Map<string, UserNotificationData>
     ): Promise<void> {
-      const usersToNotify = await userService.getUsersToNotifyForDiscipline(discipline);
-      
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-    
-      const todaysFormations = formations.filter(f => 
-        f.discipline === discipline && 
-        f.firstSeenAt &&
-        isSameDay(new Date(f.firstSeenAt), today)
-      );
+      const usersToNotify = await this.actualUserService.getUsersToNotifyForDiscipline(discipline);
+
+      const today = getStartOfDay(this.dateProvider());
+
+      // Utilise la fonction pure pour filtrer
+      const todaysFormations = filterTodaysFormations(formations, discipline, today);
     
       // Si aucune formation du jour, on peut éviter de traiter les utilisateurs
       if (todaysFormations.length === 0) {
@@ -68,10 +87,12 @@ export interface UserNotificationData {
   
     private async shouldNotifyUser(userId: string, discipline: string): Promise<boolean> {
       const lastNotification = await this.notificationRepo.getLastNotification(userId, discipline);
-      if (!lastNotification?.last_notified_at) return true;
-  
-      const timeSinceLastNotification = new Date().getTime() - lastNotification.last_notified_at.getTime();
-      return timeSinceLastNotification > 24 * 60 * 60 * 1000;
+
+      // Utilise la fonction pure pour la logique de temps
+      return shouldNotifyBasedOnTime(
+        lastNotification?.last_notified_at,
+        this.dateProvider()
+      );
   }
   
   

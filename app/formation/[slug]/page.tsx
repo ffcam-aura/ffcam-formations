@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import ObfuscatedEmail from '@/components/features/formations/ObfuscatedEmail';
 import ObfuscatedInscriptionButton from '@/components/features/formations/ObfuscatedInscriptionButton';
 import { formatDate, formatFullDateRange } from '@/utils/dateUtils';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +43,7 @@ async function getFormation(slug: string): Promise<Formation | null> {
 
     return null;
   } catch (error) {
-    console.error('Erreur lors de la récupération de la formation:', error);
+    logger.error('Erreur lors de la récupération de la formation', error, { slug, reference });
     return null;
   }
 }
@@ -109,7 +110,10 @@ export default async function FormationPage({ params }: PageProps) {
       )
       .slice(0, 3);
   } catch (error) {
-    console.error('Erreur lors de la récupération des formations similaires:', error);
+    logger.error('Erreur lors de la récupération des formations similaires', error as Error, {
+      formation: formation?.titre,
+      discipline: formation?.discipline
+    });
   }
 
   return (

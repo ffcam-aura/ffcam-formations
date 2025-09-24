@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { FormationService } from '@/services/formation/formations.service';
 import NotificationsForm from '@/components/features/notifications/NotificationsForm';
 import { FormationRepository } from '@/repositories/FormationRepository';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +20,7 @@ export default async function NotificationsPage() {
   try {
     disciplines = await formationService.getAllDisciplines();
   } catch (error) {
-    console.error('Erreur lors de la récupération des disciplines:', error);
+    logger.error('Erreur lors de la récupération des disciplines', error as Error);
     // Utiliser des disciplines par défaut si la base n'est pas accessible
     disciplines = [];
   }

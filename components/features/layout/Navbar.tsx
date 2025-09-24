@@ -121,6 +121,7 @@ export default function Navbar() {
                   <BellRing size={20} />
                 </Link>
                 <UserButton
+                  afterSignOutUrl="/"
                   appearance={{
                     elements: {
                       avatarBox: "w-8 h-8 rounded-md",
@@ -195,6 +196,7 @@ export default function Navbar() {
                   <BellRing size={20} />
                 </Link>
                 <UserButton
+                  afterSignOutUrl="/"
                   appearance={{
                     elements: {
                       avatarBox: "w-8 h-8 rounded-md",

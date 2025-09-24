@@ -2,6 +2,7 @@ import { auth, currentUser } from '@clerk/nextjs/server'
 import { UserService } from '@/services/user/users.service';
 import { NextResponse } from 'next/server';
 import { UserRepository } from '@/repositories/UserRepository';
+import { logger } from '@/lib/logger';
 
 const userRepository = new UserRepository();
 const userService = new UserService(userRepository);
@@ -16,7 +17,7 @@ export async function GET() {
         const preferences = await userService.getNotificationPreferences(userId);
         return NextResponse.json(preferences);
     } catch (error) {
-        console.error('Error fetching user preferences:', error);
+        logger.error('Erreur API /api/users GET', error, { userId: userId || 'unknown' });
         return NextResponse.json(
             { error: 'Failed to fetch user preferences' },
             { status: 500 }
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
         
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error('Error updating user preferences:', error);
+        logger.error('Erreur API /api/users POST', error, { userId: userId || 'unknown' });
         return NextResponse.json(
             { error: 'Failed to update user preferences' },
             { status: 500 }

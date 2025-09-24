@@ -8,6 +8,7 @@ import {
     parseTarif,
     parseEmail
 } from '@/utils/formation-parser';
+import { logger } from '@/lib/logger';
 
 export class FFCAMScraper {
     private static BASE_URL = 'https://www.ffcam.fr/les-formations.html';
@@ -20,7 +21,7 @@ export class FFCAMScraper {
             }
             return response.text();
         } catch (error) {
-            console.error('Error fetching page:', error);
+            logger.error('Error fetching FFCAM page', error as Error, { url: this.BASE_URL });
             throw error;
         }
     }
@@ -64,7 +65,9 @@ export class FFCAMScraper {
                 const formation = this.parseFormation($, element);
                 formations.push(formation);
             } catch (error) {
-                console.error('Error parsing formation:', error);
+                logger.warn('Error parsing formation element', {
+                    error: error instanceof Error ? error.message : String(error)
+                });
             }
         });
 
