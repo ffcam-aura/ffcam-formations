@@ -1,1 +1,1 @@
-pnpm build
+NODE_ENV=production pnpm build
