@@ -2,6 +2,7 @@ import { NotificationProcessor } from './notificationProcessor.service';
 import { NotificationRepository } from '@/repositories/NotificationRepository';
 import { UserService } from '@/services/user/users.service';
 import { UserRepository } from '@/repositories/UserRepository';
+import { prisma } from '@/lib/prisma';
 
 /**
  * Factory pour créer une instance de NotificationProcessor
@@ -32,7 +33,7 @@ export function createNotificationProcessor(
   overrides?: NotificationProcessorDeps
 ): NotificationProcessor {
   // Instances par défaut
-  const defaultNotificationRepo = new NotificationRepository();
+  const defaultNotificationRepo = new NotificationRepository(prisma);
   const defaultUserRepo = new UserRepository();
   const defaultUserService = new UserService(defaultUserRepo);
 

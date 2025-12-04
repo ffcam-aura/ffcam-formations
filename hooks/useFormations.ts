@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Formation } from "@/types/formation";
+import { logger } from "@/lib/logger";
 
 interface ErrorState {
   message: string;
@@ -50,11 +51,11 @@ export function useFormations() {
           }
         }
       } catch (syncError) {
-        console.warn('Erreur lors de la récupération de la dernière sync:', syncError);
+        logger.warn('Erreur lors de la récupération de la dernière sync', { error: syncError });
       }
       
     } catch (err) {
-      console.error('Erreur de réseau:', err);
+      logger.error('Erreur de réseau', err instanceof Error ? err : undefined, { rawError: err });
       const errorState: ErrorState = {
         message: "Impossible de se connecter au serveur. Vérifiez votre connexion internet.",
         type: 'network',

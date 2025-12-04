@@ -2,7 +2,7 @@ import { FFCAMScraper } from '@/lib/scraper';
 import { EmailService } from '@/services/email/email.service';
 import { Formation } from '@/types/formation';
 import util from 'util';
-import { env } from '@/env.ts';
+import { env } from '@/env';
 import { FormationRepository } from '@/repositories/FormationRepository';
 import { FormationService } from './formations.service';
 import { logger } from '@/lib/logger';

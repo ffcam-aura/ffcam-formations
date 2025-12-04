@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { env } from '@/env.ts';
+import { env } from '@/env';
 import { logger } from '@/lib/logger';
 
 interface EmailOptions {

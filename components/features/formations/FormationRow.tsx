@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from "react";
 import Link from "next/link";
 import { Formation } from "@/types/formation";
 import { CalendarDays, MapPin, Euro, ArrowRight, AlertCircle } from "lucide-react";
@@ -13,7 +14,7 @@ interface FormationRowProps {
   formation: Formation;
 }
 
-export default function FormationRow({ formation }: FormationRowProps) {
+function FormationRowComponent({ formation }: FormationRowProps) {
   const isUrgent = isUrgentFormation(formation);
   const isComplete = isCompleteFormation(formation);
   const { startNavigation } = useNavigation();
@@ -132,3 +133,6 @@ export default function FormationRow({ formation }: FormationRowProps) {
     </motion.li>
   );
 }
+
+const FormationRow = memo(FormationRowComponent);
+export default FormationRow;

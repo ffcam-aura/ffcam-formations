@@ -1,29 +1,55 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
-const envSchema = {
-    SMTP_HOST: z.string(),
-    SMTP_PORT: z.coerce.number(),
-    SMTP_USER: z.string(),
-    SMTP_PASSWORD: z.string(),
-    EMAIL_FROM: z.string().email(),
-    EMAIL_SENDER_NAME: z.string(),
-    SYNC_NOTIFICATION_EMAIL: z.string().email(),
-    POSTGRES_URL: z.string(),
-    POSTGRES_URL_NON_POOLING: z.string(),
-    VERCEL_ENV: z.string()
+const serverEnvSchema = {
+    // SMTP Configuration
+    SMTP_HOST: z.string().min(1, "SMTP_HOST is required"),
+    SMTP_PORT: z.coerce.number().int().positive(),
+    SMTP_USER: z.string().min(1, "SMTP_USER is required"),
+    SMTP_PASSWORD: z.string().min(1, "SMTP_PASSWORD is required"),
+
+    // Email Configuration
+    EMAIL_FROM: z.string().email("EMAIL_FROM must be a valid email"),
+    EMAIL_SENDER_NAME: z.string().min(1, "EMAIL_SENDER_NAME is required"),
+    SYNC_NOTIFICATION_EMAIL: z.string().email("SYNC_NOTIFICATION_EMAIL must be a valid email"),
+
+    // Database
+    POSTGRES_URL: z.string().url("POSTGRES_URL must be a valid URL"),
+    POSTGRES_URL_NON_POOLING: z.string().url("POSTGRES_URL_NON_POOLING must be a valid URL"),
+
+    // Environment
+    VERCEL_ENV: z.enum(["development", "preview", "production"]).default("development"),
+
+    // CRON Security (optional - will fail at runtime if not set when needed)
+    CRON_SECRET: z.string().optional(),
 } as const;
 
-type EnvSchema = typeof envSchema;
+const clientEnvSchema = {
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1).optional(),
+} as const;
 
-const generateRuntimeEnv = (schema: EnvSchema): Record<keyof EnvSchema, string | undefined> => {
+type ServerEnvSchema = typeof serverEnvSchema;
+type ClientEnvSchema = typeof clientEnvSchema;
+
+const generateServerRuntimeEnv = (schema: ServerEnvSchema): Record<keyof ServerEnvSchema, string | undefined> => {
     return Object.keys(schema).reduce((acc, key) => ({
         ...acc,
         [key]: process.env[key]
-    }), {}) as Record<keyof EnvSchema, string | undefined>;
+    }), {}) as Record<keyof ServerEnvSchema, string | undefined>;
+};
+
+const generateClientRuntimeEnv = (schema: ClientEnvSchema): Record<keyof ClientEnvSchema, string | undefined> => {
+    return Object.keys(schema).reduce((acc, key) => ({
+        ...acc,
+        [key]: process.env[key]
+    }), {}) as Record<keyof ClientEnvSchema, string | undefined>;
 };
 
 export const env = createEnv({
-    server: envSchema,
-    runtimeEnv: generateRuntimeEnv(envSchema)
+    server: serverEnvSchema,
+    client: clientEnvSchema,
+    runtimeEnv: {
+        ...generateServerRuntimeEnv(serverEnvSchema),
+        ...generateClientRuntimeEnv(clientEnvSchema),
+    },
 });

@@ -3,13 +3,21 @@ import { UserService } from '@/services/user/users.service';
 import { NextResponse } from 'next/server';
 import { UserRepository } from '@/repositories/UserRepository';
 import { logger } from '@/lib/logger';
+import { z } from 'zod';
+
+const updatePreferencesSchema = z.object({
+  disciplines: z.array(z.string().min(1, 'Discipline cannot be empty'))
+});
 
 const userRepository = new UserRepository();
 const userService = new UserService(userRepository);
 
 export async function GET() {
+    let userId: string | null = null;
     try {
-        const { userId }: { userId: string | null } = await auth();
+        const authResult = await auth();
+        userId = authResult.userId;
+
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -17,7 +25,7 @@ export async function GET() {
         const preferences = await userService.getNotificationPreferences(userId);
         return NextResponse.json(preferences);
     } catch (error) {
-        logger.error('Erreur API /api/users GET', error, { userId: userId || 'unknown' });
+        logger.error('Erreur API /api/users GET', error as Error, { userId: userId || 'unknown' });
         return NextResponse.json(
             { error: 'Failed to fetch user preferences' },
             { status: 500 }
@@ -26,8 +34,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    let userId: string | null = null;
     try {
-        const { userId }: { userId: string | null } = await auth();
+        const authResult = await auth();
+        userId = authResult.userId;
+
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -42,13 +53,24 @@ export async function POST(request: Request) {
         }
 
         const email = user.emailAddresses[0].emailAddress;
-        const { disciplines } = await request.json();
-        
+
+        // Validate request body
+        const body = await request.json();
+        const parseResult = updatePreferencesSchema.safeParse(body);
+
+        if (!parseResult.success) {
+            return NextResponse.json(
+                { error: 'Invalid request body', details: parseResult.error.flatten() },
+                { status: 400 }
+            );
+        }
+
+        const { disciplines } = parseResult.data;
         await userService.updateNotificationPreferences(userId, email, disciplines);
-        
+
         return NextResponse.json({ success: true });
     } catch (error) {
-        logger.error('Erreur API /api/users POST', error, { userId: userId || 'unknown' });
+        logger.error('Erreur API /api/users POST', error as Error, { userId: userId || 'unknown' });
         return NextResponse.json(
             { error: 'Failed to update user preferences' },
             { status: 500 }

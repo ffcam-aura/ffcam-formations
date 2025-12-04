@@ -13,17 +13,19 @@ export type Filters = {
   showPastFormations: boolean;
 };
 
+export const defaultFilters: Filters = {
+  searchQuery: "",
+  location: "",
+  discipline: "",
+  organisateur: "",
+  startDate: "",
+  endDate: "",
+  availableOnly: false,
+  showPastFormations: false,
+};
+
 export function useFormationFilters(formations: Formation[], sortOption: string) {
-  const [filters, setFilters] = useState<Filters>({
-    searchQuery: "",
-    location: "",
-    discipline: "",
-    organisateur: "",
-    startDate: "",
-    endDate: "",
-    availableOnly: false,
-    showPastFormations: false,
-  });
+  const [filters, setFilters] = useState<Filters>(defaultFilters);
   const [filteredFormations, setFilteredFormations] = useState(formations);
 
   useEffect(() => {

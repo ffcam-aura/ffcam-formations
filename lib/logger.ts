@@ -10,8 +10,10 @@ import * as Sentry from '@sentry/nextjs';
 const isDev = process.env.NODE_ENV === 'development';
 const isTest = process.env.NODE_ENV === 'test';
 
+type LogContext = Record<string, unknown>;
+
 export const logger = {
-  info: (message: string, data?: unknown) => {
+  info: (message: string, data?: LogContext) => {
     if (isTest) return;
     if (isDev) {
       console.log(message, data);
@@ -19,11 +21,11 @@ export const logger = {
     Sentry.addBreadcrumb({
       message,
       level: 'info',
-      data
+      data: data as Record<string, string | number | boolean>
     });
   },
 
-  error: (message: string, error?: unknown, context?: unknown) => {
+  error: (message: string, error?: Error | unknown, context?: LogContext) => {
     if (isTest) return;
 
     if (isDev) {
@@ -33,7 +35,7 @@ export const logger = {
     if (error instanceof Error) {
       Sentry.captureException(error, {
         tags: { message },
-        extra: context
+        extra: context as Record<string, unknown>
       });
     } else {
       Sentry.captureMessage(message, 'error');
@@ -43,7 +45,7 @@ export const logger = {
     }
   },
 
-  warn: (message: string, data?: unknown) => {
+  warn: (message: string, data?: LogContext) => {
     if (isTest) return;
 
     if (isDev) {
@@ -56,7 +58,7 @@ export const logger = {
     }
   },
 
-  debug: (message: string, data?: unknown) => {
+  debug: (message: string, data?: LogContext) => {
     if (isTest) return;
     if (isDev) {
       console.debug(message, data);

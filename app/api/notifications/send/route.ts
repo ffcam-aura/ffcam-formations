@@ -7,11 +7,17 @@ import { NotificationService } from "@/services/notifications/notifications.serv
 import { UserService } from "@/services/user/users.service";
 import { FormationRepository } from "@/repositories/FormationRepository";
 import { logger } from "@/lib/logger";
+import { validateCronSecret, unauthorizedResponse } from "@/lib/auth";
 
 const formationRepository = new FormationRepository();
 const formationService = new FormationService(formationRepository);
 
 export async function GET(request: Request) {
+  const authHeader = request.headers.get('authorization');
+  if (!validateCronSecret(authHeader)) {
+    return unauthorizedResponse();
+  }
+
   const emailRenderer = new EmailTemplateRenderer();
   const notificationRepo = new NotificationRepository(prisma);
   const notificationService = new NotificationService(
@@ -20,12 +26,6 @@ export async function GET(request: Request) {
     EmailService,
     UserService
   );
-  const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return new Response('Unauthorized', {
-      status: 401,
-    });
-  }
 
   try {
     // Récupère les formations des dernières 24h

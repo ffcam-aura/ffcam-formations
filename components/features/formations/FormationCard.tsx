@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from "react";
 import Link from "next/link";
 import { Formation } from "@/types/formation";
 import { getFormationUrl } from "@/utils/slug";
@@ -9,7 +10,7 @@ import { formatDateRange } from "@/utils/dateUtils";
 import { isUrgentFormation, isCompleteFormation } from "@/utils/formationStatus";
 import { useNavigation } from "@/contexts/NavigationContext";
 
-export default function FormationCard({ formation }: { formation: Formation }) {
+function FormationCardComponent({ formation }: { formation: Formation }) {
   const isUrgent = isUrgentFormation(formation);
   const isComplete = isCompleteFormation(formation);
   const { startNavigation } = useNavigation();
@@ -127,3 +128,6 @@ export default function FormationCard({ formation }: { formation: Formation }) {
     </motion.div>
   );
 }
+
+const FormationCard = memo(FormationCardComponent);
+export default FormationCard;

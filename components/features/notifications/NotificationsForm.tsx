@@ -10,6 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { AlertCircle, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { logger } from "@/lib/logger";
 
 type Discipline = {
   id: string;
@@ -48,7 +49,7 @@ export default function NotificationsForm({ initialDisciplines }: NotificationsF
         const data = await response.json();
         setSelectedDisciplines(data);
       } catch (error) {
-        console.error('Erreur lors du chargement des préférences:', error);
+        logger.error('Erreur lors du chargement des préférences', error instanceof Error ? error : undefined);
         setLoadError({
           message: error instanceof Error ? error.message : 'Erreur inconnue',
           status: error instanceof Response ? error.status : undefined
@@ -96,7 +97,7 @@ export default function NotificationsForm({ initialDisciplines }: NotificationsF
         description: "Vos préférences ont été enregistrées",
       });
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
+      logger.error('Erreur lors de la sauvegarde', error instanceof Error ? error : undefined);
       setSaveError({
         message: error instanceof Error ? error.message : 'Erreur inconnue',
         status: error instanceof Response ? error.status : undefined

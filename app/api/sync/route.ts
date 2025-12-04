@@ -1,13 +1,12 @@
 export const maxDuration = 60;
 import { SyncService } from '@/services/formation/sync.service';
 import { logger } from '@/lib/logger';
+import { validateCronSecret, unauthorizedResponse } from '@/lib/auth';
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return new Response('Unauthorized', {
-      status: 401,
-    });
+  if (!validateCronSecret(authHeader)) {
+    return unauthorizedResponse();
   }
 
   try {

@@ -80,7 +80,9 @@ export default function Filters({
       {/* Barre de recherche principale et organisateur */}
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div className="flex-1">
+          <label htmlFor="search-input" className="sr-only">Rechercher une formation</label>
           <input
+            id="search-input"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -89,7 +91,9 @@ export default function Filters({
           />
         </div>
         <div className="w-full sm:w-64">
+          <label htmlFor="organisateur-select" className="sr-only">Filtrer par organisateur</label>
           <select
+            id="organisateur-select"
             value={selectedOrganisateur}
             onChange={(e) => setSelectedOrganisateur(e.target.value)}
             className="w-full px-3 sm:px-4 py-2.5 sm:py-3 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
@@ -107,7 +111,9 @@ export default function Filters({
       {/* Autres filtres */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div>
+          <label htmlFor="location-select" className="sr-only">Filtrer par lieu</label>
           <select
+            id="location-select"
             value={selectedLocation}
             onChange={(e) => setSelectedLocation(e.target.value)}
             className="w-full px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
@@ -122,7 +128,9 @@ export default function Filters({
         </div>
 
         <div>
+          <label htmlFor="discipline-select" className="sr-only">Filtrer par discipline</label>
           <select
+            id="discipline-select"
             value={selectedDiscipline}
             onChange={(e) => setSelectedDiscipline(e.target.value)}
             className="w-full px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
@@ -138,20 +146,28 @@ export default function Filters({
 
         <div className="flex flex-col gap-2">
           <div className="flex flex-col sm:flex-row gap-2">
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              placeholder="Date de début"
-              className="flex-1 px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-            />
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              placeholder="Date de fin"
-              className="flex-1 px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-            />
+            <div className="flex-1">
+              <label htmlFor="start-date" className="sr-only">Date de début</label>
+              <input
+                id="start-date"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                aria-label="Date de début"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              />
+            </div>
+            <div className="flex-1">
+              <label htmlFor="end-date" className="sr-only">Date de fin</label>
+              <input
+                id="end-date"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                aria-label="Date de fin"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              />
+            </div>
           </div>
         </div>
       </div>

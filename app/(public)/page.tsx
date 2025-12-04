@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useFormations } from "@/hooks/useFormations";
 import Filters from "@/components/features/formations/FormationsFilters";
 import FormationList from "@/components/features/formations/FormationList";
 import { ClipLoader } from "react-spinners";
-import { useFormationFilters } from "@/hooks/userFormationsFilter";
+import { useFormationFilters, defaultFilters } from "@/hooks/userFormationsFilter";
 import { FormationsHeader } from "@/components/features/formations/FormationsHeader";
 import { FormationsToolbar } from "@/components/features/formations/FormationsToolbar";
 import { ErrorDisplay } from "@/components/ui/error-display";
@@ -34,10 +34,19 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [loading]);
 
-  const uniqueLocations = Array.from(new Set(formations.map((f) => f.lieu)));
-  const uniqueDisciplines = Array.from(new Set(formations.map((f) => f.discipline)));
-  const uniqueOrganisateurs = Array.from(new Set(formations.map((f) => f.organisateur)))
-    .sort((a, b) => a.localeCompare(b, 'fr'));
+  const uniqueLocations = useMemo(
+    () => Array.from(new Set(formations.map((f) => f.lieu))),
+    [formations]
+  );
+  const uniqueDisciplines = useMemo(
+    () => Array.from(new Set(formations.map((f) => f.discipline))),
+    [formations]
+  );
+  const uniqueOrganisateurs = useMemo(
+    () => Array.from(new Set(formations.map((f) => f.organisateur)))
+      .sort((a, b) => a.localeCompare(b, 'fr')),
+    [formations]
+  );
 
   const { filters, setFilters, filteredFormations } = useFormationFilters(formations, sortOption);
 
@@ -66,7 +75,7 @@ export default function Home() {
   }
 
   return (
-    <main className="flex-grow container mx-auto p-8">
+    <main id="main-content" className="flex-grow container mx-auto p-8">
       <FormationsHeader
         data-testid="formations-header"
         showIntro={showIntro}
@@ -106,8 +115,8 @@ export default function Home() {
             <p className="text-gray-500 mb-4">
               Aucune formation ne correspond à vos critères de recherche actuels.
             </p>
-            <button 
-              onClick={() => setFilters({})}
+            <button
+              onClick={() => setFilters(defaultFilters)}
               className="text-blue-600 hover:text-blue-500 font-medium"
             >
               Réinitialiser les filtres

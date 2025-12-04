@@ -43,9 +43,16 @@ export default function Navbar() {
   const closeMenu = () => setIsOpen(false);
 
   return (
-    <nav className="border-b bg-white shadow-sm">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+    <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-md focus:outline-none"
+      >
+        Aller au contenu principal
+      </a>
+      <nav className="border-b bg-white shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex h-16 items-center justify-between">
           {/* Logo and title */}
           <Link href="/" className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
             <div className="relative h-10 w-10">
@@ -208,7 +215,8 @@ export default function Navbar() {
             </SignedIn>
           </div>
         </div>
-      </div>
-    </nav>
+        </div>
+      </nav>
+    </>
   );
 }
