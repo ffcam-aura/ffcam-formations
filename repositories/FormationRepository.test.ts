@@ -175,7 +175,39 @@ describe('FormationRepository', () => {
     });
 
     describe('upsertFormations (batch)', () => {
-        it.skip('should handle batch upsert of multiple formations', async () => {
+        const setupUpsertMocks = () => {
+            // Mock preloadRelations - disciplines, lieux, hebergements
+            vi.mocked(prisma.disciplines.findMany).mockResolvedValue([
+                { id: 1, nom: 'Informatique', created_at: null, updated_at: null }
+            ]);
+            vi.mocked(prisma.lieux.findMany).mockResolvedValue([
+                { id: 1, nom: 'Paris', departement: null, created_at: null, updated_at: null }
+            ]);
+            vi.mocked(prisma.types_hebergement.findMany).mockResolvedValue([
+                { id: 1, nom: 'Hotel', created_at: null, updated_at: null }
+            ]);
+
+            // Mock transaction - execute callback with prisma as tx
+            vi.mocked(prisma.$transaction).mockImplementation(async (callback: any) => {
+                return callback(prisma);
+            });
+
+            // Mock upsert to return formation with id
+            vi.mocked(prisma.formations.upsert).mockImplementation(async (args: any) => ({
+                id: args.where.reference === 'REF123' ? 1 : 2,
+                reference: args.where.reference
+            } as any));
+
+            // Mock delete and create for dates/documents
+            vi.mocked(prisma.formations_dates.deleteMany).mockResolvedValue({ count: 0 });
+            vi.mocked(prisma.formations_documents.deleteMany).mockResolvedValue({ count: 0 });
+            vi.mocked(prisma.formations_dates.createMany).mockResolvedValue({ count: 1 });
+            vi.mocked(prisma.formations_documents.createMany).mockResolvedValue({ count: 1 });
+        };
+
+        it('should handle batch upsert of multiple formations', async () => {
+            setupUpsertMocks();
+
             const formations: Formation[] = [
                 mockFormation,
                 {
@@ -185,36 +217,6 @@ describe('FormationRepository', () => {
                 }
             ];
 
-            const mockPrismaFormations = formations.map(f => ({
-                id: 1,
-                reference: f.reference,
-                titre: f.titre,
-                lieu: f.lieu,
-                tarif: f.tarif,
-                organisateur: f.organisateur,
-                responsable_stage: f.responsable,
-                email_contact: f.emailContact,
-                information_stagiaire: f.informationStagiaire,
-                nombre_participants: f.nombreParticipants,
-                places_restantes: f.placesRestantes,
-                hebergement: f.hebergement,
-                first_seen_at: new Date(f.firstSeenAt),
-                last_seen_at: new Date(f.lastSeenAt),
-                created_at: new Date(),
-                updated_at: new Date(),
-                disciplines: [],
-                lieux: [],
-                types_hebergement: [],
-                formations_dates: [],
-                formations_documents: []
-            }));
-
-            // Configuration des mocks pour le batch
-            vi.mocked(prisma.formations.upsert).mockImplementation((args: any) => {
-                const formation = mockPrismaFormations.find(f => f.reference === args.where.reference);
-                return Promise.resolve(formation as any);
-            });
-
             await repository.upsertFormations(formations);
 
             // Vérifier que upsert a été appelé pour chaque formation
@@ -222,73 +224,63 @@ describe('FormationRepository', () => {
             expect(prisma.$transaction).toHaveBeenCalled();
         });
 
-        it.skip('should handle empty batch gracefully', async () => {
+        it('should handle empty batch gracefully', async () => {
+            // Empty batch should still call preloadRelations but not process any formations
+            vi.mocked(prisma.disciplines.findMany).mockResolvedValue([]);
+            vi.mocked(prisma.lieux.findMany).mockResolvedValue([]);
+            vi.mocked(prisma.types_hebergement.findMany).mockResolvedValue([]);
+
             await repository.upsertFormations([]);
 
+            // preloadRelations is called but no formations processed
+            expect(prisma.disciplines.findMany).toHaveBeenCalled();
             expect(prisma.formations.upsert).not.toHaveBeenCalled();
         });
 
-        it.skip('should rollback on batch failure', async () => {
-            const formations = [mockFormation];
+        it('should rollback on batch failure', async () => {
+            setupUpsertMocks();
 
+            // Override transaction to reject
             vi.mocked(prisma.$transaction).mockRejectedValueOnce(new Error('Transaction failed'));
 
-            await expect(repository.upsertFormations(formations))
+            await expect(repository.upsertFormations([mockFormation]))
                 .rejects.toThrow('Transaction failed');
         });
     });
 
     describe('upsertFormation', () => {
-        it.skip('should successfully upsert a single formation', async () => {
-            // Mock the necessary database calls
-            vi.mocked(prisma.disciplines.findMany).mockResolvedValue([{
-                id: 1,
-                nom: mockFormation.discipline,
-                created_at: null,
-                updated_at: null
-            }]);
-            
-            vi.mocked(prisma.lieux.findMany).mockResolvedValue([{
-                id: 1,
-                nom: mockFormation.lieu,
-                departement: null,
-                created_at: null,
-                updated_at: null
-            }]);
-            
-            vi.mocked(prisma.types_hebergement.findMany).mockResolvedValue([{
-                id: 1,
-                nom: mockFormation.hebergement,
-                created_at: null,
-                updated_at: null
-            }]);
+        it('should successfully upsert a single formation', async () => {
+            // Mock preloadRelations
+            vi.mocked(prisma.disciplines.findMany).mockResolvedValue([
+                { id: 1, nom: mockFormation.discipline, created_at: null, updated_at: null }
+            ]);
+            vi.mocked(prisma.lieux.findMany).mockResolvedValue([
+                { id: 1, nom: mockFormation.lieu, departement: null, created_at: null, updated_at: null }
+            ]);
+            vi.mocked(prisma.types_hebergement.findMany).mockResolvedValue([
+                { id: 1, nom: mockFormation.hebergement, created_at: null, updated_at: null }
+            ]);
+
+            // Mock transaction
+            vi.mocked(prisma.$transaction).mockImplementation(async (callback: any) => {
+                return callback(prisma);
+            });
 
             vi.mocked(prisma.formations.upsert).mockResolvedValue({
                 id: 1,
-                reference: mockFormation.reference,
-                titre: mockFormation.titre,
-                discipline_id: 1,
-                information_stagiaire: mockFormation.informationStagiaire,
-                nombre_participants: mockFormation.nombreParticipants,
-                places_restantes: mockFormation.placesRestantes,
-                hebergement_id: 1,
-                tarif: new Prisma.Decimal(mockFormation.tarif.toString()),
-                lieu_id: 1,
-                organisateur: mockFormation.organisateur,
-                responsable: mockFormation.responsable,
-                email_contact: mockFormation.emailContact,
-                status: 'active',
-                created_at: new Date(),
-                updated_at: null,
-                first_seen_at: new Date(),
-                last_seen_at: new Date()
-            });
+                reference: mockFormation.reference
+            } as any);
+
+            vi.mocked(prisma.formations_dates.deleteMany).mockResolvedValue({ count: 0 });
+            vi.mocked(prisma.formations_documents.deleteMany).mockResolvedValue({ count: 0 });
+            vi.mocked(prisma.formations_dates.createMany).mockResolvedValue({ count: 1 });
+            vi.mocked(prisma.formations_documents.createMany).mockResolvedValue({ count: 1 });
 
             await repository.upsertFormation(mockFormation);
 
             expect(prisma.formations.upsert).toHaveBeenCalled();
-            expect(prisma.formations_dates.createMany).toHaveBeenCalled();
-            expect(prisma.formations_documents.createMany).toHaveBeenCalled();
+            expect(prisma.formations_dates.deleteMany).toHaveBeenCalled();
+            expect(prisma.formations_documents.deleteMany).toHaveBeenCalled();
         });
     });
 

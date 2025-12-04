@@ -60,11 +60,8 @@ describe('Formation data parser', () => {
       .text()
       .trim();
 
-      console.log(organisateurText);
-  
     const parsedOrganisateur = parseOrganisateur(organisateurText);
 
-    console.log(parsedOrganisateur);
     expect(parsedOrganisateur).toBe("COMITE DEPARTEMENTAL SAVOIE");
   });
 
