@@ -5,8 +5,8 @@ import { GET } from '../sync/route';
 vi.mock('@/services/formation/sync.service', () => ({
   SyncService: {
     synchronize: vi.fn(),
-    sendSyncReport: vi.fn(),
-    sendErrorReport: vi.fn()
+    sendErrorReport: vi.fn(),
+    pingHealthcheck: vi.fn()
   }
 }));
 
@@ -71,7 +71,7 @@ describe('GET /api/sync', () => {
       duration: 1,
       stats: { total: 0, synchronized: 0, errors: 0, duration: '1s' }
     });
-    vi.mocked(SyncService.sendSyncReport).mockResolvedValue(undefined);
+    vi.mocked(SyncService.pingHealthcheck).mockResolvedValue(undefined);
 
     const request = new Request('http://localhost/api/sync', {
       method: 'GET',
@@ -86,7 +86,7 @@ describe('GET /api/sync', () => {
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
     expect(SyncService.synchronize).toHaveBeenCalled();
-    expect(SyncService.sendSyncReport).toHaveBeenCalled();
+    expect(SyncService.pingHealthcheck).toHaveBeenCalledWith(true, expect.any(String));
   });
 
   it('should return failure and send error report on sync error', async () => {
@@ -96,6 +96,7 @@ describe('GET /api/sync', () => {
     const error = new Error('Sync failed');
     vi.mocked(SyncService.synchronize).mockRejectedValue(error);
     vi.mocked(SyncService.sendErrorReport).mockResolvedValue(undefined);
+    vi.mocked(SyncService.pingHealthcheck).mockResolvedValue(undefined);
 
     const request = new Request('http://localhost/api/sync', {
       method: 'GET',
@@ -110,5 +111,6 @@ describe('GET /api/sync', () => {
     expect(response.status).toBe(200);
     expect(data.success).toBe(false);
     expect(SyncService.sendErrorReport).toHaveBeenCalledWith(error);
+    expect(SyncService.pingHealthcheck).toHaveBeenCalledWith(false, 'Sync failed');
   });
 });

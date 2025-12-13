@@ -22,6 +22,9 @@ const serverEnvSchema = {
 
     // CRON Security (optional - will fail at runtime if not set when needed)
     CRON_SECRET: z.string().optional(),
+
+    // Healthcheck (dead man's switch) - ping URL from healthchecks.io or similar
+    HEALTHCHECK_SYNC_URL: z.string().url().optional(),
 } as const;
 
 const clientEnvSchema = {

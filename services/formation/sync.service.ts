@@ -1,7 +1,6 @@
 import { FFCAMScraper } from '@/lib/scraper';
 import { EmailService } from '@/services/email/email.service';
 import { Formation } from '@/types/formation';
-import util from 'util';
 import { env } from '@/env';
 import { FormationRepository } from '@/repositories/FormationRepository';
 import { FormationService } from './formations.service';
@@ -46,14 +45,6 @@ interface SyncResult {
     errors: SyncError[];
     duration: number;
     stats: SyncStats;
-}
-
-interface HtmlReportData {
-    formations: Formation[];
-    succeeded: number;
-    errors: SyncError[];
-    duration: number;
-    stats: FormationStats;
 }
 
 export class SyncService {
@@ -134,23 +125,6 @@ export class SyncService {
         return { succeeded, errors };
     }
 
-    static async sendSyncReport({ formations, succeeded, errors, duration }: SyncResult) {
-        const formationStats = this.generateStats(formations);
-        const htmlReport = this.generateHtmlReport({
-            formations,
-            succeeded,
-            errors,
-            duration,
-            stats: formationStats
-        });
-
-        await EmailService.sendEmail({
-            to: env.SYNC_NOTIFICATION_EMAIL,
-            subject: `[FFCAM] ${errors.length === 0 ? '✅' : '⚠️'} Rapport de synchronisation`,
-            html: htmlReport,
-        });
-    }
-
     static async sendErrorReport(error: unknown, formations: Formation[] = [], succeeded = 0) {
         const errorMessage = error instanceof Error ? error.message : String(error);
 
@@ -159,6 +133,37 @@ export class SyncService {
             subject: '[FFCAM] ❌ Erreur critique lors de la synchronisation',
             html: this.generateErrorReport(errorMessage, formations, succeeded),
         });
+    }
+
+    /**
+     * Ping healthcheck service (dead man's switch pattern)
+     * Signals success or failure to an external monitoring service like healthchecks.io
+     */
+    static async pingHealthcheck(success: boolean, message?: string): Promise<void> {
+        const baseUrl = env.HEALTHCHECK_SYNC_URL;
+        if (!baseUrl) {
+            logger.info('Healthcheck URL not configured, skipping ping');
+            return;
+        }
+
+        const url = success ? baseUrl : `${baseUrl}/fail`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: message,
+                signal: AbortSignal.timeout(10000), // 10s timeout
+            });
+
+            if (!response.ok) {
+                logger.warn('Healthcheck ping failed', { status: response.status, url });
+            } else {
+                logger.info('Healthcheck ping successful', { success, url });
+            }
+        } catch (error) {
+            // Don't throw - healthcheck failure shouldn't break the sync
+            logger.warn('Failed to ping healthcheck', { error: error instanceof Error ? error.message : String(error) });
+        }
     }
 
     private static async logFormations(formations: Formation[]) {
@@ -233,80 +238,6 @@ export class SyncService {
                 fin: stats.dateRange.max.toLocaleDateString('fr-FR')
             }
         });
-    }
-
-    private static generateHtmlReport(data: HtmlReportData): string {
-        return `
-            <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-                <h1 style="color: #2563eb;">📊 Rapport de synchronisation FFCAM</h1>
-                ${this.generateSyncStatusSection(data.succeeded, data.formations.length, data.errors, data.duration)}
-                ${this.generateStatsSection(data.stats)}
-                ${data.errors.length > 0 ? this.generateErrorsSection(data.errors) : ''}
-            </div>
-        `;
-    }
-
-    private static generateSyncStatusSection(
-        succeeded: number,
-        total: number,
-        errors: SyncError[],
-        duration: number
-    ): string {
-        const isSuccess = errors.length === 0;
-        return `
-            <div style="background-color: ${isSuccess ? '#ecfdf5' : '#fef2f2'}; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h2 style="color: ${isSuccess ? '#065f46' : '#991b1b'}; margin-top: 0;">
-                    ${isSuccess ? '✅ Synchronisation réussie' : '⚠️ Synchronisation avec erreurs'}
-                </h2>
-                <p>
-                    <strong>📊 Formations traitées :</strong> ${succeeded}/${total}<br>
-                    <strong>⏱️ Durée :</strong> ${duration.toFixed(2)} secondes
-                </p>
-            </div>
-        `;
-    }
-
-    private static generateStatsSection(stats: FormationStats): string {
-        return `
-            <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="color: #1e293b; margin-top: 0;">📊 Statistiques</h3>
-                <ul style="list-style: none; padding: 0;">
-                    <li>📋 Nombre total de formations : ${stats.total}</li>
-                    <li>📍 Lieux uniques : ${stats.uniqueLocations}</li>
-                    <li>🎯 Disciplines : ${stats.uniqueDisciplines}</li>
-                    <li>🎫 Places restantes : ${stats.placesRestantes.total}</li>
-                </ul>
-
-                <h4 style="color: #1e293b;">📊 Distribution par discipline :</h4>
-                <ul style="list-style: none; padding: 0;">
-                    ${Object.entries(stats.disciplines)
-                        .sort(([, a], [, b]) => b - a)
-                        .map(([discipline, count]) =>
-                            `<li>📌 ${discipline}: ${count} formations</li>`
-                        ).join('')}
-                </ul>
-
-                <p>
-                    <strong>📅 Période couverte :</strong> du ${stats.dateRange.min.toLocaleDateString('fr-FR')} 
-                    au ${stats.dateRange.max.toLocaleDateString('fr-FR')}
-                </p>
-            </div>
-        `;
-    }
-
-    private static generateErrorsSection(errors: SyncError[]): string {
-        return `
-            <div style="background-color: #fff1f2; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="color: #991b1b; margin-top: 0;">⚠️ Erreurs rencontrées</h3>
-                <ul style="list-style: none; padding: 0;">
-                    ${errors.map(error =>
-                        `<li style="margin-bottom: 10px;">
-                            <strong>❌ ${error.reference}</strong>: ${error.error}
-                        </li>`
-                    ).join('')}
-                </ul>
-            </div>
-        `;
     }
 
     private static generateErrorReport(errorMessage: string, formations: Formation[] = [], succeeded = 0): string {

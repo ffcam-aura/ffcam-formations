@@ -11,12 +11,29 @@ export async function GET(request: Request) {
 
   try {
     const syncResult = await SyncService.synchronize();
-    await SyncService.sendSyncReport(syncResult);
 
-    return Response.json({ success: true });
+    // Build report for healthcheck (visible in healthchecks.io dashboard)
+    const status = syncResult.errors.length === 0 ? '✅' : '⚠️';
+    const errorInfo = syncResult.errors.length > 0
+      ? `\n⚠️ ${syncResult.errors.length} erreur(s): ${syncResult.errors.map(e => e.reference).join(', ')}`
+      : '';
+    const message = [
+      `${status} Sync FFCAM - ${syncResult.succeeded}/${syncResult.formations.length} formations`,
+      `⏱️ Durée: ${syncResult.duration.toFixed(1)}s`,
+      errorInfo,
+    ].filter(Boolean).join('\n');
+
+    await SyncService.pingHealthcheck(true, message);
+
+    return Response.json({ success: true, stats: syncResult.stats });
   } catch (error) {
     logger.error('Erreur API /api/sync', error);
-    await SyncService.sendErrorReport(error);
+
+    // Send error email AND ping healthcheck as failed
+    await Promise.all([
+      SyncService.sendErrorReport(error),
+      SyncService.pingHealthcheck(false, error instanceof Error ? error.message : String(error)),
+    ]);
 
     return Response.json({ success: false });
   }
