@@ -1,4 +1,7 @@
 # FFCAM Formations
+
+[![Keyway Secrets](https://www.keyway.sh/badge.svg?repo=ffcam-aura/ffcam-formations)](https://www.keyway.sh/vaults/ffcam-aura/ffcam-formations)
+
 ![Vercel Deploy](https://deploy-badge.vercel.app/vercel/ffcam-formations)
  ![License](https://img.shields.io/badge/license-MIT-blue)
 

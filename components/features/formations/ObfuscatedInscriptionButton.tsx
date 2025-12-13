@@ -62,7 +62,7 @@ Cordialement,`;
         asChild
       >
         <a href={mailtoLink} onClick={handleMailtoClick}>
-          {disabled ? 'Formation complète' : 'Demande d&apos;inscription'}
+          {disabled ? 'Formation complète' : "Demande d'inscription"}
           {!disabled && <Mail className="w-4 h-4 ml-2" />}
         </a>
       </Button>
