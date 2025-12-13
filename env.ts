@@ -25,6 +25,9 @@ const serverEnvSchema = {
 
     // Healthcheck (dead man's switch) - ping URL from healthchecks.io or similar
     HEALTHCHECK_SYNC_URL: z.string().url().optional(),
+
+    // Healthcheck for email delivery - email address from healthchecks.io
+    HEALTHCHECK_NOTIFICATIONS_EMAIL: z.string().email().optional(),
 } as const;
 
 const clientEnvSchema = {
