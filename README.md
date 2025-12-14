@@ -116,7 +116,7 @@ Application web pour afficher et filtrer les formations du FFCAM (Fédération F
 | **Email** | Nodemailer + Brevo SMTP |
 | **Monitoring** | Sentry, Healthchecks.io, Vercel Analytics |
 | **Secrets** | [Keyway](https://keyway.sh) |
-| **Tests** | Vitest, React Testing Library |
+| **Tests** | Vitest, React Testing Library, Playwright (e2e) |
 
 ## Monitoring & Alerting
 
@@ -219,14 +219,26 @@ pnpm dev
 ### Commandes utiles
 
 ```bash
-pnpm dev          # Serveur de développement
-pnpm build        # Build production
-pnpm test         # Tests unitaires
-pnpm test:watch   # Tests en mode watch
+pnpm dev           # Serveur de développement
+pnpm build         # Build production
+pnpm test          # Tests unitaires
+pnpm test:watch    # Tests en mode watch
 pnpm test:coverage # Couverture de tests
-pnpm lint         # Linting
+pnpm lint          # Linting
 pnpm prisma studio # Interface graphique DB
 ```
+
+### Tests e2e (Playwright)
+
+Les tests e2e vérifient que les pages publiques chargent correctement. Ils ne sont pas exécutés en CI (trop lents) mais doivent être lancés manuellement avant une release importante.
+
+```bash
+pnpm test:e2e         # Lancer les tests e2e (headless)
+pnpm test:e2e:headed  # Lancer avec navigateur visible
+pnpm test:e2e:ui      # Interface Playwright interactive
+```
+
+> **Note** : Les tests e2e nécessitent que le serveur de développement soit démarré (Playwright le lance automatiquement).
 
 ### Hooks Git
 
