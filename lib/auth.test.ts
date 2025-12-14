@@ -1,63 +1,101 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { validateCronSecret, unauthorizedResponse } from './auth';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { unauthorizedResponse } from './auth';
+
+// Mock the env module
+vi.mock('@/env', () => ({
+  env: {
+    CRON_SECRET: 'test-secret-12345678901234567890',
+  },
+}));
+
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}));
 
 describe('auth', () => {
-  const originalEnv = process.env;
-
   beforeEach(() => {
     vi.resetModules();
-    process.env = { ...originalEnv };
-  });
-
-  afterEach(() => {
-    process.env = originalEnv;
   });
 
   describe('validateCronSecret', () => {
-    it('should return false when authHeader is null', () => {
-      process.env.CRON_SECRET = 'test-secret';
+    it('should return false when authHeader is null', async () => {
+      const { validateCronSecret } = await import('./auth');
       expect(validateCronSecret(null)).toBe(false);
     });
 
-    it('should return false when authHeader is empty', () => {
-      process.env.CRON_SECRET = 'test-secret';
+    it('should return false when authHeader is empty', async () => {
+      const { validateCronSecret } = await import('./auth');
       expect(validateCronSecret('')).toBe(false);
     });
 
-    it('should return false when CRON_SECRET is not set', () => {
-      delete process.env.CRON_SECRET;
-      expect(validateCronSecret('Bearer some-token')).toBe(false);
-    });
-
-    it('should return false when authHeader length differs from expected', () => {
-      process.env.CRON_SECRET = 'test-secret';
+    it('should return false when authHeader length differs from expected', async () => {
+      const { validateCronSecret } = await import('./auth');
       expect(validateCronSecret('Bearer wrong')).toBe(false);
     });
 
-    it('should return false when authHeader does not match', () => {
-      process.env.CRON_SECRET = 'test-secret';
+    it('should return false when authHeader does not match', async () => {
+      const { validateCronSecret } = await import('./auth');
       // Same length but different content
-      expect(validateCronSecret('Bearer test-secreX')).toBe(false);
+      expect(validateCronSecret('Bearer test-secret-1234567890123456789X')).toBe(false);
     });
 
-    it('should return true when authHeader matches exactly', () => {
-      process.env.CRON_SECRET = 'test-secret-12345';
-      expect(validateCronSecret('Bearer test-secret-12345')).toBe(true);
+    it('should return true when authHeader matches exactly', async () => {
+      const { validateCronSecret } = await import('./auth');
+      expect(validateCronSecret('Bearer test-secret-12345678901234567890')).toBe(true);
     });
 
-    it('should return false without Bearer prefix', () => {
-      process.env.CRON_SECRET = 'test-secret';
-      expect(validateCronSecret('test-secret')).toBe(false);
+    it('should return false without Bearer prefix', async () => {
+      const { validateCronSecret } = await import('./auth');
+      expect(validateCronSecret('test-secret-12345678901234567890')).toBe(false);
+    });
+  });
+
+  describe('validateCronSecret with special characters', () => {
+    beforeEach(() => {
+      vi.doMock('@/env', () => ({
+        env: {
+          CRON_SECRET: 'test-secret!@#$%^&*()1234567890ab',
+        },
+      }));
     });
 
-    it('should handle special characters in secret', () => {
-      process.env.CRON_SECRET = 'test-secret!@#$%^&*()';
-      expect(validateCronSecret('Bearer test-secret!@#$%^&*()')).toBe(true);
+    it('should handle special characters in secret', async () => {
+      const { validateCronSecret } = await import('./auth');
+      expect(validateCronSecret('Bearer test-secret!@#$%^&*()1234567890ab')).toBe(true);
+    });
+  });
+
+  describe('validateCronSecret case sensitivity', () => {
+    beforeEach(() => {
+      vi.doMock('@/env', () => ({
+        env: {
+          CRON_SECRET: 'Test-Secret-Case-Sensitive-12345678',
+        },
+      }));
     });
 
-    it('should be case-sensitive', () => {
-      process.env.CRON_SECRET = 'Test-Secret';
-      expect(validateCronSecret('Bearer test-secret')).toBe(false);
+    it('should be case-sensitive', async () => {
+      const { validateCronSecret } = await import('./auth');
+      expect(validateCronSecret('Bearer test-secret-case-sensitive-12345678')).toBe(false);
+    });
+  });
+
+  describe('validateCronSecret without secret configured', () => {
+    beforeEach(() => {
+      vi.doMock('@/env', () => ({
+        env: {
+          CRON_SECRET: undefined,
+        },
+      }));
+    });
+
+    it('should return false when CRON_SECRET is not set', async () => {
+      const { validateCronSecret } = await import('./auth');
+      expect(validateCronSecret('Bearer some-token')).toBe(false);
     });
   });
 

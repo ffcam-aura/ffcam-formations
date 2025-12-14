@@ -20,7 +20,8 @@ const serverEnvSchema = {
     // Environment
     VERCEL_ENV: z.enum(["development", "preview", "production"]).default("development"),
 
-    // CRON Security (optional - will fail at runtime if not set when needed)
+    // CRON Security - required in production for secure CRON endpoints
+    // Recommended: at least 32 characters for security (validated at runtime)
     CRON_SECRET: z.string().optional(),
 
     // Healthcheck (dead man's switch) - ping URL from healthchecks.io or similar

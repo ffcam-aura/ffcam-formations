@@ -135,6 +135,16 @@ export class SyncService {
         });
     }
 
+    static async sendPartialErrorReport(syncResult: SyncResult): Promise<void> {
+        if (syncResult.errors.length === 0) return;
+
+        await EmailService.sendEmail({
+            to: env.SYNC_NOTIFICATION_EMAIL,
+            subject: `[FFCAM] ⚠️ Sync terminé avec ${syncResult.errors.length} erreur(s)`,
+            html: this.generatePartialErrorReport(syncResult),
+        });
+    }
+
     /**
      * Ping healthcheck service (dead man's switch pattern)
      * Signals success or failure to an external monitoring service like healthchecks.io
@@ -244,7 +254,7 @@ export class SyncService {
         return `
             <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
                 <h1 style="color: #dc2626;">❌ Erreur critique de synchronisation FFCAM</h1>
-                
+
                 <div style="background-color: #fff1f2; padding: 20px; border-radius: 8px; margin: 20px 0;">
                     <h2 style="color: #991b1b; margin-top: 0;">⚠️ Détails de l'erreur</h2>
                     <pre style="background-color: #fee2e2; padding: 15px; border-radius: 4px; overflow-x: auto;">
@@ -261,6 +271,34 @@ export class SyncService {
                         </ul>
                     </div>
                 ` : ''}
+            </div>
+        `;
+    }
+
+    private static generatePartialErrorReport(syncResult: SyncResult): string {
+        const errorsList = syncResult.errors
+            .map(e => `<li><strong>${e.reference}</strong>: ${e.error}</li>`)
+            .join('\n');
+
+        return `
+            <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+                <h1 style="color: #d97706;">⚠️ Synchronisation FFCAM terminée avec erreurs</h1>
+
+                <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h2 style="color: #1e293b; margin-top: 0;">📊 Résumé</h2>
+                    <ul style="list-style: none; padding: 0;">
+                        <li>✅ Formations synchronisées : ${syncResult.succeeded}/${syncResult.formations.length}</li>
+                        <li>❌ Erreurs : ${syncResult.errors.length}</li>
+                        <li>⏱️ Durée : ${syncResult.duration.toFixed(1)}s</li>
+                    </ul>
+                </div>
+
+                <div style="background-color: #fffbeb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h2 style="color: #92400e; margin-top: 0;">❌ Formations en erreur</h2>
+                    <ul style="color: #78350f;">
+                        ${errorsList}
+                    </ul>
+                </div>
             </div>
         `;
     }

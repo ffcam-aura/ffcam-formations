@@ -23,6 +23,11 @@ export async function GET(request: Request) {
       errorInfo,
     ].filter(Boolean).join('\n');
 
+    // Send partial error report if some formations failed
+    if (syncResult.errors.length > 0) {
+      await SyncService.sendPartialErrorReport(syncResult);
+    }
+
     await SyncService.pingHealthcheck(true, message);
 
     return Response.json({ success: true, stats: syncResult.stats });

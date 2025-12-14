@@ -1,4 +1,8 @@
 import crypto from 'crypto';
+import { env } from '@/env';
+import { logger } from '@/lib/logger';
+
+const MIN_SECRET_LENGTH = 32;
 
 /**
  * Validates CRON secret using timing-safe comparison to prevent timing attacks.
@@ -6,11 +10,16 @@ import crypto from 'crypto';
  * @returns true if the secret is valid, false otherwise
  */
 export function validateCronSecret(authHeader: string | null): boolean {
-  if (!authHeader || !process.env.CRON_SECRET) {
+  if (!authHeader || !env.CRON_SECRET) {
     return false;
   }
 
-  const expected = `Bearer ${process.env.CRON_SECRET}`;
+  // Warn if secret is too short (security risk)
+  if (env.CRON_SECRET.length < MIN_SECRET_LENGTH) {
+    logger.warn(`CRON_SECRET is shorter than ${MIN_SECRET_LENGTH} characters - this is a security risk`);
+  }
+
+  const expected = `Bearer ${env.CRON_SECRET}`;
 
   // Ensure both strings have the same length for timingSafeEqual
   if (authHeader.length !== expected.length) {

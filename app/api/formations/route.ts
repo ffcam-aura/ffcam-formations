@@ -2,14 +2,33 @@ import { NextResponse } from 'next/server';
 import { FormationService } from '@/services/formation/formations.service';
 import { FormationRepository } from '@/repositories/FormationRepository';
 import { logger } from '@/lib/logger';
+import {
+  checkRateLimit,
+  getClientIdentifier,
+  rateLimitResponse,
+  addRateLimitHeaders,
+} from '@/lib/rateLimit';
 
 const formationRepository = new FormationRepository();
 const formationService = new FormationService(formationRepository);
 
-export async function GET() {
+// Rate limit: 60 requests per minute per IP
+const RATE_LIMIT_CONFIG = { limit: 60, windowSeconds: 60 };
+
+export async function GET(request: Request) {
+  // Apply rate limiting
+  const clientId = getClientIdentifier(request);
+  const rateLimitResult = checkRateLimit(`formations:${clientId}`, RATE_LIMIT_CONFIG);
+
+  if (!rateLimitResult.success) {
+    logger.warn('Rate limit exceeded', { clientId, endpoint: '/api/formations' });
+    return rateLimitResponse(rateLimitResult);
+  }
+
   try {
     const allFormations = await formationService.getAllFormations();
-    return NextResponse.json(allFormations);
+    const response = NextResponse.json(allFormations);
+    return addRateLimitHeaders(response, rateLimitResult);
   } catch (error) {
     logger.error('Erreur API /api/formations', error);
 

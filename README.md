@@ -1,180 +1,294 @@
 # FFCAM Formations
 
 [![Keyway Secrets](https://www.keyway.sh/badge.svg?repo=ffcam-aura/ffcam-formations)](https://www.keyway.sh/vaults/ffcam-aura/ffcam-formations)
-
 ![Vercel Deploy](https://deploy-badge.vercel.app/vercel/ffcam-formations)
- ![License](https://img.shields.io/badge/license-MIT-blue)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
-Cette application permet d'afficher et de filtrer les formations du FFCAM (Fédération Française des Clubs Alpins et de Montagne).
-Voila ce que fait l'appli:
-- aller récuperer les données sur la page de formations du FFCAM
-- nettoyer ces données
-- les stocker dans une base de données
-- les mettre à dispo via une API
-- les afficher sur la page d'accueil
+Application web pour afficher et filtrer les formations du FFCAM (Fédération Française des Clubs Alpins et de Montagne). Cet outil a été construit par des développeurs bénévoles du Comité Régional Auvergne Rhone-Alpes.
 
-L'appli est déployée sur [https://formations.ffcam-aura.fr](https://formations.ffcam-aura.fr) grâce à Vercel. Pour le moment, le compte Vercel utilisé est gratuit et lié à mon compte perso.
+**Production** : [https://formations.ffcam-aura.fr](https://formations.ffcam-aura.fr)
 
 ## Fonctionnalités
 
-- **Affichage des formations** : Visualisez les formations avec les détails tels que le lieu, la discipline, les tarifs, et les dates.
-- **Filtrage avancé** : Filtrez par lieu, discipline, dates et disponibilités.
-- **Protection des emails** : Les adresses email des contacts sont masquées et ne sont révélées que sur action de l'utilisateur.
-- **Automatisation pré-déploiement** : Grâce à Husky, le code est automatiquement vérifié avec `pnpm lint` et `pnpm build` avant chaque push pour garantir un déploiement sans erreur sur Vercel.
+- **Affichage des formations** : Visualisez les formations avec les détails (lieu, discipline, tarifs, dates, places disponibles)
+- **Filtrage avancé** : Filtrez par lieu, discipline, dates et disponibilités
+- **Notifications par email** : Recevez des alertes pour les nouvelles formations de vos disciplines favorites
+- **Protection des emails** : Les adresses email des contacts sont masquées (anti-scraping)
+- **Synchronisation automatique** : Mise à jour quotidienne des formations depuis le site FFCAM
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              SOURCES DE DONNÉES                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│    ┌──────────────────┐         ┌──────────────────┐                       │
+│    │   Site FFCAM     │         │      Clerk       │                       │
+│    │ (formations.html)│         │ (Authentification)│                       │
+│    └────────┬─────────┘         └────────┬─────────┘                       │
+│             │                            │                                  │
+└─────────────┼────────────────────────────┼──────────────────────────────────┘
+              │                            │
+              ▼                            ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              NEXT.JS APPLICATION                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                         CRON JOBS (Vercel)                          │   │
+│  │  ┌─────────────────────┐    ┌──────────────────────────────────┐   │   │
+│  │  │ /api/sync (4h UTC)  │    │ /api/notifications/send (6h UTC)│   │   │
+│  │  │                     │    │                                  │   │   │
+│  │  │  • Scrape FFCAM     │    │  • Trouve nouvelles formations  │   │   │
+│  │  │  • Parse HTML       │    │  • Match préférences users      │   │   │
+│  │  │  • Upsert DB        │    │  • Envoie emails                │   │   │
+│  │  │  • Ping healthcheck │    │  • Ping healthcheck email       │   │   │
+│  │  └─────────────────────┘    └──────────────────────────────────┘   │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                            API ROUTES                                │   │
+│  │  ┌──────────────────┐  ┌────────────────┐  ┌────────────────────┐   │   │
+│  │  │ GET /formations  │  │ GET/POST /users│  │ GET /sync/last     │   │   │
+│  │  │ (rate limited)   │  │ (auth Clerk)   │  │                    │   │   │
+│  │  └──────────────────┘  └────────────────┘  └────────────────────┘   │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                          SERVICES                                    │   │
+│  │  ┌────────────────┐ ┌─────────────────┐ ┌────────────────────────┐  │   │
+│  │  │ SyncService    │ │ FormationService│ │ NotificationService    │  │   │
+│  │  │ • synchronize  │ │ • upsert        │ │ • notifyBatchFormations│  │   │
+│  │  │ • pingHealth   │ │ • getRecent     │ │ • matchPreferences     │  │   │
+│  │  │ • sendReport   │ │ • getAll        │ │                        │  │   │
+│  │  └────────────────┘ └─────────────────┘ └────────────────────────┘  │   │
+│  │  ┌────────────────┐ ┌─────────────────┐                              │   │
+│  │  │ EmailService   │ │ UserService     │                              │   │
+│  │  │ • sendEmail    │ │ • getPreferences│                              │   │
+│  │  │ (via SMTP)     │ │ • updatePrefs   │                              │   │
+│  │  └────────────────┘ └─────────────────┘                              │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                         REPOSITORIES                                 │   │
+│  │  ┌──────────────────────┐  ┌──────────────────┐                     │   │
+│  │  │ FormationRepository  │  │ UserRepository   │                     │   │
+│  │  │ • upsertFormations   │  │ • findPreferences│                     │   │
+│  │  │ • findAll            │  │ • upsertPrefs    │                     │   │
+│  │  │ • findRecent         │  │ • findUsersToNotify│                   │   │
+│  │  └──────────────────────┘  └──────────────────┘                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└──────────────────────────────────┬──────────────────────────────────────────┘
+                                   │
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           INFRASTRUCTURE                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌────────────────────────┐    │
+│  │   PostgreSQL     │  │     Brevo        │  │    Healthchecks.io     │    │
+│  │   (Neon DB)      │  │   (SMTP Email)   │  │    (Monitoring)        │    │
+│  │                  │  │                  │  │                        │    │
+│  │ • formations     │  │ • Notifications  │  │ • Ping sync status     │    │
+│  │ • disciplines    │  │ • Error reports  │  │ • Email delivery check │    │
+│  │ • user_prefs     │  │ • Healthchecks   │  │ • Dead man's switch    │    │
+│  │ • lieux          │  │                  │  │                        │    │
+│  └──────────────────┘  └──────────────────┘  └────────────────────────┘    │
+│                                                                             │
+│  ┌──────────────────┐  ┌──────────────────┐                                │
+│  │     Sentry       │  │  Vercel Analytics │                               │
+│  │   (Errors)       │  │   (Usage stats)   │                               │
+│  └──────────────────┘  └──────────────────┘                                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ## Technologies
 
-- **Frontend** : Next.js, React, Tailwind CSS, TypeScript
-- **Base de données** : PostgreSQL avec Prisma ORM
-- **Authentification** : Clerk
-- **Autres** : Date-fns, Sentry, Vercel Analytics
+| Catégorie | Technologies |
+|-----------|-------------|
+| **Framework** | Next.js 15, React 19, TypeScript |
+| **Base de données** | PostgreSQL (Neon) + Prisma ORM |
+| **Authentification** | Clerk |
+| **UI** | Tailwind CSS, Radix UI |
+| **Email** | Nodemailer + Brevo SMTP |
+| **Monitoring** | Sentry, Healthchecks.io, Vercel Analytics |
+| **Secrets** | [Keyway](https://keyway.sh) |
+| **Tests** | Vitest, React Testing Library |
 
-## Environnements
+## Monitoring & Alerting
 
-### Développement local
-- **Base de données** : Supabase
-- **Authentification** : Clerk (clés de test)
-- **Email** : Brevo SMTP
+L'application utilise plusieurs systèmes de monitoring :
 
-### Production
-- **Hébergement** : Vercel
-- **Base de données** : Neon PostgreSQL (via Vercel Marketplace)
-- **Authentification** : Clerk (clés de production)
-- **Email** : Brevo SMTP
-  
-## Installation
+### Healthchecks.io (Dead Man's Switch)
 
-1. Clonez le projet :
+- **Sync healthcheck** : Ping quotidien après synchronisation
+  - ✅ Succès : formations synchronisées
+  - ⚠️ Partiel : erreurs sur certaines formations → email d'alerte
+  - ❌ Échec : erreur critique → email + ping /fail
 
-   ```bash
-   git clone git@github.com:ffcam-aura/ffcam-formations.git
-   ```
+- **Email healthcheck** : Email quotidien pour vérifier la délivrabilité
+  - Envoyé à une adresse `@hc-ping.com` qui attend un email régulier
 
-2. Installez les dépendances :
+### Sentry
 
-   ```bash
-   pnpm install
-   ```
+- Capture automatique des erreurs frontend et backend
+- Monitoring des performances
+- Source maps pour debug en production
 
-## Développement local
+### Alertes Email
 
-Lancez le projet en mode développement :
+| Événement | Destinataire | Contenu |
+|-----------|--------------|---------|
+| Erreur critique sync | Admin | Stack trace + état avant erreur |
+| Erreurs partielles sync | Admin | Liste des formations en échec |
+| Nouvelle formation | Utilisateurs | Formations matchant leurs préférences |
+
+## Variables d'Environnement
+
+Les secrets de ce projet sont gérés via [Keyway](https://keyway.sh), qui synchronise automatiquement les variables d'environnement avec Vercel. Cela permet de :
+- Centraliser la gestion des secrets pour toute l'équipe
+- Versionner les changements de configuration
+- Éviter de partager des `.env` par Slack ou email
 
 ```bash
+# Base de données
+POSTGRES_URL="postgresql://..."
+POSTGRES_URL_NON_POOLING="postgresql://..."
+
+# Authentification Clerk
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_..."
+CLERK_SECRET_KEY="sk_..."
+
+# Email (Brevo SMTP)
+SMTP_HOST="smtp-relay.brevo.com"
+SMTP_PORT="587"
+SMTP_USER="..."
+SMTP_PASSWORD="..."
+EMAIL_FROM="noreply@xxxxx"
+EMAIL_SENDER_NAME="FFCAM Formations"
+SYNC_NOTIFICATION_EMAIL="admin@xxxxx"
+
+# Sécurité CRON (minimum 32 caractères)
+CRON_SECRET="your-very-long-secret-at-least-32-chars"
+
+# Monitoring (optionnel)
+HEALTHCHECK_SYNC_URL="https://hc-ping.com/your-uuid"
+HEALTHCHECK_NOTIFICATIONS_EMAIL="your-uuid@hc-ping.com"
+```
+
+## Développement
+
+### Prérequis
+
+- Node.js 20+
+- pnpm
+- PostgreSQL (ou Docker)
+
+### Installation
+
+```bash
+# Cloner le projet
+git clone git@github.com:ffcam-aura/ffcam-formations.git
+cd ffcam-formations
+
+# Installer les dépendances
+pnpm install
+
+# Configurer les variables d'environnement
+cp .env.example .env.local
+# Éditer .env.local avec vos valeurs
+
+# Lancer la base de données (optionnel, si Docker)
+docker run --name ffcam-postgres \
+  -e POSTGRES_DB=ffcam_formations \
+  -e POSTGRES_USER=ffcam_user \
+  -e POSTGRES_PASSWORD=ffcam_password \
+  -p 5432:5432 \
+  -d postgres:15-alpine
+
+# Appliquer les migrations
+pnpm prisma migrate dev
+
+# Lancer le serveur de développement
 pnpm dev
 ```
 
-## Pré-déploiement avec Husky
+### Commandes utiles
 
-Avant chaque push, **Husky** s'assure que votre code passe les tests de linting et build :
+```bash
+pnpm dev          # Serveur de développement
+pnpm build        # Build production
+pnpm test         # Tests unitaires
+pnpm test:watch   # Tests en mode watch
+pnpm test:coverage # Couverture de tests
+pnpm lint         # Linting
+pnpm prisma studio # Interface graphique DB
+```
 
-- **Linting** : `pnpm lint`
-- **Build** : `pnpm build`
+### Hooks Git
 
-Cela garantit que vous ne poussiez jamais de code qui ne passe pas les lint et le build et vous fasse perdre du temps sur **Vercel**.
+Husky vérifie automatiquement avant chaque push :
+- `pnpm lint` - Linting
+- `pnpm build` - Build sans erreurs
 
 ## API
 
-L'application expose plusieurs endpoints API :
+### Endpoints publics
 
-### Formations
+| Endpoint | Description | Rate Limit |
+|----------|-------------|------------|
+| `GET /api/formations` | Liste des formations | 60 req/min |
+| `GET /api/sync/last` | Date dernière sync | - |
 
-#### `GET /api/formations`
-Récupère la liste des formations avec pagination et filtrage.
+### Endpoints protégés (CRON)
 
-**Paramètres de requête :**
-- `page` (optionnel) : Numéro de page (défaut: 1)
-- `limit` (optionnel) : Nombre d'éléments par page (défaut: 12)
-- `discipline` (optionnel) : Filtrer par discipline
-- `lieu` (optionnel) : Filtrer par lieu
-- `organisateur` (optionnel) : Filtrer par organisateur
-- `dateDebut` (optionnel) : Date de début (YYYY-MM-DD)
-- `dateFin` (optionnel) : Date de fin (YYYY-MM-DD)
-- `disponibilite` (optionnel) : Formations avec places disponibles (true/false)
-- `searchQuery` (optionnel) : Recherche textuelle
-
-**Réponse :**
-```json
-{
-  "formations": [...],
-  "total": 150,
-  "totalPages": 13,
-  "page": 1,
-  "limit": 12
-}
-```
-
-### Synchronisation
-
-#### `GET /api/sync`
-Lance la synchronisation manuelle des formations depuis le site FFCAM.
-
-**Authentification requise :**
 ```bash
-curl -X GET "http://localhost:3000/api/sync" \
+# Synchronisation manuelle
+curl -X GET "https://formations.ffcam-aura.fr/api/sync" \
+  -H "Authorization: Bearer YOUR_CRON_SECRET"
+
+# Envoi notifications
+curl -X GET "https://formations.ffcam-aura.fr/api/notifications/send" \
   -H "Authorization: Bearer YOUR_CRON_SECRET"
 ```
 
-**Réponse :**
-```json
-{
-  "success": true,
-  "message": "Synchronisation terminée",
-  "stats": {
-    "totalFormations": 150,
-    "newFormations": 5,
-    "updatedFormations": 12,
-    "disciplines": 8,
-    "lieux": 25
-  }
-}
-```
+### Endpoints utilisateur (Auth Clerk)
 
-#### `GET /api/sync/last`
-Récupère la date de dernière synchronisation.
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/api/users` | GET | Récupérer préférences |
+| `/api/users` | POST | Mettre à jour préférences |
 
-**Réponse :**
-```json
-"2024-01-15T04:00:00.000Z"
-```
-
-### Notifications
-
-#### `GET /api/notifications/send`
-Envoie les notifications email pour les nouvelles formations (24h).
-
-**Authentification requise :**
-```bash
-curl -X GET "http://localhost:3000/api/notifications/send" \
-  -H "Authorization: Bearer YOUR_CRON_SECRET"
-```
-
-### Utilisateurs
-
-#### `GET /api/users`
-Récupère les préférences de notification de l'utilisateur connecté.
-*Authentification Clerk requise.*
-
-#### `POST /api/users`
-Met à jour les préférences de notification de l'utilisateur.
-*Authentification Clerk requise.*
-
-**Corps de la requête :**
+**Corps de la requête POST :**
 ```json
 {
   "disciplines": ["Alpinisme", "Escalade"]
 }
 ```
 
+## Déploiement
+
+L'application est déployée automatiquement sur Vercel à chaque push sur `main`.
+
+### CRON Jobs (Vercel)
+
+Configurés dans `vercel.json` :
+
+| Job | Schedule | Description |
+|-----|----------|-------------|
+| `/api/sync` | 4h UTC | Synchronisation FFCAM |
+| `/api/notifications/send` | 6h UTC | Envoi notifications |
+
 ## Contribuer
 
-1. **Forkez** ce dépôt.
-2. Créez une branche pour votre fonctionnalité (`git checkout -b feature/new-feature`).
-3. **Commitez** vos modifications (`git commit -m 'Add some feature'`).
-4. **Poussez** vers la branche (`git push origin feature/new-feature`).
-5. Ouvrez une **Pull Request**.
-
-Merci 🙏🏼
+1. Forkez ce dépôt
+2. Créez une branche (`git checkout -b feature/amazing-feature`)
+3. Committez vos modifications (`git commit -m 'Add amazing feature'`)
+4. Poussez vers la branche (`git push origin feature/amazing-feature`)
+5. Ouvrez une Pull Request
 
 ## License
 
