@@ -60,7 +60,6 @@ export class SyncService {
 
         try {
             const formations = await FFCAMScraper.scrapeFormations();
-            // await this.logFormations(formations);
 
             const { succeeded, errors } = await this.syncFormations(formations);
 

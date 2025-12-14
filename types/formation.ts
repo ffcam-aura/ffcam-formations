@@ -28,7 +28,3 @@ export const formationSchema = z.object({
 });
 
 export type Formation = z.infer<typeof formationSchema>;
-
-// Types pour les requêtes API
-export type CreateFormationRequest = z.infer<typeof formationSchema>;
-export type UpdateFormationRequest = Partial<CreateFormationRequest>;

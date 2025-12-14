@@ -1,11 +1,6 @@
 import { Formation } from '@/types/formation';
 
 /**
- * Formation status type
- */
-export type FormationStatus = 'available' | 'urgent' | 'complete';
-
-/**
  * Check if a formation has limited places (3 or less)
  * @param formation Formation object
  * @returns boolean indicating if formation is urgent
@@ -23,21 +18,6 @@ export function isUrgentFormation(formation: Formation): boolean {
  */
 export function isCompleteFormation(formation: Formation): boolean {
   return formation.placesRestantes === 0;
-}
-
-/**
- * Get the status of a formation
- * @param formation Formation object
- * @returns FormationStatus
- */
-export function getFormationStatus(formation: Formation): FormationStatus {
-  if (isCompleteFormation(formation)) {
-    return 'complete';
-  }
-  if (isUrgentFormation(formation)) {
-    return 'urgent';
-  }
-  return 'available';
 }
 
 /**
