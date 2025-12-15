@@ -23,6 +23,7 @@ vi.mock('@/env', () => ({
     SMTP_USER: 'user@test.com',
     SMTP_PASSWORD: 'password123',
     EMAIL_FROM: 'noreply@test.com',
+    EMAIL_SENDER_NAME: 'FFCAM Test',
     VERCEL_ENV: 'production',
   },
 }));
@@ -56,7 +57,7 @@ describe('EmailService', () => {
       });
 
       expect(mockSendMail).toHaveBeenCalledWith({
-        from: 'noreply@test.com',
+        from: 'FFCAM Test <noreply@test.com>',
         to: 'recipient@test.com',
         subject: 'Test Subject',
         html: '<p>Test content</p>',
@@ -135,6 +136,7 @@ describe('EmailService in development', () => {
         SMTP_USER: 'user@test.com',
         SMTP_PASSWORD: 'password123',
         EMAIL_FROM: 'noreply@test.com',
+        EMAIL_SENDER_NAME: 'FFCAM Test',
         VERCEL_ENV: 'development',
       },
     }));

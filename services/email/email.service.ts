@@ -21,7 +21,7 @@ export class EmailService {
     static async sendEmail({ to, subject, html }: EmailOptions): Promise<void> {
         const changedSubject = env.VERCEL_ENV === 'production' ? subject : `[DEV] ${subject}`;
         const mailOptions = {
-            from: env.EMAIL_FROM,
+            from: `${env.EMAIL_SENDER_NAME} <${env.EMAIL_FROM}>`,
             to: to,
             subject: changedSubject,
             html: html,

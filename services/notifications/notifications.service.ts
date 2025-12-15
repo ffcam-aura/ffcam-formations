@@ -4,7 +4,6 @@ import { EmailService } from "@/services/email/email.service";
 import { UserService } from "@/services/user/users.service";
 import { Formation } from "@/types/formation";
 import { NotificationProcessor, UserNotificationData } from "./notificationProcessor.service";
-import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
 interface NotificationResult {
@@ -31,10 +30,11 @@ export class NotificationService {
         this.userService
       );
 
-      return await prisma.$transaction(async () => {
-        const userNotifications = await notificationProcessor.processFormations(formations);
-        return await this.sendNotifications(userNotifications);
-      });
+      // Step 1: Find users to notify (DB queries only, fast)
+      const userNotifications = await notificationProcessor.processFormations(formations);
+
+      // Step 2: Send emails OUTSIDE transaction (slow, network I/O)
+      return await this.sendNotifications(userNotifications);
     } catch (error) {
       logger.error('Error in batch notification', error as Error, {
         formationCount: formations.length

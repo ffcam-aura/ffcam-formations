@@ -30,10 +30,13 @@ export async function GET(request: Request) {
 
   try {
     // Récupère les formations des dernières 24h
+    logger.info('Fetching recent formations...');
     const recentFormations = await formationService.getRecentFormations(24);
-    
+    logger.info(`Found ${recentFormations.length} recent formations`);
+
     if (recentFormations.length === 0) {
       // Still send healthcheck to confirm email system works
+      logger.info('No formations, sending healthcheck email...');
       await sendHealthcheckEmail({ totalFormations: 0, notifiedUsers: 0, errors: 0, formationsWithNotifications: 0 });
 
       return Response.json({
@@ -44,6 +47,7 @@ export async function GET(request: Request) {
     }
 
     // Envoie les notifications
+    logger.info('Sending notifications...');
     const notificationResults = await notificationService.notifyBatchNewFormations(recentFormations);
 
     // Calcule les statistiques de notification
@@ -55,6 +59,7 @@ export async function GET(request: Request) {
     };
 
     // Send healthcheck email (tests full email delivery chain)
+    logger.info('Sending healthcheck email...', { stats });
     await sendHealthcheckEmail(stats);
 
     return Response.json({
@@ -64,10 +69,13 @@ export async function GET(request: Request) {
     });
 
   } catch (error) {
-    logger.error('Erreur API /api/notifications/send', error);
+    logger.error('Erreur API /api/notifications/send', error, {
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return Response.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: process.env.VERCEL_ENV !== 'production' ? (error instanceof Error ? error.stack : undefined) : undefined
     }, { status: 500 });
   }
 }

@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Mock } from 'vitest';
 import { NotificationService } from './notifications.service';
 import { NotificationProcessor } from './notificationProcessor.service';
-import { prisma } from '@/lib/prisma';
 
 // Mock des dépendances
 vi.mock('@/repositories/NotificationRepository');
@@ -10,11 +9,6 @@ vi.mock('./emailTemplateRenderer.service');
 vi.mock('./email.service');
 vi.mock('./users.service');
 vi.mock('./notificationProcessor.service');
-vi.mock('@/lib/prisma', () => ({
-  prisma: {
-    $transaction: vi.fn(callback => callback()),
-  },
-}));
 
 describe('NotificationService', () => {
   // Données de test
@@ -125,14 +119,6 @@ describe('NotificationService', () => {
 
       // Vérifier que les timestamps n'ont pas été mis à jour
       expect(mockNotificationRepo.updateLastNotified).not.toHaveBeenCalled();
-    });
-
-    it('devrait utiliser une transaction Prisma', async () => {
-      // Exécution
-      await notificationService.notifyBatchNewFormations(mockFormations);
-
-      // Vérifier que la transaction a été utilisée
-      expect(prisma.$transaction).toHaveBeenCalled();
     });
 
     it('devrait propager les erreurs de processFormations', async () => {
