@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistiques — formations.ffcam-aura.fr</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --blue: #1e40af;
+            --blue-light: #3b82f6;
+            --blue-pale: #dbeafe;
+            --green: #059669;
+            --orange: #d97706;
+            --red: #dc2626;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-900: #111827;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-900);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+            color: white;
+            padding: 3rem 2rem 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.85;
+            font-size: 1.05rem;
+        }
+
+        .header .subtitle {
+            margin-top: 0.25rem;
+            font-size: 0.9rem;
+            opacity: 0.65;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        /* KPI cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 1px solid var(--gray-200);
+        }
+
+        .kpi-card .value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--blue);
+            line-height: 1.1;
+        }
+
+        .kpi-card .value.green { color: var(--green); }
+        .kpi-card .value.orange { color: var(--orange); }
+
+        .kpi-card .label {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+            margin-top: 0.35rem;
+            font-weight: 500;
+        }
+
+        /* Chart sections */
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.75rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 1px solid var(--gray-200);
+        }
+
+        .section h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section h2 .icon {
+            font-size: 1.3rem;
+        }
+
+        .chart-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 800px) {
+            .chart-row { grid-template-columns: 1fr; }
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-height: 400px;
+        }
+
+        .chart-container.tall {
+            max-height: 500px;
+        }
+
+        /* Insight callout */
+        .insight {
+            background: var(--blue-pale);
+            border-left: 4px solid var(--blue-light);
+            border-radius: 0 8px 8px 0;
+            padding: 1rem 1.25rem;
+            margin-top: 1.25rem;
+            font-size: 0.9rem;
+            color: var(--gray-700);
+        }
+
+        .insight strong { color: var(--blue); }
+
+        .footer {
+            text-align: center;
+            color: var(--gray-500);
+            font-size: 0.8rem;
+            padding: 2rem 0 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>formations.ffcam-aura.fr</h1>
+    <p>Tableau de bord — Comité Régional Auvergne-Rhône-Alpes</p>
+    <div class="subtitle">Données extraites le 12 février 2026</div>
+</div>
+
+<div class="container">
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="value">240</div>
+            <div class="label">Utilisateurs inscrits</div>
+        </div>
+        <div class="kpi-card">
+            <div class="value green">93%</div>
+            <div class="label">Ont activé au moins 1 alerte</div>
+        </div>
+        <div class="kpi-card">
+            <div class="value orange">3,9</div>
+            <div class="label">Disciplines suivies en moyenne</div>
+        </div>
+        <div class="kpi-card">
+            <div class="value green">100%</div>
+            <div class="label">Rétention des alertes</div>
+        </div>
+        <div class="kpi-card">
+            <div class="value">876</div>
+            <div class="label">Souscriptions aux alertes</div>
+        </div>
+    </div>
+
+    <!-- Croissance cumulée -->
+    <div class="section">
+        <h2><span class="icon">📈</span> Croissance des inscriptions</h2>
+        <div class="chart-container">
+            <canvas id="chartGrowth"></canvas>
+        </div>
+        <div class="insight">
+            <strong>Janvier 2026</strong> est le meilleur mois avec 37 nouveaux inscrits.
+            La croissance s'accélère fortement depuis septembre 2025.
+        </div>
+    </div>
+
+    <!-- Par trimestre -->
+    <div class="section">
+        <h2><span class="icon">📊</span> Inscriptions par trimestre</h2>
+        <div class="chart-container">
+            <canvas id="chartQuarterly"></canvas>
+        </div>
+        <div class="insight">
+            Le <strong>T4 2025</strong> a été le trimestre record avec 63 inscriptions, soit 3x le rythme du lancement.
+            Le T1 2026 est déjà à 51 inscriptions mi-février.
+        </div>
+    </div>
+
+    <div class="chart-row">
+        <!-- Top disciplines -->
+        <div class="section">
+            <h2><span class="icon">🏔️</span> Disciplines les plus suivies</h2>
+            <div class="chart-container tall">
+                <canvas id="chartDisciplines"></canvas>
+            </div>
+        </div>
+
+        <!-- Distribution engagement -->
+        <div class="section">
+            <h2><span class="icon">🎯</span> Nombre de disciplines suivies par utilisateur</h2>
+            <div class="chart-container tall">
+                <canvas id="chartDistribution"></canvas>
+            </div>
+            <div class="insight">
+                <strong>42%</strong> des utilisateurs suivent 3 disciplines ou plus.
+                3 utilisateurs suivent les 19 disciplines !
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-row">
+        <!-- Activité récente -->
+        <div class="section">
+            <h2><span class="icon">⏱️</span> Activité récente</h2>
+            <div class="chart-container">
+                <canvas id="chartActivity"></canvas>
+            </div>
+            <div class="insight">
+                <strong>71%</strong> des utilisateurs sont revenus dans les 6 derniers mois.
+            </div>
+        </div>
+
+        <!-- Fournisseurs email -->
+        <div class="section">
+            <h2><span class="icon">📧</span> Fournisseurs d'email</h2>
+            <div class="chart-container">
+                <canvas id="chartEmail"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications envoyées -->
+    <div class="section">
+        <h2><span class="icon">🔔</span> Notifications envoyées (10 derniers jours)</h2>
+        <div class="chart-container">
+            <canvas id="chartNotifications"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<div class="footer">
+    Généré le 12/02/2026 — Comité Régional FFCAM Auvergne-Rhône-Alpes
+</div>
+
+<script>
+    const COLORS = {
+        blue: '#3b82f6',
+        blueDark: '#1e40af',
+        green: '#059669',
+        orange: '#f59e0b',
+        red: '#ef4444',
+        purple: '#8b5cf6',
+        pink: '#ec4899',
+        teal: '#14b8a6',
+        slate: '#64748b',
+    };
+
+    const palette = [
+        '#3b82f6','#059669','#f59e0b','#ef4444','#8b5cf6',
+        '#ec4899','#14b8a6','#64748b','#06b6d4','#d946ef',
+        '#84cc16','#f97316','#6366f1','#10b981','#e11d48',
+        '#0891b2','#7c3aed','#ca8a04','#dc2626','#2563eb'
+    ];
+
+    Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    Chart.defaults.font.size = 13;
+    Chart.defaults.color = '#374151';
+
+    // === Croissance cumulée ===
+    new Chart(document.getElementById('chartGrowth'), {
+        type: 'line',
+        data: {
+            labels: [
+                'Oct 24','Nov 24','Déc 24','Jan 25','Fév 25','Mar 25',
+                'Avr 25','Mai 25','Juin 25','Juil 25','Août 25','Sep 25',
+                'Oct 25','Nov 25','Déc 25','Jan 26','Fév 26'
+            ],
+            datasets: [
+                {
+                    label: 'Cumul des inscrits',
+                    data: [1,11,21,25,43,53,59,60,80,84,94,126,156,179,189,226,240],
+                    borderColor: COLORS.blue,
+                    backgroundColor: 'rgba(59,130,246,0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointBackgroundColor: COLORS.blue,
+                    borderWidth: 2.5
+                },
+                {
+                    label: 'Nouveaux inscrits/mois',
+                    data: [1,10,10,4,18,10,6,1,20,4,10,32,30,23,10,37,14],
+                    borderColor: COLORS.orange,
+                    backgroundColor: 'rgba(245,158,11,0.15)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointBackgroundColor: COLORS.orange,
+                    borderWidth: 2.5,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Cumul' },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    title: { display: true, text: 'Nouveaux/mois' },
+                    grid: { drawOnChartArea: false }
+                },
+                x: { grid: { display: false } }
+            },
+            plugins: {
+                legend: { position: 'top' }
+            }
+        }
+    });
+
+    // === Par trimestre ===
+    new Chart(document.getElementById('chartQuarterly'), {
+        type: 'bar',
+        data: {
+            labels: ['T4 2024', 'T1 2025', 'T2 2025', 'T3 2025', 'T4 2025', 'T1 2026*'],
+            datasets: [{
+                label: 'Inscriptions',
+                data: [21, 32, 27, 46, 63, 51],
+                backgroundColor: [
+                    '#93c5fd','#93c5fd','#93c5fd','#93c5fd','#3b82f6','#1e40af'
+                ],
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: function(ctx) {
+                            if (ctx.dataIndex === 5) return '* En cours (au 12/02)';
+                            return '';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // === Top disciplines (horizontal bar) ===
+    new Chart(document.getElementById('chartDisciplines'), {
+        type: 'bar',
+        data: {
+            labels: [
+                'Cartographie/Orientation',
+                'Neige et avalanche',
+                'Escalade',
+                'Ski alpinisme/ski de montagne',
+                'Alpinisme',
+                'Formation commune',
+                'Randonnée montagne',
+                'Sports de neige',
+                'Randonnée',
+                'Cascade de glace',
+                'Descente de Canyon',
+                'Vélo de montagne',
+                'Trail',
+                'Raquettes',
+                'Ski de randonnée nordique',
+                'Ski alpin',
+                'Via ferrata',
+                'Ski de fond sur pistes',
+                'Snowboard',
+                'Marche nordique'
+            ],
+            datasets: [{
+                label: 'Alertes actives',
+                data: [97,93,89,85,76,62,52,43,40,34,33,33,30,29,20,17,17,11,8,7],
+                backgroundColor: palette,
+                borderRadius: 4,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { font: { size: 11 } }
+                }
+            }
+        }
+    });
+
+    // === Distribution disciplines par utilisateur ===
+    new Chart(document.getElementById('chartDistribution'), {
+        type: 'bar',
+        data: {
+            labels: ['1','2','3','4','5','6','7','8','9','10','11','13','15','16','18','19'],
+            datasets: [{
+                label: 'Utilisateurs',
+                data: [58,40,28,28,14,15,14,10,6,2,1,1,1,1,1,3],
+                backgroundColor: COLORS.teal,
+                borderRadius: 4,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Nb utilisateurs' },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                x: {
+                    title: { display: true, text: 'Nb de disciplines suivies' },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+
+    // === Activité récente (doughnut) ===
+    new Chart(document.getElementById('chartActivity'), {
+        type: 'doughnut',
+        data: {
+            labels: [
+                'Actifs < 30 jours',
+                'Actifs 30-90 jours',
+                'Actifs 90-180 jours',
+                'Inactifs > 6 mois'
+            ],
+            datasets: [{
+                data: [52, 40, 78, 70],
+                backgroundColor: [
+                    COLORS.green,
+                    COLORS.blue,
+                    COLORS.orange,
+                    '#d1d5db'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { padding: 16, usePointStyle: true, pointStyleWidth: 10 }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            const pct = (ctx.raw / 240 * 100).toFixed(1);
+                            return `${ctx.label}: ${ctx.raw} (${pct}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // === Fournisseurs email (doughnut) ===
+    new Chart(document.getElementById('chartEmail'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Gmail','Hotmail','Orange','Yahoo','Laposte','Free','SFR','Outlook','Proton','Autres'],
+            datasets: [{
+                data: [135, 21, 13, 10, 6, 6, 6, 6, 6, 31],
+                backgroundColor: [
+                    '#ea4335','#0078d4','#ff6600','#6001d2',
+                    '#ffcc00','#cd1e25','#e30613','#0072c6',
+                    '#6d4aff','#d1d5db'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { padding: 12, usePointStyle: true, pointStyleWidth: 10, font: { size: 11 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            const pct = (ctx.raw / 240 * 100).toFixed(1);
+                            return `${ctx.label}: ${ctx.raw} (${pct}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // === Notifications envoyées ===
+    new Chart(document.getElementById('chartNotifications'), {
+        type: 'bar',
+        data: {
+            labels: ['05/12','29/01','18/01','03/02','04/02','06/02','08/02','10/02','11/02','12/02'],
+            datasets: [{
+                label: 'Notifications envoyées',
+                data: [4, 38, 32, 40, 79, 168, 80, 106, 171, 33],
+                backgroundColor: function(ctx) {
+                    return ctx.dataIndex === ctx.chart.data.datasets[0].data.length - 1
+                        ? COLORS.blue
+                        : '#93c5fd';
+                },
+                borderRadius: 4,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
