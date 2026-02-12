@@ -1,5 +1,7 @@
 import * as cheerio from 'cheerio';
-import { FormationDocument } from '@/types/formation';
+import type { Cheerio } from 'cheerio';
+import type { AnyNode } from 'domhandler';
+import type { FormationDocument } from '@/types/formation';
 import { logger } from '@/lib/logger';
 
 
@@ -26,13 +28,13 @@ export function parseOrganisateur(text: string): string {
 
 
 // Fonction pour extraire un texte en fonction d'un label
-export function extractText(el: cheerio.Cheerio, label: string): string {
+export function extractText(el: Cheerio<AnyNode>, label: string): string {
     return el.find(`label:contains("${label}:")`).parent().text()
         .replace(`${label}:`, '').trim();
 }
 
 // Fonction pour parser des documents à partir de liens PDF dans une formation
-export function parseDocuments($formation: cheerio.Cheerio): FormationDocument[] {
+export function parseDocuments($formation: Cheerio<AnyNode>): FormationDocument[] {
     const documents: FormationDocument[] = [];
 
     $formation.find('a[href^="/export/pdf/"]').each((_, element) => {
@@ -81,7 +83,7 @@ export function getDecryptedEmailFromCharCodeArray(charCodes: number[]): string 
 }
 
 // Fonction pour extraire et décrypter l'email
-export function parseEmail($formation: cheerio.Cheerio): string | null {
+export function parseEmail($formation: Cheerio<AnyNode>): string | null {
     const scriptContent = $formation.find('script').text();
 
     const charCodeMatch = scriptContent.match(/String\.fromCharCode\((.*?)\)/);

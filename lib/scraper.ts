@@ -1,4 +1,6 @@
 import * as cheerio from 'cheerio';
+import type { CheerioAPI } from 'cheerio';
+import type { Element } from 'domhandler';
 import { Formation } from '@/types/formation';
 import { parseOrganisateur } from '@/utils/formation-parser';
 import {
@@ -26,7 +28,7 @@ export class FFCAMScraper {
         }
     }
 
-    private static parseFormation($: cheerio.Root, element: cheerio.Element): Formation {
+    private static parseFormation($: CheerioAPI, element: Element): Formation {
         const $formation = $(element);
 
         const organisateur = extractText($formation, "Organisateur");
