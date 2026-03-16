@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { NotificationRepository } from "@/repositories/NotificationRepository";
+import { FormationRepository } from "@/repositories/FormationRepository";
 import { EmailService } from "@/services/email/email.service";
 import { EmailTemplateRenderer } from "@/services/notifications/emailTemplate.service";
 import { FormationService } from "@/services/formation/formations.service";
 import { NotificationService } from "@/services/notifications/notifications.service";
 import { UserService } from "@/services/user/users.service";
-import { FormationRepository } from "@/repositories/FormationRepository";
 import { logger } from "@/lib/logger";
 import { validateCronSecret, unauthorizedResponse } from "@/lib/auth";
 import { env } from "@/env";

@@ -54,19 +54,16 @@ export default function Navbar() {
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
           {/* Logo and title */}
-          <Link href="/" className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
-            <div className="relative h-10 w-10">
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <div className="relative h-10 w-auto">
               <Image
-                src="/ffcam.png"
+                src="/logo-ffcam.png"
                 alt="Logo FFCAM"
-                width={48}
-                height={48}
-                className="object-contain"
+                width={160}
+                height={40}
+                className="h-10 w-auto object-contain"
                 priority
               />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-semibold text-primary-500">Formations FFCAM</span>
             </div>
           </Link>
 

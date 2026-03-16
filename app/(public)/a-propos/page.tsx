@@ -1,182 +1,123 @@
-// app/a-propos/page.tsx
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Github } from "lucide-react";
+import { Github, RefreshCw, Search, Bell } from "lucide-react";
+import Link from "next/link";
 
 export default function AboutPage() {
   return (
-    <main className="container mx-auto px-4 py-8 min-h-screen bg-gradient-to-b from-white to-gray-50">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* En-tête avec bannière attractive */}
-        <div className="text-center space-y-6 py-12">
-          <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-blue-600">
-            À Propos de FFCAM Formations
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            🏔️ Votre portail des formations de montagne, créé par des passionnés
-            pour des passionnés !
-          </p>
-        </div>
+    <main className="container mx-auto px-4 py-12 min-h-screen">
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          À propos
+        </h1>
+        <p className="text-lg text-gray-500 mb-10">
+          Un outil créé par des bénévoles pour faciliter l&apos;accès aux formations de montagne.
+        </p>
 
-        {/* Notre mission */}
-        <Card className="border-t-4 border-t-primary-500 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl flex items-center gap-2">
-              ✨ Notre Mission
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-lg leading-relaxed">
-            <p>
-              Simplifier votre accès aux formations FFCAM ! Nous sommes une équipe
-              de bénévoles passionnés du Comité Régional Auvergne Rhône-Alpes qui
-              a créé cet outil pour vous aider à trouver la formation parfaite
-              pour votre prochaine aventure en montagne.
+        <div className="space-y-10">
+          {/* Mission */}
+          <section>
+            <p className="text-gray-600 leading-relaxed">
+              Ce site centralise les formations publiées sur le site de la FFCAM
+              par le Comité Régional Auvergne-Rhône-Alpes. L&apos;objectif : vous aider
+              à trouver la bonne formation sans parcourir des dizaines de pages.
             </p>
-          </CardContent>
-        </Card>
+          </section>
 
-        {/* Comment ça marche */}
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="transform transition-all hover:scale-105">
-            <CardHeader>
-              <CardTitle className="text-xl flex items-center gap-2">
-                🔄 Mise à jour quotidienne
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">
-                Chaque nuit, nous synchronisons les dernières formations
-                disponibles. Vous avez toujours accès aux informations les plus
-                récentes !
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="transform transition-all hover:scale-105">
-            <CardHeader>
-              <CardTitle className="text-xl flex items-center gap-2">
-                🔍 Recherche simplifiée
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">
-                Trouvez facilement la formation idéale avec nos filtres intuitifs :
-                activité, lieu, date... C&apos;est simple comme bonjour !
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="transform transition-all hover:scale-105">
-            <CardHeader>
-              <CardTitle className="text-xl flex items-center gap-2">
-                🔔 Alertes personnalisées
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">
-                Ne manquez plus aucune formation ! Créez vos alertes et recevez une
-                notification dès qu&apos;une formation vous correspond.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Ce que vous pouvez faire */}
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl flex items-center gap-2">
-              🎯 Ce que vous pouvez faire
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg">Pour les débutants 🌱</h3>
-                <ul className="space-y-2">
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-500">✓</span>
-                    Découvrir toutes les formations disponibles
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-500">✓</span>
-                    Filtrer par niveau et type d&apos;activité
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-500">✓</span>
-                    Créer des alertes pour vos activités préférées
-                  </li>
-                </ul>
+          {/* Comment ça marche */}
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-5">
+              Comment ça marche
+            </h2>
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center">
+                  <RefreshCw size={18} className="text-primary-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Synchronisation quotidienne</p>
+                  <p className="text-sm text-gray-500">Chaque nuit, les formations sont récupérées depuis le site fédéral.</p>
+                </div>
               </div>
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg">Pour les confirmés 🏔️</h3>
-                <ul className="space-y-2">
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-500">✓</span>
-                    Suivre les nouvelles formations avancées
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-500">✓</span>
-                    Recevoir des alertes ciblées
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-500">✓</span>
-                    Partager les formations avec votre club
-                  </li>
-                </ul>
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center">
+                  <Search size={18} className="text-primary-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Recherche et filtres</p>
+                  <p className="text-sm text-gray-500">Filtrez par discipline, lieu, date ou organisateur en quelques clics.</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center">
+                  <Bell size={18} className="text-primary-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Alertes email</p>
+                  <p className="text-sm text-gray-500">Créez un compte pour recevoir une notification dès qu&apos;une formation vous correspond.</p>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </section>
 
-        {/* En développement */}
-        <Card className="bg-gradient-to-br from-blue-50 to-white shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl flex items-center gap-2">
-              🚀 En constante évolution
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-lg">
-              Nous améliorons constamment l&apos;application pour mieux répondre à
-              vos besoins !
+          {/* Contribuer */}
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">
+              Contribuer
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Le projet est open source. Signalez un problème, proposez une idée
+              ou contribuez directement au code.
             </p>
-            <a
-              href="https://github.com/orgs/ffcam-aura/projects/1"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition-all text-primary-500 hover:text-primary-600"
-            >
-              <Github size={20} />
-              Découvrir les prochaines améliorations
-            </a>
-            <p className="text-sm text-gray-600">
-              💡 Une idée ? N&apos;hésitez pas à nous en faire part !
-            </p>
-          </CardContent>
-        </Card>
+            <div className="flex flex-wrap gap-3">
+              <a
+                href="https://github.com/ffcam-aura/ffcam-formations"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                <Github size={16} />
+                Code source
+              </a>
+              <a
+                href="https://github.com/orgs/ffcam-aura/projects/1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Roadmap
+              </a>
+            </div>
+          </section>
 
-        {/* Participer */}
-        <Card className="border-t-4 border-t-blue-500 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl flex items-center gap-2">
-              🤝 Rejoignez l&apos;aventure
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-lg">
-              Passionné(e) de montagne et de développement ? Notre projet est open
-              source et nous accueillons avec plaisir toute contribution !
-            </p>
-            <a
-              href="https://github.com/ffcam-aura/ffcam-formations"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-all"
-            >
-              <Github size={20} />
-              Contribuer au projet
-            </a>
-          </CardContent>
-        </Card>
+          {/* Liens utiles */}
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">
+              Liens utiles
+            </h2>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <a href="https://www.ffcam.fr/les-formations.html" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+                  Formations FFCAM officielles
+                </a>
+              </li>
+              <li>
+                <a href="https://www.ffcam.fr/export/liste_des_actions.pdf" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+                  Cahier des formations (PDF)
+                </a>
+              </li>
+              <li>
+                <a href="https://ffcam-aura.fr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+                  FFCAM Auvergne-Rhône-Alpes
+                </a>
+              </li>
+            </ul>
+          </section>
+
+          <p className="text-sm text-gray-400 pt-4 border-t">
+            <Link href="/" className="hover:underline">Retour à l&apos;accueil</Link>
+            {" · "}
+            <Link href="/politique-confidentialite" className="hover:underline">Politique de confidentialité</Link>
+          </p>
+        </div>
       </div>
     </main>
   );

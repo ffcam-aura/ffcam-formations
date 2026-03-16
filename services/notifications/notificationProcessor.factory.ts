@@ -1,7 +1,7 @@
 import { NotificationProcessor } from './notificationProcessor.service';
 import { NotificationRepository } from '@/repositories/NotificationRepository';
-import { UserService } from '@/services/user/users.service';
 import { UserRepository } from '@/repositories/UserRepository';
+import { UserService } from '@/services/user/users.service';
 import { prisma } from '@/lib/prisma';
 
 /**

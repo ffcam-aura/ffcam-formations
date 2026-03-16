@@ -1,7 +1,7 @@
 import { NotificationRepository } from "@/repositories/NotificationRepository";
 import { Formation } from "@/types/formation";
-import { UserService } from "@/services/user/users.service";
 import { UserRepository } from "@/repositories/UserRepository";
+import { UserService } from "@/services/user/users.service";
 import {
   filterTodaysFormations,
   shouldNotifyBasedOnTime,
@@ -11,8 +11,6 @@ import {
   UserFormationData
 } from "./notificationLogic";
 
-// Ces instances globales seront progressivement supprimées
-// Gardées temporairement pour la compatibilité
 const userRepository = new UserRepository();
 const userService = new UserService(userRepository);
 

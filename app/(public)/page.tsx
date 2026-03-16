@@ -52,7 +52,7 @@ export default function Home() {
 
   if (loading) {
     return (
-      <main className="flex-grow flex flex-col items-center justify-center gap-4">
+      <main id="main-content" className="flex-grow flex flex-col items-center justify-center gap-4">
         <ClipLoader color="#3B82F6" size={50} speedMultiplier={0.8} data-testid="spinner" />
         <p className="text-gray-600 animate-fade-in">
           {loadingMessages[loadingMessage]}
@@ -63,7 +63,7 @@ export default function Home() {
 
   if (error) {
     return (
-      <main className="flex-grow container mx-auto p-8">
+      <main id="main-content" className="flex-grow container mx-auto p-8">
         <ErrorDisplay 
           error={error}
           onRetry={retry}
@@ -117,7 +117,7 @@ export default function Home() {
             </p>
             <button
               onClick={() => setFilters(defaultFilters)}
-              className="text-blue-600 hover:text-blue-500 font-medium"
+              className="text-primary-600 hover:text-primary-500 font-medium"
             >
               Réinitialiser les filtres
             </button>

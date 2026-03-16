@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 
 type FiltersProps = {
@@ -27,6 +27,10 @@ export default function Filters({
 }: FiltersProps) {
   const { updateUrl, getFiltersFromUrl } = useUrlFilters();
   const urlFilters = getFiltersFromUrl();
+  const onFilterChangeRef = useRef(onFilterChange);
+  onFilterChangeRef.current = onFilterChange;
+  const updateUrlRef = useRef(updateUrl);
+  updateUrlRef.current = updateUrl;
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>("");
   const [selectedOrganisateur, setSelectedOrganisateur] = useState<string>("");
@@ -48,11 +52,12 @@ export default function Filters({
       showPastFormations: showPast,
     };
 
-    onFilterChange(filters);
-    updateUrl(filters);
+    onFilterChangeRef.current(filters);
+    updateUrlRef.current(filters);
   }, [searchQuery, selectedLocation, selectedDiscipline, selectedOrganisateur, startDate, endDate, showAvailableOnly, showPast]);
 
   // Initialiser les filtres depuis l'URL au chargement
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     setSearchQuery(urlFilters.searchQuery);
     setSelectedLocation(urlFilters.location);
@@ -76,7 +81,7 @@ export default function Filters({
   };
 
   return (
-    <div className="border p-4 sm:p-6 rounded-lg shadow-lg bg-white mb-4 sm:mb-6">
+    <div className="border p-4 sm:p-6 rounded-lg bg-white mb-4 sm:mb-6">
       {/* Barre de recherche principale et organisateur */}
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div className="flex-1">
@@ -87,7 +92,7 @@ export default function Filters({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Rechercher une formation..."
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
           />
         </div>
         <div className="w-full sm:w-64">
@@ -96,7 +101,7 @@ export default function Filters({
             id="organisateur-select"
             value={selectedOrganisateur}
             onChange={(e) => setSelectedOrganisateur(e.target.value)}
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
           >
             <option value="">Tous les organisateurs</option>
             {organisateurs.map((organisateur) => (
@@ -116,7 +121,7 @@ export default function Filters({
             id="location-select"
             value={selectedLocation}
             onChange={(e) => setSelectedLocation(e.target.value)}
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
           >
             <option value="">Tous les lieux</option>
             {locations.map((location) => (
@@ -133,7 +138,7 @@ export default function Filters({
             id="discipline-select"
             value={selectedDiscipline}
             onChange={(e) => setSelectedDiscipline(e.target.value)}
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
           >
             <option value="">Toutes les disciplines</option>
             {disciplines.map((discipline) => (
@@ -147,25 +152,23 @@ export default function Filters({
         <div className="flex flex-col gap-2">
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="flex-1">
-              <label htmlFor="start-date" className="sr-only">Date de début</label>
+              <label htmlFor="start-date" className="text-xs text-gray-500 mb-1 block">À partir du</label>
               <input
                 id="start-date"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                aria-label="Date de début"
-                className="w-full px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
               />
             </div>
             <div className="flex-1">
-              <label htmlFor="end-date" className="sr-only">Date de fin</label>
+              <label htmlFor="end-date" className="text-xs text-gray-500 mb-1 block">Jusqu&apos;au</label>
               <input
                 id="end-date"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                aria-label="Date de fin"
-                className="w-full px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="w-full px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
               />
             </div>
           </div>
@@ -180,7 +183,7 @@ export default function Filters({
               type="checkbox"
               checked={showAvailableOnly}
               onChange={(e) => setShowAvailableOnly(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors cursor-pointer"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 transition-colors cursor-pointer"
             />
             <span className="group-hover:text-gray-900 transition-colors">
               Places disponibles uniquement
@@ -192,7 +195,7 @@ export default function Filters({
               type="checkbox"
               checked={showPast}
               onChange={(e) => setShowPast(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors cursor-pointer"
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 transition-colors cursor-pointer"
             />
             <span className="group-hover:text-gray-900 transition-colors">
               Inclure les formations passées (à partir du 22 octobre 2024)
