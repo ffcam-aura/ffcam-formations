@@ -176,7 +176,7 @@ export default function Filters({
       </div>
 
       {/* Options supplémentaires et bouton reset */}
-      <div className="flex flex-col sm:flex-row border-t pt-3 sm:pt-4 text-sm sm:text-base text-neutral-dark">
+      <div className="flex flex-col sm:flex-row border-t pt-3 sm:pt-4 text-sm sm:text-base text-gray-700">
         <div className="flex-1 space-y-2 sm:space-y-3">
           <label className="flex items-center space-x-2 sm:space-x-3 cursor-pointer group">
             <input

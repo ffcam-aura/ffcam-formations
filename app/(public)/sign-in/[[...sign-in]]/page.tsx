@@ -13,10 +13,11 @@ export default function SignInPage() {
           title="Retour à l'accueil"
         >
           <Image
-            src="/ffcam.png"
+            src="/logo-ffcam.png"
             alt="Logo FFCAM"
-            width={64}
-            height={64}
+            width={160}
+            height={40}
+            style={{ width: 'auto', height: 'auto' }}
             className="object-contain"
             priority
           />

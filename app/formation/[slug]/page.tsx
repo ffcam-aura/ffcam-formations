@@ -121,7 +121,7 @@ export default async function FormationPage({ params }: PageProps) {
       <FormationStructuredData formation={formation} />
       <BreadcrumbStructuredData items={breadcrumbItems} />
 
-      <main className="container mx-auto px-4 py-8">
+      <main id="main-content" className="container mx-auto px-4 py-8">
         {/* Breadcrumb responsive */}
         <nav className="flex mb-6 text-sm overflow-x-auto pb-2" aria-label="Breadcrumb">
           <ol className="inline-flex items-center space-x-1 md:space-x-3 whitespace-nowrap">

@@ -12,7 +12,6 @@ import { ErrorDisplay } from "@/components/ui/error-display";
 
 export default function Home() {
   const { formations, lastSyncDate, loading, error, retry, retryCount } = useFormations();
-  const [showIntro, setShowIntro] = useState(true);
   const [sortOption, setSortOption] = useState('date-asc');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [loadingMessage, setLoadingMessage] = useState(0);
@@ -78,8 +77,6 @@ export default function Home() {
     <main id="main-content" className="flex-grow container mx-auto p-8">
       <FormationsHeader
         data-testid="formations-header"
-        showIntro={showIntro}
-        setShowIntro={setShowIntro}
         lastSyncDate={lastSyncDate}
       />
 
