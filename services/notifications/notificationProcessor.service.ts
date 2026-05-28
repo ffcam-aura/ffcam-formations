@@ -3,12 +3,9 @@ import { Formation } from "@/types/formation";
 import { UserService } from "@/services/user/users.service";
 import { UserRepository } from "@/repositories/UserRepository";
 import {
-  filterTodaysFormations,
+  filterRecentFormations,
   shouldNotifyBasedOnTime,
-  groupFormationsByUser,
-  extractUniqueDisciplines,
-  getStartOfDay,
-  UserFormationData
+  extractUniqueDisciplines
 } from "./notificationLogic";
 
 // Ces instances globales seront progressivement supprimées
@@ -63,22 +60,20 @@ export interface UserNotificationData {
     ): Promise<void> {
       const usersToNotify = await this.actualUserService.getUsersToNotifyForDiscipline(discipline);
 
-      const today = getStartOfDay(this.dateProvider());
+      // Fenêtre glissante sur first_seen_at (robuste aux syncs hors créneau)
+      const recentFormations = filterRecentFormations(formations, discipline, this.dateProvider());
 
-      // Utilise la fonction pure pour filtrer
-      const todaysFormations = filterTodaysFormations(formations, discipline, today);
-    
-      // Si aucune formation du jour, on peut éviter de traiter les utilisateurs
-      if (todaysFormations.length === 0) {
+      // Si aucune formation récente, on peut éviter de traiter les utilisateurs
+      if (recentFormations.length === 0) {
         return;
       }
-    
+
       for (const {userId, email} of usersToNotify) {
         if (await this.shouldNotifyUser(userId, discipline)) {
           this.addFormationsForUser(
             userId,
             email,
-            todaysFormations,
+            recentFormations,
             userNotifications
           );
         }

@@ -112,16 +112,16 @@ describe('NotificationProcessor avec injection', () => {
       expect(result.size).toBe(0);
     });
 
-    it('should filter out formations from other days', async () => {
-      const yesterday = new Date(fixedDate);
-      yesterday.setDate(yesterday.getDate() - 1);
+    it('should filter out formations older than the 24h window', async () => {
+      const threeDaysAgo = new Date(fixedDate);
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
       const formations: Formation[] = [
         {
           reference: 'REF1',
-          titre: 'Formation Hier',
+          titre: 'Formation ancienne',
           discipline: 'Alpinisme',
-          firstSeenAt: yesterday.toISOString(), // Hier
+          firstSeenAt: threeDaysAgo.toISOString(), // au-delà de 24h
           dates: [],
           lieu: 'Chamonix',
           informationStagiaire: '',
@@ -145,10 +145,49 @@ describe('NotificationProcessor avec injection', () => {
 
       const result = await processor.processFormations(formations);
 
-      // Aucun utilisateur ne doit être notifié car pas de formations du jour
+      // Aucun utilisateur ne doit être notifié car la formation est trop ancienne
       expect(result.size).toBe(0);
-      // getUsersToNotifyForDiscipline ne devrait même pas être appelé si aucune formation du jour
       expect(mockUserService.getUsersToNotifyForDiscipline).toHaveBeenCalled();
+    });
+
+    it('should notify for a formation first seen within 24h on the previous calendar day', async () => {
+      // Régression: sync hors créneau (la veille au soir). La formation est < 24h
+      // au moment du run mais sur un jour calendaire différent -> doit être notifiée.
+      const yesterdayEvening = new Date(fixedDate);
+      yesterdayEvening.setHours(yesterdayEvening.getHours() - 16); // ~16h avant, jour précédent
+
+      const formations: Formation[] = [
+        {
+          reference: 'VELO1',
+          titre: 'Vélo de montagne',
+          discipline: 'Vélo-de-montagne',
+          firstSeenAt: yesterdayEvening.toISOString(),
+          dates: [],
+          lieu: 'Chamonix',
+          informationStagiaire: '',
+          nombreParticipants: 10,
+          placesRestantes: 5,
+          hebergement: '',
+          tarif: 100,
+          organisateur: '',
+          responsable: '',
+          emailContact: '',
+          documents: [],
+          lastSeenAt: ''
+        }
+      ];
+
+      mockUserService.getUsersToNotifyForDiscipline.mockResolvedValue([
+        { userId: 'user1', email: 'user1@test.com' }
+      ]);
+
+      mockNotificationRepo.getLastNotification.mockResolvedValue(null);
+
+      const result = await processor.processFormations(formations);
+
+      expect(result.size).toBe(1);
+      expect(result.get('user1')?.formations).toHaveLength(1);
+      expect(result.get('user1')?.formations[0].reference).toBe('VELO1');
     });
 
     it('should handle multiple disciplines correctly', async () => {

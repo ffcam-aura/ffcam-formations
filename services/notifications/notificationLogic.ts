@@ -1,23 +1,31 @@
 import { Formation } from "@/types/formation";
-import { isSameDay } from "date-fns";
 
 /**
  * Fonctions pures pour la logique de notification
  * Séparées pour faciliter les tests unitaires
  */
 
+export const NOTIFICATION_WINDOW_HOURS = 24;
+
 /**
- * Filtre les formations du jour pour une discipline donnée
+ * Filtre les formations récemment apparues pour une discipline donnée.
+ *
+ * Fenêtre glissante sur `first_seen_at` (24h par défaut) plutôt que « même jour
+ * calendaire » : une formation captée par une sync hors créneau (ex: en soirée)
+ * reste notifiable au run suivant. Le throttle par utilisateur (last_notified_at)
+ * évite les doublons.
  */
-export const filterTodaysFormations = (
+export const filterRecentFormations = (
   formations: Formation[],
   discipline: string,
-  today: Date
+  now: Date,
+  windowHours: number = NOTIFICATION_WINDOW_HOURS
 ): Formation[] => {
+  const cutoff = now.getTime() - windowHours * 60 * 60 * 1000;
   return formations.filter(f =>
     f.discipline === discipline &&
     f.firstSeenAt &&
-    isSameDay(new Date(f.firstSeenAt), today)
+    new Date(f.firstSeenAt).getTime() >= cutoff
   );
 };
 
@@ -72,13 +80,4 @@ export const groupFormationsByUser = (
  */
 export const extractUniqueDisciplines = (formations: Formation[]): string[] => {
   return [...new Set(formations.map(f => f.discipline))];
-};
-
-/**
- * Prépare une date pour la comparaison (début de journée)
- */
-export const getStartOfDay = (date: Date): Date => {
-  const newDate = new Date(date);
-  newDate.setHours(0, 0, 0, 0);
-  return newDate;
 };

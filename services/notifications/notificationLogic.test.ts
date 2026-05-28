@@ -1,17 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import {
-  filterTodaysFormations,
+  filterRecentFormations,
   shouldNotifyBasedOnTime,
   groupFormationsByUser,
   extractUniqueDisciplines,
-  getStartOfDay,
   UserFormationData
 } from './notificationLogic';
 import { Formation } from '@/types/formation';
 
 describe('notificationLogic', () => {
-  describe('filterTodaysFormations', () => {
-    it('should filter formations for today and specific discipline', () => {
+  describe('filterRecentFormations', () => {
+    it('should filter formations within 24h for a specific discipline', () => {
       const today = new Date('2024-01-15T10:00:00');
       const formations: Formation[] = [
         {
@@ -70,7 +69,7 @@ describe('notificationLogic', () => {
         },
       ];
 
-      const result = filterTodaysFormations(formations, 'Alpinisme', today);
+      const result = filterRecentFormations(formations, 'Alpinisme', today);
 
       expect(result).toHaveLength(1);
       expect(result[0].reference).toBe('REF1');
@@ -80,9 +79,40 @@ describe('notificationLogic', () => {
       const today = new Date('2024-01-15T10:00:00');
       const formations: Formation[] = [];
 
-      const result = filterTodaysFormations(formations, 'Alpinisme', today);
+      const result = filterRecentFormations(formations, 'Alpinisme', today);
 
       expect(result).toHaveLength(0);
+    });
+
+    it('should include a formation first seen within 24h even on the previous calendar day', () => {
+      // Régression: une formation captée par une sync hors créneau (ex: 17h58 la veille)
+      // doit rester notifiable au run de 06h00 le lendemain (< 24h), même si jour différent.
+      const now = new Date('2024-01-15T06:00:00');
+      const formations: Formation[] = [
+        {
+          reference: 'VELO1',
+          titre: 'Vélo de montagne',
+          discipline: 'Vélo-de-montagne',
+          firstSeenAt: '2024-01-14T17:58:00', // veille au soir, ~12h avant, jour calendaire précédent
+          dates: [],
+          lieu: 'Chamonix',
+          informationStagiaire: '',
+          nombreParticipants: 10,
+          placesRestantes: 5,
+          hebergement: '',
+          tarif: 100,
+          organisateur: '',
+          responsable: '',
+          emailContact: '',
+          documents: [],
+          lastSeenAt: ''
+        }
+      ];
+
+      const result = filterRecentFormations(formations, 'Vélo-de-montagne', now);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].reference).toBe('VELO1');
     });
   });
 
@@ -277,27 +307,4 @@ describe('notificationLogic', () => {
     });
   });
 
-  describe('getStartOfDay', () => {
-    it('should reset time to start of day', () => {
-      const date = new Date('2024-01-15T14:30:45.123');
-      const result = getStartOfDay(date);
-
-      expect(result.getFullYear()).toBe(2024);
-      expect(result.getMonth()).toBe(0); // January
-      expect(result.getDate()).toBe(15);
-      expect(result.getHours()).toBe(0);
-      expect(result.getMinutes()).toBe(0);
-      expect(result.getSeconds()).toBe(0);
-      expect(result.getMilliseconds()).toBe(0);
-    });
-
-    it('should not modify the original date', () => {
-      const originalDate = new Date('2024-01-15T14:30:45.123');
-      const originalTime = originalDate.getTime();
-
-      getStartOfDay(originalDate);
-
-      expect(originalDate.getTime()).toBe(originalTime);
-    });
-  });
 });
