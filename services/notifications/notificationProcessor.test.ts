@@ -147,7 +147,8 @@ describe('NotificationProcessor avec injection', () => {
 
       // Aucun utilisateur ne doit être notifié car la formation est trop ancienne
       expect(result.size).toBe(0);
-      expect(mockUserService.getUsersToNotifyForDiscipline).toHaveBeenCalled();
+      // La fenêtre étant vide, on n'interroge même pas les utilisateurs
+      expect(mockUserService.getUsersToNotifyForDiscipline).not.toHaveBeenCalled();
     });
 
     it('should notify for a formation first seen within 24h on the previous calendar day', async () => {

@@ -58,15 +58,15 @@ export interface UserNotificationData {
       formations: Formation[],
       userNotifications: Map<string, UserNotificationData>
     ): Promise<void> {
-      const usersToNotify = await this.actualUserService.getUsersToNotifyForDiscipline(discipline);
-
       // Fenêtre glissante sur first_seen_at (robuste aux syncs hors créneau)
       const recentFormations = filterRecentFormations(formations, discipline, this.dateProvider());
 
-      // Si aucune formation récente, on peut éviter de traiter les utilisateurs
+      // Si aucune formation récente, on évite la requête de récupération des utilisateurs
       if (recentFormations.length === 0) {
         return;
       }
+
+      const usersToNotify = await this.actualUserService.getUsersToNotifyForDiscipline(discipline);
 
       for (const {userId, email} of usersToNotify) {
         if (await this.shouldNotifyUser(userId, discipline)) {
