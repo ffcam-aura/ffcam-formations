@@ -12,6 +12,7 @@ export interface IFormationRepository {
     findAllFormations(): Promise<Formation[]>;
     findAllDisciplines(): Promise<string[]>;
     findRecentFormations(hours: number): Promise<Formation[]>;
+    findNewFormationsByDiscipline(since: Date): Promise<Array<{ discipline: string; count: number }>>;
     getLastSync(): Promise<Date | null>;
 }
 
@@ -284,6 +285,30 @@ export class FormationRepository implements IFormationRepository {
         });
 
         return formations.map(this.mapFormationToDTO);
+    }
+
+    /**
+     * Compte les formations réellement nouvelles (first_seen_at >= since) par discipline.
+     * Indépendant du filtre de notification : sert au monitoring de réconciliation.
+     */
+    async findNewFormationsByDiscipline(since: Date): Promise<Array<{ discipline: string; count: number }>> {
+        const rows = await prisma.formations.findMany({
+            where: {
+                status: 'active',
+                first_seen_at: { gte: since }
+            },
+            select: {
+                disciplines: { select: { nom: true } }
+            }
+        });
+
+        const counts = new Map<string, number>();
+        for (const row of rows) {
+            const nom = row.disciplines?.nom;
+            if (!nom) continue;
+            counts.set(nom, (counts.get(nom) ?? 0) + 1);
+        }
+        return Array.from(counts, ([discipline, count]) => ({ discipline, count }));
     }
 
     private mapFormationToDTO(formation: any): Formation {

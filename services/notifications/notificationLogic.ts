@@ -81,3 +81,28 @@ export const groupFormationsByUser = (
 export const extractUniqueDisciplines = (formations: Formation[]): string[] => {
   return [...new Set(formations.map(f => f.discipline))];
 };
+
+/**
+ * Réconciliation, par discipline, entre ce qui aurait dû être notifié et ce qui l'a été.
+ *
+ * `newFormations` provient d'une requête indépendante sur `first_seen_at` (PAS du
+ * filtre de notification), afin de pouvoir détecter un futur bug DANS ce filtre.
+ */
+export interface DisciplineReconciliation {
+  discipline: string;
+  newFormations: number;
+  notifiableSubscribers: number;
+  notified: number;
+}
+
+/**
+ * Détecte les échecs silencieux : des formations nouvelles existent dans une
+ * discipline qui a des abonnés disponibles (hors throttle 24h), mais personne
+ * n'a été notifié. C'est la signature exacte du bug de notifications.
+ */
+export const findUnnotifiedDisciplines = (
+  reconciliations: DisciplineReconciliation[]
+): DisciplineReconciliation[] =>
+  reconciliations.filter(
+    r => r.newFormations > 0 && r.notifiableSubscribers > 0 && r.notified === 0
+  );

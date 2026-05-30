@@ -4,6 +4,8 @@ import {
   shouldNotifyBasedOnTime,
   groupFormationsByUser,
   extractUniqueDisciplines,
+  findUnnotifiedDisciplines,
+  DisciplineReconciliation,
   UserFormationData
 } from './notificationLogic';
 import { Formation } from '@/types/formation';
@@ -304,6 +306,52 @@ describe('notificationLogic', () => {
       expect(result).toHaveLength(2);
       expect(result).toContain('Alpinisme');
       expect(result).toContain('Escalade');
+    });
+  });
+
+  describe('findUnnotifiedDisciplines', () => {
+    const rec = (over: Partial<DisciplineReconciliation>): DisciplineReconciliation => ({
+      discipline: 'Vélo-de-montagne',
+      newFormations: 2,
+      notifiableSubscribers: 5,
+      notified: 0,
+      ...over
+    });
+
+    it('flags a discipline with new formations and available subscribers but nobody notified', () => {
+      const result = findUnnotifiedDisciplines([rec({})]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].discipline).toBe('Vélo-de-montagne');
+    });
+
+    it('does not flag when notifications were sent', () => {
+      const result = findUnnotifiedDisciplines([rec({ notified: 3 })]);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('does not flag when all subscribers are throttled (none available)', () => {
+      // notifiableSubscribers exclut déjà les abonnés throttlés : 0 disponible = pas une anomalie
+      const result = findUnnotifiedDisciplines([rec({ notifiableSubscribers: 0 })]);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('does not flag when there are no new formations', () => {
+      const result = findUnnotifiedDisciplines([rec({ newFormations: 0 })]);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('returns only the disciplines that are actually broken', () => {
+      const result = findUnnotifiedDisciplines([
+        rec({ discipline: 'Vélo-de-montagne' }),
+        rec({ discipline: 'Alpinisme', notified: 4 }),
+        rec({ discipline: 'Escalade', newFormations: 1, notified: 0 })
+      ]);
+
+      expect(result.map(r => r.discipline)).toEqual(['Vélo-de-montagne', 'Escalade']);
     });
   });
 

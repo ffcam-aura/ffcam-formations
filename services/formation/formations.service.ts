@@ -123,6 +123,21 @@ export class FormationService {
     }
 
     /**
+     * Compte les formations réellement nouvelles (first_seen_at) par discipline.
+     * Indépendant du filtre de notification : alimente le monitoring de réconciliation.
+     * @param hours Fenêtre de fraîcheur en heures
+     */
+    async getNewFormationCountsByDiscipline(hours: number): Promise<Array<{ discipline: string; count: number }>> {
+        try {
+            const since = new Date(Date.now() - hours * 60 * 60 * 1000);
+            return await this.formationRepository.findNewFormationsByDiscipline(since);
+        } catch (error) {
+            logger.error('Error counting new formations by discipline', error as Error, { hours });
+            throw error;
+        }
+    }
+
+    /**
      * Vérifie si une formation existe déjà
      */
     async isFormationExists(reference: string): Promise<boolean> {
