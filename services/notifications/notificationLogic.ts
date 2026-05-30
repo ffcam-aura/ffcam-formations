@@ -92,7 +92,8 @@ export interface DisciplineReconciliation {
   discipline: string;
   newFormations: number;
   notifiableSubscribers: number;
-  notified: number;
+  /** Nombre d'événements (formation × user) notifiés, pas le nombre d'utilisateurs distincts. */
+  notificationsSent: number;
 }
 
 /**
@@ -104,5 +105,6 @@ export const findUnnotifiedDisciplines = (
   reconciliations: DisciplineReconciliation[]
 ): DisciplineReconciliation[] =>
   reconciliations.filter(
-    r => r.newFormations > 0 && r.notifiableSubscribers > 0 && r.notified === 0
+    r => r.newFormations > 0 && r.notifiableSubscribers > 0 && r.notificationsSent === 0
   );
+

@@ -107,12 +107,18 @@ async function buildReconciliation(
 
   const reconciliation: DisciplineReconciliation[] = [];
   for (const { discipline, count } of newByDiscipline) {
+    // NOTE angle mort : on réutilise ici la requête de production
+    // `getUsersToNotifyForDiscipline` (côté abonnés). Si un futur bug s'introduit
+    // dans CETTE requête (ex. clause OR inversée, filtre `enabled` qui régresse),
+    // les deux côtés tomberaient à 0 et l'anomalie ne se lèverait pas. Le
+    // monitoring est donc indépendant du filtre `first_seen_at` (côté formations)
+    // mais pas du filtre d'abonnés. À renforcer si on a un incident sur ce chemin.
     const notifiable = await userService.getUsersToNotifyForDiscipline(discipline);
     reconciliation.push({
       discipline,
       newFormations: count,
       notifiableSubscribers: notifiable.length,
-      notified: notifiedByDiscipline.get(discipline) ?? 0
+      notificationsSent: notifiedByDiscipline.get(discipline) ?? 0
     });
   }
   return reconciliation;
@@ -123,6 +129,15 @@ interface NotificationStats {
   notifiedUsers: number;
   errors: number;
   formationsWithNotifications: number;
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 async function sendHealthcheckEmail(
@@ -147,7 +162,7 @@ async function sendHealthcheckEmail(
           <p style="color: #dc2626; font-weight: bold; margin: 0 0 8px;">⚠️ Formations nouvelles non notifiées</p>
           <p style="margin: 0 0 8px;">Des formations récentes existent dans des disciplines ayant des abonnés disponibles, mais aucune notification n'a été envoyée. Vérifier le pipeline de notification.</p>
           <ul>
-            ${missed.map(m => `<li><strong>${m.discipline}</strong> : ${m.newFormations} formation(s) récente(s), ${m.notifiableSubscribers} abonné(s) en attente, 0 notifié</li>`).join('')}
+            ${missed.map(m => `<li><strong>${escapeHtml(m.discipline)}</strong> : ${m.newFormations} formation(s) récente(s), ${m.notifiableSubscribers} abonné(s) en attente, 0 notifié</li>`).join('')}
           </ul>
         </div>
       `

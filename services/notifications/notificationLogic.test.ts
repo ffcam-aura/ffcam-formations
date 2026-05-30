@@ -314,7 +314,7 @@ describe('notificationLogic', () => {
       discipline: 'Vélo-de-montagne',
       newFormations: 2,
       notifiableSubscribers: 5,
-      notified: 0,
+      notificationsSent: 0,
       ...over
     });
 
@@ -326,7 +326,7 @@ describe('notificationLogic', () => {
     });
 
     it('does not flag when notifications were sent', () => {
-      const result = findUnnotifiedDisciplines([rec({ notified: 3 })]);
+      const result = findUnnotifiedDisciplines([rec({ notificationsSent: 3 })]);
 
       expect(result).toHaveLength(0);
     });
@@ -347,8 +347,8 @@ describe('notificationLogic', () => {
     it('returns only the disciplines that are actually broken', () => {
       const result = findUnnotifiedDisciplines([
         rec({ discipline: 'Vélo-de-montagne' }),
-        rec({ discipline: 'Alpinisme', notified: 4 }),
-        rec({ discipline: 'Escalade', newFormations: 1, notified: 0 })
+        rec({ discipline: 'Alpinisme', notificationsSent: 4 }),
+        rec({ discipline: 'Escalade', newFormations: 1, notificationsSent: 0 })
       ]);
 
       expect(result.map(r => r.discipline)).toEqual(['Vélo-de-montagne', 'Escalade']);
