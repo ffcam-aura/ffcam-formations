@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ObfuscatedEmail from '@/components/features/formations/ObfuscatedEmail';
 import ObfuscatedInscriptionButton from '@/components/features/formations/ObfuscatedInscriptionButton';
+import Linkify from '@/components/ui/Linkify';
 import { formatDate, formatFullDateRange } from '@/utils/dateUtils';
 import { logger } from '@/lib/logger';
 
@@ -236,7 +237,7 @@ export default async function FormationPage({ params }: PageProps) {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-700 whitespace-pre-wrap">
-                    {formation.informationStagiaire}
+                    <Linkify text={formation.informationStagiaire} />
                   </p>
                 </CardContent>
               </Card>
