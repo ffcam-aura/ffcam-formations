@@ -1,11 +1,13 @@
 import { MetadataRoute } from 'next';
-import { FormationRepository } from '@/repositories/FormationRepository';
-import { FormationService } from '@/services/formation/formations.service';
+import { getCachedFormations, getCachedDisciplines } from '@/lib/cachedFormations';
 import { generateFormationSlug } from '@/utils/slug';
 import { logger } from '@/lib/logger';
 
+// On garde le rendu dynamique (le sitemap n'est pas généré au build, ce qui
+// évite toute dépendance à la base au moment du build). Les requêtes passent
+// par le cache partagé : la base n'est donc touchée qu'une fois par jour, pas
+// à chaque crawl de bot.
 export const dynamic = 'force-dynamic';
-export const revalidate = 3600; // Revalidate every hour
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://formations.ffcam-aura.fr';
@@ -39,12 +41,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    // Récupérer dynamiquement toutes les formations
-    const formationRepository = new FormationRepository();
-    const formationService = new FormationService(formationRepository);
-
-    // Récupérer toutes les disciplines disponibles
-    const disciplines = await formationService.getAllDisciplines();
+    // Récupérer toutes les disciplines disponibles (cache partagé)
+    const disciplines = await getCachedDisciplines();
 
     const disciplinePages: MetadataRoute.Sitemap = disciplines.map(discipline => ({
       url: `${baseUrl}?discipline=${encodeURIComponent(discipline)}`,
@@ -54,7 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
     // Récupérer toutes les formations pour créer les URLs individuelles
-    const formations = await formationService.getAllFormations();
+    const formations = await getCachedFormations();
 
     // Filtrer les formations futures uniquement
     const activeFormations = formations.filter(formation => {

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { FormationService } from '@/services/formation/formations.service';
-import { FormationRepository } from '@/repositories/FormationRepository';
+import { getCachedFormations } from '@/lib/cachedFormations';
 import { logger } from '@/lib/logger';
 import {
   checkRateLimit,
@@ -8,9 +7,6 @@ import {
   rateLimitResponse,
   addRateLimitHeaders,
 } from '@/lib/rateLimit';
-
-const formationRepository = new FormationRepository();
-const formationService = new FormationService(formationRepository);
 
 // Rate limit: 60 requests per minute per IP
 const RATE_LIMIT_CONFIG = { limit: 60, windowSeconds: 60 };
@@ -26,7 +22,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const allFormations = await formationService.getAllFormations();
+    const allFormations = await getCachedFormations();
     const response = NextResponse.json(allFormations);
     return addRateLimitHeaders(response, rateLimitResult);
   } catch (error) {

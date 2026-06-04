@@ -1,9 +1,9 @@
+import { cache } from 'react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { CalendarDays, MapPin, Users, Euro, User, Home, FileText, Clock } from 'lucide-react';
-import { FormationRepository } from '@/repositories/FormationRepository';
-import { FormationService } from '@/services/formation/formations.service';
+import { getCachedFormations, getCachedFormationByReference } from '@/lib/cachedFormations';
 import { Formation } from '@/types/formation';
 import { extractReferenceFromSlug, getFormationUrl } from '@/utils/slug';
 import { FormationStructuredData, BreadcrumbStructuredData } from '@/components/seo/StructuredData';
@@ -16,7 +16,10 @@ import Linkify from '@/components/ui/Linkify';
 import { formatDate, formatFullDateRange } from '@/utils/dateUtils';
 import { logger } from '@/lib/logger';
 
-export const dynamic = 'force-dynamic';
+// Les données ne changent qu'au sync quotidien (4h) : on rend la page en ISR
+// (générée à la demande puis mise en cache 24h) plutôt qu'en SSR à chaque
+// requête. Évite de réveiller la base à chaque crawl de bot.
+export const revalidate = 86400;
 
 interface PageProps {
   params: Promise<{
@@ -24,30 +27,23 @@ interface PageProps {
   }>;
 }
 
-async function getFormation(slug: string): Promise<Formation | null> {
+// `cache()` mutualise l'appel entre generateMetadata et le rendu de la page :
+// une seule requête en base par génération au lieu de deux.
+const getFormation = cache(async (slug: string): Promise<Formation | null> => {
   const reference = extractReferenceFromSlug(slug);
   if (!reference) {
     return null;
   }
 
-  const formationRepository = new FormationRepository();
-  const formationService = new FormationService(formationRepository);
-
   try {
-    const formation = await formationService.getFormationByReference(reference);
-
-    // Si la formation existe, on la retourne
-    // (on accepte tout slug tant que la référence est correcte)
-    if (formation) {
-      return formation;
-    }
-
-    return null;
+    // On accepte tout slug tant que la référence est correcte ; la lecture
+    // passe par le cache tagué `formations` (invalidé au sync).
+    return await getCachedFormationByReference(reference);
   } catch (error) {
     logger.error('Erreur lors de la récupération de la formation', error, { slug, reference });
     return null;
   }
-}
+});
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -97,13 +93,11 @@ export default async function FormationPage({ params }: PageProps) {
     { name: formation.titre },
   ];
 
-  // Récupérer des formations similaires
-  const formationRepository = new FormationRepository();
-  const formationService = new FormationService(formationRepository);
+  // Récupérer des formations similaires (depuis le cache partagé)
   let similarFormations: Formation[] = [];
 
   try {
-    const allFormations = await formationService.getAllFormations();
+    const allFormations = await getCachedFormations();
     similarFormations = allFormations
       .filter(f =>
         f.reference !== formation.reference &&

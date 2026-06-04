@@ -28,6 +28,15 @@ vi.mock('@/lib/logger', () => ({
   }
 }));
 
+// La route invalide le cache des formations après un sync réussi. Hors contexte
+// Next (en test), revalidateTag n'est pas disponible : on le mocke. unstable_cache
+// (utilisé par @/lib/cachedFormations, importé pour le tag) est neutralisé en
+// passthrough.
+vi.mock('next/cache', () => ({
+  revalidateTag: vi.fn(),
+  unstable_cache: (fn: unknown) => fn,
+}));
+
 import { SyncService } from '@/services/formation/sync.service';
 
 describe('GET /api/sync', () => {

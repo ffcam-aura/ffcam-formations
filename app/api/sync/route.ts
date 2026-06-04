@@ -1,5 +1,7 @@
 export const maxDuration = 60;
+import { revalidateTag } from 'next/cache';
 import { SyncService } from '@/services/formation/sync.service';
+import { FORMATIONS_CACHE_TAG } from '@/lib/cachedFormations';
 import { logger } from '@/lib/logger';
 import { validateCronSecret, unauthorizedResponse } from '@/lib/auth';
 
@@ -11,6 +13,13 @@ export async function GET(request: Request) {
 
   try {
     const syncResult = await SyncService.synchronize();
+
+    // Les données viennent d'être mises à jour : on invalide le cache des
+    // lectures publiques pour que le site reflète le sync en quelques minutes
+    // (sinon le cache 24h pourrait servir des données périmées jusqu'au
+    // prochain TTL). C'est ce qui permet de cacher agressivement sans dégrader
+    // la fraîcheur.
+    revalidateTag(FORMATIONS_CACHE_TAG);
 
     // Build report for healthcheck (visible in healthchecks.io dashboard)
     const status = syncResult.errors.length === 0 ? '✅' : '⚠️';
