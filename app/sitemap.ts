@@ -3,10 +3,8 @@ import { getCachedFormations, getCachedDisciplines } from '@/lib/cachedFormation
 import { generateFormationSlug } from '@/utils/slug';
 import { logger } from '@/lib/logger';
 
-// On garde le rendu dynamique (le sitemap n'est pas généré au build, ce qui
-// évite toute dépendance à la base au moment du build). Les requêtes passent
-// par le cache partagé : la base n'est donc touchée qu'une fois par jour, pas
-// à chaque crawl de bot.
+// force-dynamic : évite la dépendance DB au build. Les lectures passent par le
+// cache, donc DB touchée ~1×/jour (pas à chaque crawl).
 export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

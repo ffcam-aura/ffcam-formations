@@ -28,10 +28,7 @@ vi.mock('@/lib/logger', () => ({
   }
 }));
 
-// La route invalide le cache des formations après un sync réussi. Hors contexte
-// Next (en test), revalidateTag n'est pas disponible : on le mocke. unstable_cache
-// (utilisé par @/lib/cachedFormations, importé pour le tag) est neutralisé en
-// passthrough.
+// revalidateTag/unstable_cache ne tournent pas hors contexte Next → mock.
 vi.mock('next/cache', () => ({
   revalidateTag: vi.fn(),
   unstable_cache: (fn: unknown) => fn,
@@ -93,7 +90,6 @@ describe('GET /api/sync', () => {
     expect(data.success).toBe(true);
     expect(SyncService.synchronize).toHaveBeenCalled();
     expect(SyncService.pingHealthcheck).toHaveBeenCalledWith(true, expect.any(String));
-    // Le cache des lectures publiques doit être invalidé après un sync réussi
     expect(vi.mocked(revalidateTag)).toHaveBeenCalledWith('formations');
   });
 
@@ -146,7 +142,6 @@ describe('GET /api/sync', () => {
     expect(data.success).toBe(false);
     expect(SyncService.sendErrorReport).toHaveBeenCalledWith(error);
     expect(SyncService.pingHealthcheck).toHaveBeenCalledWith(false, 'Sync failed');
-    // Pas d'invalidation de cache si le sync a échoué
     expect(vi.mocked(revalidateTag)).not.toHaveBeenCalled();
   });
 });

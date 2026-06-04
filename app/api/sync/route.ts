@@ -14,11 +14,7 @@ export async function GET(request: Request) {
   try {
     const syncResult = await SyncService.synchronize();
 
-    // Les données viennent d'être mises à jour : on invalide le cache des
-    // lectures publiques pour que le site reflète le sync en quelques minutes
-    // (sinon le cache 24h pourrait servir des données périmées jusqu'au
-    // prochain TTL). C'est ce qui permet de cacher agressivement sans dégrader
-    // la fraîcheur.
+    // Reflète le sync sans attendre le TTL du cache.
     revalidateTag(FORMATIONS_CACHE_TAG);
 
     // Build report for healthcheck (visible in healthchecks.io dashboard)

@@ -16,9 +16,7 @@ import Linkify from '@/components/ui/Linkify';
 import { formatDate, formatFullDateRange } from '@/utils/dateUtils';
 import { logger } from '@/lib/logger';
 
-// Les données ne changent qu'au sync quotidien (4h) : on rend la page en ISR
-// (générée à la demande puis mise en cache 24h) plutôt qu'en SSR à chaque
-// requête. Évite de réveiller la base à chaque crawl de bot.
+// ISR : régénérée 1×/jour plutôt que rendue à chaque requête.
 export const revalidate = 86400;
 
 interface PageProps {
@@ -27,8 +25,7 @@ interface PageProps {
   }>;
 }
 
-// `cache()` mutualise l'appel entre generateMetadata et le rendu de la page :
-// une seule requête en base par génération au lieu de deux.
+// cache() : dédoublonne l'appel entre generateMetadata et la page.
 const getFormation = cache(async (slug: string): Promise<Formation | null> => {
   const reference = extractReferenceFromSlug(slug);
   if (!reference) {
@@ -36,8 +33,6 @@ const getFormation = cache(async (slug: string): Promise<Formation | null> => {
   }
 
   try {
-    // On accepte tout slug tant que la référence est correcte ; la lecture
-    // passe par le cache tagué `formations` (invalidé au sync).
     return await getCachedFormationByReference(reference);
   } catch (error) {
     logger.error('Erreur lors de la récupération de la formation', error, { slug, reference });
