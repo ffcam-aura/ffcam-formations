@@ -28,7 +28,14 @@ vi.mock('@/lib/logger', () => ({
   }
 }));
 
+// revalidateTag/unstable_cache ne tournent pas hors contexte Next → mock.
+vi.mock('next/cache', () => ({
+  revalidateTag: vi.fn(),
+  unstable_cache: (fn: unknown) => fn,
+}));
+
 import { SyncService } from '@/services/formation/sync.service';
+import { revalidateTag } from 'next/cache';
 
 describe('GET /api/sync', () => {
   beforeEach(() => {
@@ -83,6 +90,7 @@ describe('GET /api/sync', () => {
     expect(data.success).toBe(true);
     expect(SyncService.synchronize).toHaveBeenCalled();
     expect(SyncService.pingHealthcheck).toHaveBeenCalledWith(true, expect.any(String));
+    expect(vi.mocked(revalidateTag)).toHaveBeenCalledWith('formations');
   });
 
   it('should send partial error report when sync has some errors', async () => {
@@ -134,5 +142,6 @@ describe('GET /api/sync', () => {
     expect(data.success).toBe(false);
     expect(SyncService.sendErrorReport).toHaveBeenCalledWith(error);
     expect(SyncService.pingHealthcheck).toHaveBeenCalledWith(false, 'Sync failed');
+    expect(vi.mocked(revalidateTag)).not.toHaveBeenCalled();
   });
 });
