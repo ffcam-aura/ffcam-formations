@@ -30,8 +30,11 @@ jobs:
 
       - run: pnpm test
 
-      # Les secrets ne sont pas nécessaires : la validation env reste active au runtime.
+      # Aucun secret réel : la validation env reste active au runtime, et la clé
+      # Clerk factice sert seulement au prérendu (Clerk refuse de builder sans).
       - run: pnpm build
         env:
           SKIP_ENV_VALIDATION: "1"
           SENTRY_AUTH_TOKEN: ""
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ZXhhbXBsZS5jbGVyay5hY2NvdW50cy5kZXYk
+          CLERK_SECRET_KEY: sk_test_ci-placeholder
