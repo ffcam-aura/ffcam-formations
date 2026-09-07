@@ -47,3 +47,8 @@ next-env.d.ts
 .env.sentry-build-plugin
 CLAUDE.md
 .claude/
+# artefacts locaux (captures d'écran, exploration MCP)
+/.playwright-mcp/
+/temp/
+screenshot-*.png
+audit*-*.png

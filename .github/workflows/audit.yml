@@ -1,0 +1,22 @@
+name: Audit dépendances
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # --prod restreint l'arbre aux dependencies (hors devDependencies) ;
+      # ce n'est pas une garantie d'exploitabilité, juste le périmètre expédié.
+      # Baseline vert au moment de l'ajout : toute nouvelle alerte est à traiter.
+      - run: pnpm audit --prod --audit-level high

@@ -193,10 +193,10 @@ describe('FormationRepository', () => {
             });
 
             // Mock upsert to return formation with id
-            vi.mocked(prisma.formations.upsert).mockImplementation(async (args: any) => ({
+            vi.mocked(prisma.formations.upsert).mockImplementation(((args: any) => Promise.resolve({
                 id: args.where.reference === 'REF123' ? 1 : 2,
                 reference: args.where.reference
-            } as any));
+            })) as never);
 
             // Mock delete and create for dates/documents
             vi.mocked(prisma.formations_dates.deleteMany).mockResolvedValue({ count: 0 });
@@ -288,16 +288,12 @@ describe('FormationRepository', () => {
         it('should return the last sync date', async () => {
             const mockDate = new Date();
             const mockAggregateResult: AggregateResult = {
-                _count: null,
-                _avg: null,
-                _sum: null,
-                _min: null,
                 _max: {
                     last_seen_at: mockDate
                 }
             };
 
-            vi.mocked(prisma.formations.aggregate).mockResolvedValue(mockAggregateResult);
+            vi.mocked(prisma.formations.aggregate).mockResolvedValue(mockAggregateResult as never);
 
             const result = await repository.getLastSync();
             expect(result).toEqual(mockDate);
@@ -305,16 +301,12 @@ describe('FormationRepository', () => {
 
         it('should return null when no formations exist', async () => {
             const mockAggregateResult: AggregateResult = {
-                _count: null,
-                _avg: null,
-                _sum: null,
-                _min: null,
                 _max: {
                     last_seen_at: null
                 }
             };
 
-            vi.mocked(prisma.formations.aggregate).mockResolvedValue(mockAggregateResult);
+            vi.mocked(prisma.formations.aggregate).mockResolvedValue(mockAggregateResult as never);
 
             const result = await repository.getLastSync();
             expect(result).toBeNull();
