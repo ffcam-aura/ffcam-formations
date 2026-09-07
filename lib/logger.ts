@@ -38,10 +38,9 @@ export const logger = {
         extra: context as Record<string, unknown>
       });
     } else {
-      Sentry.captureMessage(message, 'error');
-      if (context) {
-        Sentry.setContext('error_context', context);
-      }
+      // Le contexte doit être passé à la capture : posé après, il manquerait à
+      // cet événement et resterait sur le scope pour polluer les suivants.
+      Sentry.captureMessage(message, { level: 'error', extra: context });
     }
   },
 
@@ -52,10 +51,7 @@ export const logger = {
       console.warn(message, data);
     }
 
-    Sentry.captureMessage(message, 'warning');
-    if (data) {
-      Sentry.setContext('warning_context', data);
-    }
+    Sentry.captureMessage(message, { level: 'warning', extra: data });
   },
 
   debug: (message: string, data?: LogContext) => {
