@@ -16,5 +16,7 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # Échoue seulement sur les failles exploitables en production.
+      # --prod restreint l'arbre aux dependencies (hors devDependencies) ;
+      # ce n'est pas une garantie d'exploitabilité, juste le périmètre expédié.
+      # Baseline vert au moment de l'ajout : toute nouvelle alerte est à traiter.
       - run: pnpm audit --prod --audit-level high
