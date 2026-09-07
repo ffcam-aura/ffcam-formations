@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Mock } from 'vitest';
 import { NotificationService } from './notifications.service';
 import { NotificationProcessor } from './notificationProcessor.service';
+import { makeFormation } from '@/test/factories';
 
 // Mock des dépendances
 vi.mock('@/repositories/NotificationRepository');
@@ -13,7 +14,7 @@ vi.mock('./notificationProcessor.service');
 describe('NotificationService', () => {
   // Données de test
   const mockFormations = [
-    {
+    makeFormation({
       reference: 'TEST123',
       titre: 'Formation Test',
       discipline: 'Escalade',
@@ -25,9 +26,8 @@ describe('NotificationService', () => {
       organisateur: 'CAF Lyon',
       responsable: 'Test User',
       emailContact: 'test@test.com',
-      documents: [],
-      hebergement: 'GITE'
-    }
+      hebergement: 'GITE',
+    }),
   ];
 
   const mockUserNotifications = new Map([
@@ -67,7 +67,7 @@ describe('NotificationService', () => {
 
     vi.mocked(NotificationProcessor).mockImplementation(() => ({
       processFormations: vi.fn().mockResolvedValue(mockUserNotifications)
-    }));
+    }) as unknown as NotificationProcessor);
 
     // Création du service
     notificationService = new NotificationService(
@@ -126,7 +126,7 @@ describe('NotificationService', () => {
       const testError = new Error('Process error');
       vi.mocked(NotificationProcessor).mockImplementationOnce(() => ({
         processFormations: vi.fn().mockRejectedValueOnce(testError)
-      }));
+      }) as unknown as NotificationProcessor);
 
       // Vérifier que l'erreur est propagée
       await expect(notificationService.notifyBatchNewFormations(mockFormations))

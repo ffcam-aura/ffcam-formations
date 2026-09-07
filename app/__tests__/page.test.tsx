@@ -1,45 +1,11 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import Home from '@/app/(public)/page'
+import { makeFormation } from '@/test/factories'
 
-// Mock des données avec toutes les propriétés nécessaires
 const mockFormations = [
-  {
-    id: 1,
-    titre: "Formation Mathématiques",
-    lieu: "Paris",
-    discipline: "Mathématiques",
-    organisateur: "Org1",
-    date: "2024-05-01",
-    dates: ["2024-05-01", "2024-05-02"], // Ajout des dates
-    placesDisponibles: 5,
-    description: "Description de la formation",
-    duree: "2 jours",
-    modalites: "Présentiel",
-    cout: "500€",
-    contact: "contact@org1.fr",
-    publicVise: "Enseignants",
-    objectifs: "Objectifs de la formation",
-    contenus: "Contenus de la formation"
-  },
-  {
-    id: 2,
-    titre: "Formation Physique",
-    lieu: "Lyon",
-    discipline: "Physique",
-    organisateur: "Org2",
-    date: "2024-06-01",
-    dates: ["2024-06-01", "2024-06-02"], // Ajout des dates
-    placesDisponibles: 0,
-    description: "Description de la formation",
-    duree: "2 jours",
-    modalites: "Distanciel",
-    cout: "400€",
-    contact: "contact@org2.fr",
-    publicVise: "Enseignants",
-    objectifs: "Objectifs de la formation",
-    contenus: "Contenus de la formation"
-  }
+  makeFormation({ reference: 'MATH-1', titre: 'Formation Mathématiques', lieu: 'Paris', discipline: 'Mathématiques', organisateur: 'Org1' }),
+  makeFormation({ reference: 'PHYS-1', titre: 'Formation Physique', lieu: 'Lyon', discipline: 'Physique', organisateur: 'Org2', placesRestantes: 0 }),
 ]
 
 // Mock des hooks
@@ -81,7 +47,9 @@ describe('Home', () => {
       formations: [],
       lastSyncDate: "",
       loading: true,
-      error: null
+      error: null,
+      retry: undefined,
+      retryCount: 0
     })
 
     render(<Home />)
@@ -93,7 +61,9 @@ describe('Home', () => {
       formations: [],
       lastSyncDate: "",
       loading: false,
-      error: "Erreur de chargement"
+      error: { message: "Erreur de chargement", type: 'server', canRetry: true },
+      retry: vi.fn(),
+      retryCount: 0
     })
 
     render(<Home />)
@@ -106,7 +76,9 @@ describe('Home', () => {
       formations: mockFormations,
       lastSyncDate: "2024-03-20",
       loading: false,
-      error: null
+      error: null,
+      retry: undefined,
+      retryCount: 0
     })
 
     render(<Home />)

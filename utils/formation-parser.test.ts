@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import * as cheerio from 'cheerio';
 import { extractText, formatName, getDecryptedEmailFromCharCodeArray, parseDates, parseDocuments, parseOrganisateur, parseTarif } from './formation-parser';
+import type { AnyNode } from 'domhandler';
 
 describe('Formation data parser', () => {
   it('should remove duplicated organizer names', () => {
@@ -54,7 +55,7 @@ describe('Formation data parser', () => {
     const $ = cheerio.load(html);
     const organisateurText = $('.ffcam-formation p')
       .contents() // Get all nodes including text nodes
-      .filter(function(this: cheerio.Node) {
+      .filter(function(this: AnyNode) {
         return this.type === 'text';
       })
       .text()
