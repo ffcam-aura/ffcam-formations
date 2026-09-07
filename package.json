@@ -25,7 +25,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@clerk/localizations": "^3.37.8",
+    "@clerk/localizations": "^4.16.0",
     "@clerk/nextjs": "^6.39.6",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
