@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
+import { sanitizeLogContext } from '@/lib/logSanitizer';
 
 /**
  * Logger simple et efficace
@@ -21,7 +22,7 @@ export const logger = {
     Sentry.addBreadcrumb({
       message,
       level: 'info',
-      data: data as Record<string, string | number | boolean>
+      data: sanitizeLogContext(data) as Record<string, string | number | boolean>
     });
   },
 
@@ -35,13 +36,12 @@ export const logger = {
     if (error instanceof Error) {
       Sentry.captureException(error, {
         tags: { message },
-        extra: context as Record<string, unknown>
+        extra: sanitizeLogContext(context) as Record<string, unknown>
       });
     } else {
-      Sentry.captureMessage(message, 'error');
-      if (context) {
-        Sentry.setContext('error_context', context);
-      }
+      // Le contexte doit être passé à la capture : posé après, il manquerait à
+      // cet événement et resterait sur le scope pour polluer les suivants.
+      Sentry.captureMessage(message, { level: 'error', extra: sanitizeLogContext(context) });
     }
   },
 
@@ -52,10 +52,7 @@ export const logger = {
       console.warn(message, data);
     }
 
-    Sentry.captureMessage(message, 'warning');
-    if (data) {
-      Sentry.setContext('warning_context', data);
-    }
+    Sentry.captureMessage(message, { level: 'warning', extra: sanitizeLogContext(data) });
   },
 
   debug: (message: string, data?: LogContext) => {

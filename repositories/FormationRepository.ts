@@ -286,18 +286,18 @@ export class FormationRepository implements IFormationRepository {
         return formations.map(this.mapFormationToDTO);
     }
 
+    // Projette explicitement : un spread de la ligne Prisma renverrait aussi les
+    // colonnes brutes (ids, timestamps, tables jointes), ce qui double le poids du
+    // payload et fait passer le cache de /api/formations au-dessus de la limite de 2 Mo.
     private mapFormationToDTO(formation: any): Formation {
         return {
-            ...formation,
-            disciplines: formation.disciplines ? [formation.disciplines] : [],
             reference: formation.reference,
             titre: formation.titre,
             dates: formation.formations_dates?.map((d: any) => d.date_debut.toISOString()) || [],
             lieu: formation.lieux?.nom || '',
             informationStagiaire: formation.information_stagiaire || '',
-            nombreParticipants: formation.nombre_participants !== null && formation.nombre_participants !== undefined 
-                ? Number(formation.nombre_participants)
-                : null,
+            // nombre_participants est NOT NULL en base : pas de branche nulle à gérer.
+            nombreParticipants: Number(formation.nombre_participants),
             placesRestantes: formation.places_restantes !== null && formation.places_restantes !== undefined 
                 ? Number(formation.places_restantes) 
                 : null,
