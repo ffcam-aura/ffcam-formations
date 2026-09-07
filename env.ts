@@ -53,6 +53,8 @@ const generateClientRuntimeEnv = (schema: ClientEnvSchema): Record<keyof ClientE
 };
 
 export const env = createEnv({
+    // Permet de builder sans secrets (CI, Docker) : la validation reste active au runtime.
+    skipValidation: !!process.env.SKIP_ENV_VALIDATION,
     server: serverEnvSchema,
     client: clientEnvSchema,
     runtimeEnv: {
