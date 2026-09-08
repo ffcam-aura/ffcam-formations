@@ -7,7 +7,9 @@ updates:
       day: monday
     open-pull-requests-limit: 5
     groups:
-      # Un seul PR par lot pour limiter la charge de revue.
+      # Un seul PR par lot pour limiter la charge de revue. Les majeures sont
+      # exclues des groupes : mélangées, elles donnent un PR trop gros pour être
+      # relu et qui échoue en bloc. Elles arrivent donc une par une.
       production-patch-minor:
         applies-to: version-updates
         dependency-type: production
@@ -15,6 +17,7 @@ updates:
       dev-dependencies:
         applies-to: version-updates
         dependency-type: development
+        update-types: [minor, patch]
       security:
         applies-to: security-updates
         patterns: ["*"]
@@ -23,3 +26,8 @@ updates:
     directory: "/"
     schedule:
       interval: monthly
+    groups:
+      # Les actions vivent toutes dans les deux mêmes fichiers : en PR séparés,
+      # le premier merge met les autres en conflit.
+      github-actions:
+        patterns: ["*"]
