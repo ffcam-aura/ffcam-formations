@@ -2,6 +2,7 @@ import { NotificationRepository } from "@/repositories/NotificationRepository";
 import { Formation } from "@/types/formation";
 import { UserService } from "@/services/user/users.service";
 import { UserRepository } from "@/repositories/UserRepository";
+import { filterFormationsByRegions } from "@/lib/regions";
 import {
   filterRecentFormations,
   shouldNotifyBasedOnTime,
@@ -68,12 +69,16 @@ export interface UserNotificationData {
 
       const usersToNotify = await this.actualUserService.getUsersToNotifyForDiscipline(discipline);
 
-      for (const {userId, email} of usersToNotify) {
+      for (const {userId, email, regions} of usersToNotify) {
+        // Filtre optionnel par comité régional organisateur (aucune région = toutes)
+        const formationsForUser = filterFormationsByRegions(recentFormations, regions);
+        if (formationsForUser.length === 0) continue;
+
         if (await this.shouldNotifyUser(userId, discipline)) {
           this.addFormationsForUser(
             userId,
             email,
-            recentFormations,
+            formationsForUser,
             userNotifications
           );
         }

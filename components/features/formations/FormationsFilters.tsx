@@ -1,20 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useUrlFilters } from '@/hooks/useUrlFilters';
+import type { Filters as FiltersState } from '@/hooks/userFormationsFilter';
+import { COMITE_TOOLTIP, filterOrganisateursByRegions, type RegionOption } from '@/lib/regions';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
 
 type FiltersProps = {
-  onFilterChange: (filters: {
-    searchQuery: string;
-    location: string;
-    discipline: string;
-    organisateur: string;
-    startDate: string;
-    endDate: string;
-    availableOnly: boolean;
-    showPastFormations: boolean;
-  }) => void;
+  onFilterChange: (filters: FiltersState) => void;
   locations: string[];
   disciplines: string[];
   organisateurs: string[];
+  comites: RegionOption[];
+  /** Régions (codes) de chaque organisateur, pour restreindre la liste aux comités choisis. */
+  organisateurRegions?: Record<string, string[]>;
   showPastFormations: boolean;
 };
 
@@ -23,6 +21,8 @@ export default function Filters({
   locations,
   disciplines,
   organisateurs,
+  comites,
+  organisateurRegions = {},
   showPastFormations,
 }: FiltersProps) {
   const { updateUrl, getFiltersFromUrl } = useUrlFilters();
@@ -30,6 +30,7 @@ export default function Filters({
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>("");
   const [selectedOrganisateur, setSelectedOrganisateur] = useState<string>("");
+  const [selectedComites, setSelectedComites] = useState<string[]>([]);
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
@@ -42,6 +43,7 @@ export default function Filters({
       location: selectedLocation,
       discipline: selectedDiscipline,
       organisateur: selectedOrganisateur,
+      comites: selectedComites,
       startDate,
       endDate,
       availableOnly: showAvailableOnly,
@@ -50,7 +52,7 @@ export default function Filters({
 
     onFilterChange(filters);
     updateUrl(filters);
-  }, [searchQuery, selectedLocation, selectedDiscipline, selectedOrganisateur, startDate, endDate, showAvailableOnly, showPast]);
+  }, [searchQuery, selectedLocation, selectedDiscipline, selectedOrganisateur, selectedComites, startDate, endDate, showAvailableOnly, showPast]);
 
   // Initialiser les filtres depuis l'URL au chargement
   useEffect(() => {
@@ -58,17 +60,36 @@ export default function Filters({
     setSelectedLocation(urlFilters.location);
     setSelectedDiscipline(urlFilters.discipline);
     setSelectedOrganisateur(urlFilters.organisateur);
+    setSelectedComites(urlFilters.comites);
     setStartDate(urlFilters.startDate);
     setEndDate(urlFilters.endDate);
     setShowAvailableOnly(urlFilters.availableOnly);
     setShowPast(urlFilters.showPastFormations);
   }, []);
 
+  // Organisateurs proposés : seulement ceux des comités régionaux sélectionnés
+  const availableOrganisateurs = useMemo(
+    () => filterOrganisateursByRegions(organisateurs, organisateurRegions, selectedComites),
+    [organisateurs, organisateurRegions, selectedComites]
+  );
+
+  const handleComitesChange = (next: string[]) => {
+    setSelectedComites(next);
+    // L'organisateur choisi n'appartient plus aux comités sélectionnés : on le retire
+    if (
+      selectedOrganisateur &&
+      !filterOrganisateursByRegions([selectedOrganisateur], organisateurRegions, next).length
+    ) {
+      setSelectedOrganisateur("");
+    }
+  };
+
   const handleReset = () => {
     setSearchQuery("");
     setSelectedLocation("");
     setSelectedDiscipline("");
     setSelectedOrganisateur("");
+    setSelectedComites([]);
     setStartDate("");
     setEndDate("");
     setShowAvailableOnly(false);
@@ -77,9 +98,9 @@ export default function Filters({
 
   return (
     <div className="border p-4 sm:p-6 rounded-lg shadow-lg bg-white mb-4 sm:mb-6">
-      {/* Barre de recherche principale et organisateur */}
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
-        <div className="flex-1">
+      {/* Barre de recherche, comité régional puis organisateur (dépendant du comité) */}
+      <div className="flex flex-col sm:flex-row sm:flex-wrap lg:flex-nowrap gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="w-full lg:w-auto lg:flex-1">
           <label htmlFor="search-input" className="sr-only">Rechercher une formation</label>
           <input
             id="search-input"
@@ -90,7 +111,24 @@ export default function Filters({
             className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 placeholder-gray-400"
           />
         </div>
-        <div className="w-full sm:w-64">
+        <div className="w-full sm:flex-1 lg:flex-none lg:w-72">
+          <MultiSelect
+            id="comite-select"
+            label="Comité régional organisateur"
+            placeholder="Comité régional organisateur"
+            options={comites}
+            value={selectedComites}
+            onChange={handleComitesChange}
+            buttonClassName="px-3 sm:px-4 py-2.5 sm:py-3 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            adornment={
+              <InfoTooltip
+                label="À propos du filtre par comité régional organisateur"
+                text={COMITE_TOOLTIP}
+              />
+            }
+          />
+        </div>
+        <div className="w-full sm:flex-1 lg:flex-none lg:w-64">
           <label htmlFor="organisateur-select" className="sr-only">Filtrer par organisateur</label>
           <select
             id="organisateur-select"
@@ -98,8 +136,10 @@ export default function Filters({
             onChange={(e) => setSelectedOrganisateur(e.target.value)}
             className="w-full px-3 sm:px-4 py-2.5 sm:py-3 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
           >
-            <option value="">Tous les organisateurs</option>
-            {organisateurs.map((organisateur) => (
+            <option value="">
+              {selectedComites.length ? "Tous les organisateurs de ces comités" : "Tous les organisateurs"}
+            </option>
+            {availableOrganisateurs.map((organisateur) => (
               <option key={organisateur} value={organisateur}>
                 {organisateur}
               </option>

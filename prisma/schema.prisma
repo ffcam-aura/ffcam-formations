@@ -108,6 +108,8 @@ model user_preferences {
   id                            Int                             @id @default(autoincrement())
   user_id                       String                          @unique
   email                         String
+  /// Codes région (INSEE) des comités organisateurs à suivre ; vide = tous les comités
+  regions                       String[]                        @default([])
   created_at                    DateTime?                       @default(now()) @db.Timestamptz(6)
   updated_at                    DateTime?                       @default(now()) @db.Timestamptz(6)
   user_notification_preferences user_notification_preferences[]

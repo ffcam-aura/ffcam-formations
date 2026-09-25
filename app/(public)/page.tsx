@@ -9,6 +9,7 @@ import { useFormationFilters, defaultFilters } from "@/hooks/userFormationsFilte
 import { FormationsHeader } from "@/components/features/formations/FormationsHeader";
 import { FormationsToolbar } from "@/components/features/formations/FormationsToolbar";
 import { ErrorDisplay } from "@/components/ui/error-display";
+import { getRegionOptionsFromFormations, getOrganisateurRegions } from "@/lib/regions";
 
 export default function Home() {
   const { formations, lastSyncDate, loading, error, retry, retryCount } = useFormations();
@@ -45,6 +46,15 @@ export default function Home() {
   const uniqueOrganisateurs = useMemo(
     () => Array.from(new Set(formations.map((f) => f.organisateur)))
       .sort((a, b) => a.localeCompare(b, 'fr')),
+    [formations]
+  );
+
+  const comiteOptions = useMemo(
+    () => getRegionOptionsFromFormations(formations),
+    [formations]
+  );
+  const organisateurRegions = useMemo(
+    () => getOrganisateurRegions(formations),
     [formations]
   );
 
@@ -89,6 +99,8 @@ export default function Home() {
         locations={uniqueLocations}
         disciplines={uniqueDisciplines}
         organisateurs={uniqueOrganisateurs}
+        comites={comiteOptions}
+        organisateurRegions={organisateurRegions}
         showPastFormations={filters.showPastFormations}
       />
 

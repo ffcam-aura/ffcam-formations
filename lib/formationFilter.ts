@@ -3,11 +3,13 @@ import { Filters } from "@/hooks/userFormationsFilter";
 import { Formation } from "@/types/formation";
 import { parseISO, isAfter } from "date-fns";
 import { logger } from "@/lib/logger";
+import { filterFormationsByRegions } from "@/lib/regions";
 
 export function formatFilters(formations: Formation[], filters: Filters): Formation[] {
   const today = new Date();
 
-  return formations.filter((formation) => {
+  // Même fonction que pour les alertes : page et notifications filtrent pareil
+  return filterFormationsByRegions(formations, filters.comites).filter((formation) => {
     // Recherche par titre ou description
     const matchesSearchQuery = filters.searchQuery
       ? formation.titre.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||

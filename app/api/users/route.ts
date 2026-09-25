@@ -4,9 +4,12 @@ import { NextResponse } from 'next/server';
 import { UserRepository } from '@/repositories/UserRepository';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
+import { isKnownRegionCode } from '@/lib/regions';
 
 const updatePreferencesSchema = z.object({
-  disciplines: z.array(z.string().min(1, 'Discipline cannot be empty'))
+  disciplines: z.array(z.string().min(1, 'Discipline cannot be empty')),
+  // Codes région des comités organisateurs ; optionnel pour rester compatible
+  regions: z.array(z.string().refine(isKnownRegionCode, 'Unknown region code')).optional()
 });
 
 const userRepository = new UserRepository();
@@ -22,8 +25,8 @@ export async function GET() {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const preferences = await userService.getNotificationPreferences(userId);
-        return NextResponse.json(preferences);
+        const settings = await userService.getNotificationSettings(userId);
+        return NextResponse.json(settings);
     } catch (error) {
         logger.error('Erreur API /api/users GET', error as Error, { userId: userId || 'unknown' });
         return NextResponse.json(
@@ -65,8 +68,13 @@ export async function POST(request: Request) {
             );
         }
 
-        const { disciplines } = parseResult.data;
-        await userService.updateNotificationPreferences(userId, email, disciplines);
+        const { disciplines, regions } = parseResult.data;
+        await userService.updateNotificationPreferences(
+            userId,
+            email,
+            disciplines,
+            regions ? [...new Set(regions)] : undefined
+        );
 
         return NextResponse.json({ success: true });
     } catch (error) {

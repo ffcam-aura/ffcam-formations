@@ -2,8 +2,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Hoist mock functions so they can be used in vi.mock
-const { mockGetNotificationPreferences, mockUpdateNotificationPreferences } = vi.hoisted(() => ({
-  mockGetNotificationPreferences: vi.fn(),
+const { mockGetNotificationSettings, mockUpdateNotificationPreferences } = vi.hoisted(() => ({
+  mockGetNotificationSettings: vi.fn(),
   mockUpdateNotificationPreferences: vi.fn()
 }));
 
@@ -16,7 +16,7 @@ vi.mock('@clerk/nextjs/server', () => ({
 // Mock UserService
 vi.mock('@/services/user/users.service', () => ({
   UserService: vi.fn().mockImplementation(() => ({
-    getNotificationPreferences: mockGetNotificationPreferences,
+    getNotificationSettings: mockGetNotificationSettings,
     updateNotificationPreferences: mockUpdateNotificationPreferences
   }))
 }));
@@ -56,13 +56,16 @@ describe('/api/users', () => {
 
     it('should return user preferences when authenticated', async () => {
       vi.mocked(auth).mockResolvedValue({ userId: 'user123' } as any);
-      mockGetNotificationPreferences.mockResolvedValue(['Escalade', 'Alpinisme']);
+      mockGetNotificationSettings.mockResolvedValue({
+        disciplines: ['Escalade', 'Alpinisme'],
+        regions: ['84']
+      });
 
       const response = await GET();
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toEqual(['Escalade', 'Alpinisme']);
+      expect(data).toEqual({ disciplines: ['Escalade', 'Alpinisme'], regions: ['84'] });
     });
   });
 
@@ -178,8 +181,76 @@ describe('/api/users', () => {
       expect(mockUpdateNotificationPreferences).toHaveBeenCalledWith(
         'user123',
         'test@test.com',
-        ['Escalade', 'Alpinisme']
+        ['Escalade', 'Alpinisme'],
+        undefined
       );
+    });
+
+    it('should save region filters without duplicates', async () => {
+      vi.mocked(auth).mockResolvedValue({ userId: 'user123' } as any);
+      vi.mocked(currentUser).mockResolvedValue({
+        emailAddresses: [{ emailAddress: 'test@test.com' }]
+      } as any);
+      mockUpdateNotificationPreferences.mockResolvedValue(undefined);
+
+      const request = new Request('http://localhost/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ disciplines: ['Escalade'], regions: ['84', '93', '84'] })
+      });
+
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(mockUpdateNotificationPreferences).toHaveBeenCalledWith(
+        'user123',
+        'test@test.com',
+        ['Escalade'],
+        ['84', '93']
+      );
+    });
+
+    it('should accept an empty region list (all committees)', async () => {
+      vi.mocked(auth).mockResolvedValue({ userId: 'user123' } as any);
+      vi.mocked(currentUser).mockResolvedValue({
+        emailAddresses: [{ emailAddress: 'test@test.com' }]
+      } as any);
+
+      const request = new Request('http://localhost/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ disciplines: ['Escalade'], regions: [] })
+      });
+
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(mockUpdateNotificationPreferences).toHaveBeenCalledWith(
+        'user123',
+        'test@test.com',
+        ['Escalade'],
+        []
+      );
+    });
+
+    it('should return 400 for an unknown region code', async () => {
+      vi.mocked(auth).mockResolvedValue({ userId: 'user123' } as any);
+      vi.mocked(currentUser).mockResolvedValue({
+        emailAddresses: [{ emailAddress: 'test@test.com' }]
+      } as any);
+
+      const request = new Request('http://localhost/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ disciplines: ['Escalade'], regions: ['98'] })
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe('Invalid request body');
+      expect(mockUpdateNotificationPreferences).not.toHaveBeenCalled();
     });
   });
 });

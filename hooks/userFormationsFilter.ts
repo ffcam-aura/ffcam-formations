@@ -7,6 +7,8 @@ export type Filters = {
   location: string;
   discipline: string;
   organisateur: string;
+  /** Codes région (INSEE) des comités organisateurs ; vide = tous. */
+  comites: string[];
   startDate: string;
   endDate: string;
   availableOnly: boolean;
@@ -18,6 +20,7 @@ export const defaultFilters: Filters = {
   location: "",
   discipline: "",
   organisateur: "",
+  comites: [],
   startDate: "",
   endDate: "",
   availableOnly: false,
