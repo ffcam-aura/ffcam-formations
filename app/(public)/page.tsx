@@ -10,6 +10,7 @@ import { FormationsHeader } from "@/components/features/formations/FormationsHea
 import { FormationsToolbar } from "@/components/features/formations/FormationsToolbar";
 import { ErrorDisplay } from "@/components/ui/error-display";
 import { getRegionOptionsFromFormations, getOrganisateurRegions } from "@/lib/regions";
+import { getNiveauOptionsFromFormations } from "@/lib/niveaux";
 
 export default function Home() {
   const { formations, lastSyncDate, loading, error, retry, retryCount } = useFormations();
@@ -51,6 +52,10 @@ export default function Home() {
 
   const comiteOptions = useMemo(
     () => getRegionOptionsFromFormations(formations),
+    [formations]
+  );
+  const niveauOptions = useMemo(
+    () => getNiveauOptionsFromFormations(formations),
     [formations]
   );
   const organisateurRegions = useMemo(
@@ -100,6 +105,7 @@ export default function Home() {
         disciplines={uniqueDisciplines}
         organisateurs={uniqueOrganisateurs}
         comites={comiteOptions}
+        niveaux={niveauOptions}
         organisateurRegions={organisateurRegions}
         showPastFormations={filters.showPastFormations}
       />

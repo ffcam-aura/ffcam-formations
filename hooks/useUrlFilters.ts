@@ -27,6 +27,7 @@ export function useUrlFilters() {
     searchQuery: searchParams?.get('recherche') ?? '',
     location: searchParams?.get('location') ?? '',
     discipline: searchParams?.get('discipline') ?? '',
+    niveaux: (searchParams?.get('niveaux') ?? '').split(',').filter(Boolean),
     organisateur: searchParams?.get('organisateur') ?? '',
     comites: (searchParams?.get('comites') ?? '').split(',').filter(Boolean),
     startDate: searchParams?.get('startDate') ?? '',

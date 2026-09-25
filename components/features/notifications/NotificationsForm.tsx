@@ -12,9 +12,11 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { logger } from "@/lib/logger";
 import { getAllRegionOptions, COMITE_TOOLTIP } from "@/lib/regions";
+import { getAllNiveauOptions } from "@/lib/niveaux";
 import { MultiSelect } from "@/components/ui/multi-select";
 
 const REGION_OPTIONS = getAllRegionOptions();
+const NIVEAU_OPTIONS = getAllNiveauOptions();
 
 type Discipline = {
   id: string;
@@ -35,6 +37,7 @@ export default function NotificationsForm({ initialDisciplines }: NotificationsF
   const { user } = useUser();
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
+  const [selectedNiveaux, setSelectedNiveaux] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -58,6 +61,7 @@ export default function NotificationsForm({ initialDisciplines }: NotificationsF
         } else {
           setSelectedDisciplines(data.disciplines ?? []);
           setSelectedRegions(data.regions ?? []);
+          setSelectedNiveaux(data.niveaux ?? []);
         }
       } catch (error) {
         logger.error('Erreur lors du chargement des préférences', error instanceof Error ? error : undefined);
@@ -95,7 +99,7 @@ export default function NotificationsForm({ initialDisciplines }: NotificationsF
       const response = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ disciplines: selectedDisciplines, regions: selectedRegions }),
+        body: JSON.stringify({ disciplines: selectedDisciplines, regions: selectedRegions, niveaux: selectedNiveaux }),
       });
 
       if (!response.ok) {
@@ -200,6 +204,29 @@ export default function NotificationsForm({ initialDisciplines }: NotificationsF
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="mt-6 border-t pt-6">
+            <Label htmlFor="notification-niveaux" className="text-sm font-medium">
+              Niveau de stage <span className="font-normal text-gray-500">(optionnel)</span>
+            </Label>
+            <p className="mt-1 mb-3 text-sm text-gray-500">
+              Limitez les alertes à certains niveaux (par exemple la certification initiateur 1er degré),
+              pour toutes les disciplines cochées ci-dessus. Sans sélection, vous êtes alerté pour tous les niveaux.
+            </p>
+            <MultiSelect
+              id="notification-niveaux"
+              label="Niveau de stage"
+              placeholder="Tous les niveaux"
+              options={NIVEAU_OPTIONS}
+              value={selectedNiveaux}
+              onChange={(niveaux) => {
+                setSaveError(null);
+                setSelectedNiveaux(niveaux);
+              }}
+              className="max-w-md"
+              buttonClassName="px-3 py-2 min-h-[44px] rounded-md border border-input bg-white text-sm focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
           </div>
 
           <div className="mt-6 border-t pt-6">

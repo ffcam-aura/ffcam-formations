@@ -8,7 +8,7 @@ vi.mock('@/hooks/useUrlFilters', () => ({
   useUrlFilters: () => ({
     updateUrl,
     getFiltersFromUrl: () => ({
-      searchQuery: '', location: '', discipline: '', organisateur: '', comites: ['93'],
+      searchQuery: '', location: '', discipline: '', niveaux: [], organisateur: '', comites: ['93'],
       startDate: '', endDate: '', availableOnly: false, showPastFormations: false,
     }),
   }),
@@ -33,6 +33,7 @@ const renderFilters = (onFilterChange = vi.fn()) => {
       organisateurs={Object.keys(organisateurRegions)}
       organisateurRegions={organisateurRegions}
       comites={comites}
+      niveaux={[]}
       showPastFormations={false}
     />
   );

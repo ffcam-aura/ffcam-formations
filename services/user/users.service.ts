@@ -1,16 +1,16 @@
-import { IUserRepository } from "@/repositories/UserRepository";
+import { IUserRepository, NotificationFilters } from "@/repositories/UserRepository";
 import { logger } from "@/lib/logger";
 
 export class UserService {
     constructor(private readonly userRepository: IUserRepository) {}
 
-    async getNotificationSettings(userId: string): Promise<{ disciplines: string[]; regions: string[] }> {
+    async getNotificationSettings(userId: string): Promise<{ disciplines: string[]; regions: string[]; niveaux: string[] }> {
         try {
-            const [disciplines, regions] = await Promise.all([
+            const [disciplines, filters] = await Promise.all([
                 this.userRepository.findNotificationPreferences(userId),
-                this.userRepository.findNotificationRegions(userId)
+                this.userRepository.findNotificationFilters(userId)
             ]);
-            return { disciplines, regions };
+            return { disciplines, ...filters };
         } catch (error) {
             logger.error('Error getting user notification settings', error as Error, { userId });
             throw error;
@@ -18,12 +18,12 @@ export class UserService {
     }
 
     /**
-     * @param regions codes région des comités organisateurs à suivre ([] = tous) ;
-     *                non fourni = conserve les régions déjà enregistrées.
+     * @param filters régions des comités organisateurs et niveaux de stage à suivre ([] = tous) ;
+     *                un filtre non fourni conserve la valeur déjà enregistrée.
      */
-    async updateNotificationPreferences(userId: string, email: string, disciplines: string[], regions?: string[]): Promise<void> {
+    async updateNotificationPreferences(userId: string, email: string, disciplines: string[], filters: NotificationFilters = {}): Promise<void> {
         try {
-            const userPref = await this.userRepository.upsertUserPreferences(userId, email, regions);
+            const userPref = await this.userRepository.upsertUserPreferences(userId, email, filters);
             await this.userRepository.deleteNotificationPreferences(userPref.id);
 
             if (disciplines.length > 0) {
@@ -38,7 +38,7 @@ export class UserService {
                 );
             }
         } catch (error) {
-            logger.error('Error updating user preferences', error as Error, { userId, email, disciplines, regions });
+            logger.error('Error updating user preferences', error as Error, { userId, email, disciplines, ...filters });
             throw error;
         }
     }
@@ -62,13 +62,14 @@ export class UserService {
         }
     }
 
-    async getUsersToNotifyForDiscipline(discipline: string): Promise<Array<{userId: string, email: string, regions: string[]}>> {
+    async getUsersToNotifyForDiscipline(discipline: string): Promise<Array<{userId: string, email: string, regions: string[], niveaux: string[]}>> {
         try {
             const users = await this.userRepository.findUsersToNotify(discipline);
             return users.map(user => ({
                 userId: user.user_id,
                 email: user.email,
-                regions: user.regions ?? []
+                regions: user.regions ?? [],
+                niveaux: user.niveaux ?? []
             }));
         } catch (error) {
             logger.error('Error getting users to notify', error as Error, { discipline });

@@ -6,6 +6,8 @@ export type Filters = {
   searchQuery: string;
   location: string;
   discipline: string;
+  /** Niveaux de stage (voir lib/niveaux) ; vide = tous. */
+  niveaux: string[];
   organisateur: string;
   /** Codes région (INSEE) des comités organisateurs ; vide = tous. */
   comites: string[];
@@ -19,6 +21,7 @@ export const defaultFilters: Filters = {
   searchQuery: "",
   location: "",
   discipline: "",
+  niveaux: [],
   organisateur: "",
   comites: [],
   startDate: "",

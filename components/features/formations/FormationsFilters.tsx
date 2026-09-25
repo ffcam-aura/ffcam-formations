@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useUrlFilters } from '@/hooks/useUrlFilters';
 import type { Filters as FiltersState } from '@/hooks/userFormationsFilter';
 import { COMITE_TOOLTIP, filterOrganisateursByRegions, type RegionOption } from '@/lib/regions';
+import type { NiveauOption } from '@/lib/niveaux';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 
@@ -11,6 +12,7 @@ type FiltersProps = {
   disciplines: string[];
   organisateurs: string[];
   comites: RegionOption[];
+  niveaux: NiveauOption[];
   /** Régions (codes) de chaque organisateur, pour restreindre la liste aux comités choisis. */
   organisateurRegions?: Record<string, string[]>;
   showPastFormations: boolean;
@@ -22,6 +24,7 @@ export default function Filters({
   disciplines,
   organisateurs,
   comites,
+  niveaux,
   organisateurRegions = {},
   showPastFormations,
 }: FiltersProps) {
@@ -29,6 +32,7 @@ export default function Filters({
   const urlFilters = getFiltersFromUrl();
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>("");
+  const [selectedNiveaux, setSelectedNiveaux] = useState<string[]>([]);
   const [selectedOrganisateur, setSelectedOrganisateur] = useState<string>("");
   const [selectedComites, setSelectedComites] = useState<string[]>([]);
   const [startDate, setStartDate] = useState<string>("");
@@ -42,6 +46,7 @@ export default function Filters({
       searchQuery,
       location: selectedLocation,
       discipline: selectedDiscipline,
+      niveaux: selectedNiveaux,
       organisateur: selectedOrganisateur,
       comites: selectedComites,
       startDate,
@@ -52,13 +57,14 @@ export default function Filters({
 
     onFilterChange(filters);
     updateUrl(filters);
-  }, [searchQuery, selectedLocation, selectedDiscipline, selectedOrganisateur, selectedComites, startDate, endDate, showAvailableOnly, showPast]);
+  }, [searchQuery, selectedLocation, selectedDiscipline, selectedNiveaux, selectedOrganisateur, selectedComites, startDate, endDate, showAvailableOnly, showPast]);
 
   // Initialiser les filtres depuis l'URL au chargement
   useEffect(() => {
     setSearchQuery(urlFilters.searchQuery);
     setSelectedLocation(urlFilters.location);
     setSelectedDiscipline(urlFilters.discipline);
+    setSelectedNiveaux(urlFilters.niveaux);
     setSelectedOrganisateur(urlFilters.organisateur);
     setSelectedComites(urlFilters.comites);
     setStartDate(urlFilters.startDate);
@@ -88,6 +94,7 @@ export default function Filters({
     setSearchQuery("");
     setSelectedLocation("");
     setSelectedDiscipline("");
+    setSelectedNiveaux([]);
     setSelectedOrganisateur("");
     setSelectedComites([]);
     setStartDate("");
@@ -182,6 +189,18 @@ export default function Filters({
               </option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <MultiSelect
+            id="niveau-select"
+            label="Niveau de stage"
+            placeholder="Tous les niveaux"
+            options={niveaux}
+            value={selectedNiveaux}
+            onChange={setSelectedNiveaux}
+            buttonClassName="px-3 sm:px-4 py-2.5 sm:py-2.5 min-h-[44px] rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          />
         </div>
 
         <div className="flex flex-col gap-2">
