@@ -19,7 +19,8 @@ export class NotificationRepository {
     });
   }
 
-  async updateLastNotified(userId: string, discipline: string) {
+  // notifiedAt : heure de début du run d'envoi, pas l'heure après l'envoi (voir NotificationService)
+  async updateLastNotified(userId: string, discipline: string, notifiedAt: Date) {
     await this.prisma.user_notification_preferences.updateMany({
       where: {
         user_preferences: {
@@ -30,7 +31,7 @@ export class NotificationRepository {
         },
       },
       data: {
-        last_notified_at: new Date(),
+        last_notified_at: notifiedAt,
       },
     });
   }

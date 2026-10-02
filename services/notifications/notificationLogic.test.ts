@@ -1,148 +1,57 @@
 import { describe, it, expect } from 'vitest';
 import {
-  filterRecentFormations,
-  shouldNotifyBasedOnTime,
+  filterFormationsSince,
+  getNotifiableSince,
   groupFormationsByUser,
   extractUniqueDisciplines,
   UserFormationData
 } from './notificationLogic';
 import { Formation } from '@/types/formation';
+import { makeFormation } from '@/test/factories';
 
 describe('notificationLogic', () => {
-  describe('filterRecentFormations', () => {
-    it('should filter formations within 24h for a specific discipline', () => {
-      const today = new Date('2024-01-15T10:00:00');
-      const formations: Formation[] = [
-        {
-          reference: 'REF1',
-          titre: 'Formation 1',
-          discipline: 'Alpinisme',
-          firstSeenAt: '2024-01-15T08:00:00',
-          dates: [],
-          lieu: 'Chamonix',
-          informationStagiaire: '',
-          nombreParticipants: 10,
-          placesRestantes: 5,
-          hebergement: '',
-          tarif: 100,
-          organisateur: '',
-          responsable: '',
-          emailContact: '',
-          documents: [],
-          lastSeenAt: ''
-        },
-        {
-          reference: 'REF2',
-          titre: 'Formation 2',
-          discipline: 'Alpinisme',
-          firstSeenAt: '2024-01-14T08:00:00', // Hier
-          dates: [],
-          lieu: 'Annecy',
-          informationStagiaire: '',
-          nombreParticipants: 10,
-          placesRestantes: 5,
-          hebergement: '',
-          tarif: 100,
-          organisateur: '',
-          responsable: '',
-          emailContact: '',
-          documents: [],
-          lastSeenAt: ''
-        },
-        {
-          reference: 'REF3',
-          titre: 'Formation 3',
-          discipline: 'Escalade', // Autre discipline
-          firstSeenAt: '2024-01-15T08:00:00',
-          dates: [],
-          lieu: 'Lyon',
-          informationStagiaire: '',
-          nombreParticipants: 10,
-          placesRestantes: 5,
-          hebergement: '',
-          tarif: 100,
-          organisateur: '',
-          responsable: '',
-          emailContact: '',
-          documents: [],
-          lastSeenAt: ''
-        },
-      ];
+  describe('getNotifiableSince', () => {
+    const now = new Date('2026-10-01T06:00:01Z');
 
-      const result = filterRecentFormations(formations, 'Alpinisme', today);
-
-      expect(result).toHaveLength(1);
-      expect(result[0].reference).toBe('REF1');
+    it("part des dernières 24h pour un premier email", () => {
+      expect(getNotifiableSince(null, now)).toEqual(new Date('2026-09-30T06:00:01Z'));
+      expect(getNotifiableSince(undefined, now)).toEqual(new Date('2026-09-30T06:00:01Z'));
     });
 
-    it('should return empty array when no formations match', () => {
-      const today = new Date('2024-01-15T10:00:00');
-      const formations: Formation[] = [];
+    it("part du dernier email, même s'il date de moins de 24h", () => {
+      const emailDeLaVeille = new Date('2026-09-30T06:01:14Z');
 
-      const result = filterRecentFormations(formations, 'Alpinisme', today);
-
-      expect(result).toHaveLength(0);
+      expect(getNotifiableSince(emailDeLaVeille, now)).toEqual(emailDeLaVeille);
     });
 
-    it('should include a formation first seen within 24h even on the previous calendar day', () => {
-      // Régression: une formation captée par une sync hors créneau (ex: 17h58 la veille)
-      // doit rester notifiable au run de 06h00 le lendemain (< 24h), même si jour différent.
-      const now = new Date('2024-01-15T06:00:00');
-      const formations: Formation[] = [
-        {
-          reference: 'VELO1',
-          titre: 'Vélo de montagne',
-          discipline: 'Vélo-de-montagne',
-          firstSeenAt: '2024-01-14T17:58:00', // veille au soir, ~12h avant, jour calendaire précédent
-          dates: [],
-          lieu: 'Chamonix',
-          informationStagiaire: '',
-          nombreParticipants: 10,
-          placesRestantes: 5,
-          hebergement: '',
-          tarif: 100,
-          organisateur: '',
-          responsable: '',
-          emailContact: '',
-          documents: [],
-          lastSeenAt: ''
-        }
-      ];
-
-      const result = filterRecentFormations(formations, 'Vélo-de-montagne', now);
-
-      expect(result).toHaveLength(1);
-      expect(result[0].reference).toBe('VELO1');
+    it('ne remonte jamais au-delà de 72h', () => {
+      expect(getNotifiableSince(new Date('2026-08-01T06:00:00Z'), now)).toEqual(new Date('2026-09-28T06:00:01Z'));
     });
   });
 
-  describe('shouldNotifyBasedOnTime', () => {
-    it('should return true when no last notification date', () => {
-      const now = new Date('2024-01-15T10:00:00');
+  describe('filterFormationsSince', () => {
+    const since = new Date('2026-09-30T06:01:14Z');
 
-      expect(shouldNotifyBasedOnTime(null, now)).toBe(true);
-      expect(shouldNotifyBasedOnTime(undefined, now)).toBe(true);
+    it('garde les formations de la discipline apparues strictement après la date', () => {
+      const formations = [
+        makeFormation({ reference: 'AVANT', discipline: 'Alpinisme', firstSeenAt: '2026-09-30T04:00:00Z' }),
+        makeFormation({ reference: 'PILE', discipline: 'Alpinisme', firstSeenAt: '2026-09-30T06:01:14Z' }),
+        makeFormation({ reference: 'APRES', discipline: 'Alpinisme', firstSeenAt: '2026-10-01T04:00:00Z' }),
+        makeFormation({ reference: 'AUTRE_DISCIPLINE', discipline: 'Escalade', firstSeenAt: '2026-10-01T04:00:00Z' }),
+        makeFormation({ reference: 'SANS_DATE', discipline: 'Alpinisme', firstSeenAt: '' }),
+      ];
+
+      expect(filterFormationsSince(formations, 'Alpinisme', since).map(f => f.reference)).toEqual(['APRES']);
     });
 
-    it('should return true when more than 24 hours have passed', () => {
-      const lastNotified = new Date('2024-01-14T09:00:00');
-      const now = new Date('2024-01-15T10:00:00'); // 25 hours later
+    it('garde, pour un premier email, une formation captée la veille au soir', () => {
+      // Régression : sync hors créneau (17h58 la veille), run de 06h00 le lendemain
+      const now = new Date('2024-01-15T06:00:00Z');
+      const formations = [makeFormation({ reference: 'VELO1', discipline: 'Vélo-de-montagne', firstSeenAt: '2024-01-14T17:58:00Z' })];
 
-      expect(shouldNotifyBasedOnTime(lastNotified, now)).toBe(true);
-    });
+      const result = filterFormationsSince(formations, 'Vélo-de-montagne', getNotifiableSince(null, now));
 
-    it('should return false when less than 24 hours have passed', () => {
-      const lastNotified = new Date('2024-01-15T09:00:00');
-      const now = new Date('2024-01-15T10:00:00'); // 1 hour later
-
-      expect(shouldNotifyBasedOnTime(lastNotified, now)).toBe(false);
-    });
-
-    it('should return false when exactly 24 hours have passed', () => {
-      const lastNotified = new Date('2024-01-14T10:00:00');
-      const now = new Date('2024-01-15T10:00:00'); // Exactly 24 hours later
-
-      expect(shouldNotifyBasedOnTime(lastNotified, now)).toBe(false);
+      expect(result.map(f => f.reference)).toEqual(['VELO1']);
     });
   });
 

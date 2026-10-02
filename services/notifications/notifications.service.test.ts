@@ -97,7 +97,28 @@ describe('NotificationService', () => {
 
       // Vérifier que les timestamps ont été mis à jour
       expect(mockNotificationRepo.updateLastNotified)
-        .toHaveBeenCalledWith('user1', 'Escalade');
+        .toHaveBeenCalledWith('user1', 'Escalade', expect.any(Date));
+    });
+
+    it("enregistre comme date du dernier email l'heure de début du run, pas l'heure après l'envoi", async () => {
+      // Sinon une formation apparue pendant l'envoi serait considérée comme déjà envoyée
+      vi.useFakeTimers();
+      try {
+        vi.setSystemTime(new Date('2026-10-01T06:00:01Z'));
+        mockEmailService.sendEmail.mockImplementation(async () => {
+          vi.setSystemTime(new Date('2026-10-01T06:01:14Z'));
+        });
+
+        await notificationService.notifyBatchNewFormations(mockFormations);
+
+        expect(mockNotificationRepo.updateLastNotified)
+          .toHaveBeenCalledWith('user1', 'Escalade', new Date('2026-10-01T06:00:01Z'));
+        // Le processeur choisit les nouveautés à partir de ce même instant
+        const dateProvider = vi.mocked(NotificationProcessor).mock.calls[0][2];
+        expect(dateProvider?.()).toEqual(new Date('2026-10-01T06:00:01Z'));
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('devrait gérer les erreurs d\'envoi d\'email', async () => {
@@ -163,11 +184,12 @@ describe('NotificationService', () => {
     });
 
     it('updateNotificationTimestamps devrait mettre à jour pour chaque discipline', async () => {
+      const notifiedAt = new Date('2026-10-01T06:00:01Z');
       await (notificationService as any)
-        .updateNotificationTimestamps('user1', mockFormations);
+        .updateNotificationTimestamps('user1', mockFormations, notifiedAt);
       
       expect(mockNotificationRepo.updateLastNotified)
-        .toHaveBeenCalledWith('user1', 'Escalade');
+        .toHaveBeenCalledWith('user1', 'Escalade', notifiedAt);
     });
   });
 });
