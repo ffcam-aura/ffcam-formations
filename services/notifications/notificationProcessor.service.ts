@@ -3,6 +3,7 @@ import { Formation } from "@/types/formation";
 import { UserService } from "@/services/user/users.service";
 import { UserRepository } from "@/repositories/UserRepository";
 import { filterFormationsByRegions } from "@/lib/regions";
+import { filterFormationsByNiveaux } from "@/lib/niveaux";
 import {
   filterFormationsSince,
   getLookbackStart,
@@ -70,15 +71,18 @@ export interface UserNotificationData {
 
       const usersToNotify = await this.actualUserService.getUsersToNotifyForDiscipline(discipline);
 
-      for (const {userId, email, regions} of usersToNotify) {
-        // Filtre optionnel par comité régional organisateur (aucune région = toutes)
-        const formationsForRegions = filterFormationsByRegions(candidates, regions);
-        if (formationsForRegions.length === 0) continue;
+      for (const {userId, email, regions, niveaux} of usersToNotify) {
+        // Filtres optionnels par comité régional organisateur et niveau de stage (vide = tous)
+        const formationsForFilters = filterFormationsByNiveaux(
+          filterFormationsByRegions(candidates, regions),
+          niveaux
+        );
+        if (formationsForFilters.length === 0) continue;
 
         // Seulement les formations apparues depuis le dernier email de l'abonné
         const lastNotification = await this.notificationRepo.getLastNotification(userId, discipline);
         const since = getNotifiableSince(lastNotification?.last_notified_at, now);
-        const formationsForUser = filterFormationsSince(formationsForRegions, discipline, since);
+        const formationsForUser = filterFormationsSince(formationsForFilters, discipline, since);
         if (formationsForUser.length === 0) continue;
 
         this.addFormationsForUser(

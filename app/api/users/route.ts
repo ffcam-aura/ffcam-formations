@@ -5,12 +5,17 @@ import { UserRepository } from '@/repositories/UserRepository';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
 import { isKnownRegionCode } from '@/lib/regions';
+import { isKnownNiveau } from '@/lib/niveaux';
 
 const updatePreferencesSchema = z.object({
   disciplines: z.array(z.string().min(1, 'Discipline cannot be empty')),
   // Codes région des comités organisateurs ; optionnel pour rester compatible
-  regions: z.array(z.string().refine(isKnownRegionCode, 'Unknown region code')).optional()
+  regions: z.array(z.string().refine(isKnownRegionCode, 'Unknown region code')).optional(),
+  // Niveaux de stage (lib/niveaux) ; optionnel pour rester compatible
+  niveaux: z.array(z.string().refine(isKnownNiveau, 'Unknown level')).optional()
 });
+
+const dedupe = (values?: string[]) => (values ? [...new Set(values)] : undefined);
 
 const userRepository = new UserRepository();
 const userService = new UserService(userRepository);
@@ -68,13 +73,11 @@ export async function POST(request: Request) {
             );
         }
 
-        const { disciplines, regions } = parseResult.data;
-        await userService.updateNotificationPreferences(
-            userId,
-            email,
-            disciplines,
-            regions ? [...new Set(regions)] : undefined
-        );
+        const { disciplines, regions, niveaux } = parseResult.data;
+        await userService.updateNotificationPreferences(userId, email, disciplines, {
+            regions: dedupe(regions),
+            niveaux: dedupe(niveaux)
+        });
 
         return NextResponse.json({ success: true });
     } catch (error) {

@@ -73,6 +73,8 @@ CREATE TABLE IF NOT EXISTS user_preferences (
     email TEXT NOT NULL,
     -- Codes région (INSEE) des comités organisateurs à suivre ; vide = tous les comités
     regions TEXT[] DEFAULT '{}',
+    -- Niveaux de stage à suivre (valeurs de lib/niveaux.ts) ; vide = tous les niveaux
+    niveaux TEXT[] DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

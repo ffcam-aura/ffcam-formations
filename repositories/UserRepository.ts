@@ -1,15 +1,21 @@
 import { prisma } from "@/lib/prisma";
 
+/** Filtres optionnels des alertes ; tableau vide = tous. Champ absent = valeur inchangée à l'enregistrement. */
+export type NotificationFilters = {
+    regions?: string[];
+    niveaux?: string[];
+};
+
 export interface IUserRepository {
     findNotificationPreferences(userId: string): Promise<string[]>;
-    findNotificationRegions(userId: string): Promise<string[]>;
-    upsertUserPreferences(userId: string, email: string, regions?: string[]): Promise<{ id: number }>;
+    findNotificationFilters(userId: string): Promise<{ regions: string[]; niveaux: string[] }>;
+    upsertUserPreferences(userId: string, email: string, filters?: NotificationFilters): Promise<{ id: number }>;
     deleteNotificationPreferences(userPreferenceId: number): Promise<void>;
     findDisciplinesByNames(disciplines: string[]): Promise<Array<{ id: number; nom: string }>>;
     createNotificationPreferences(preferences: Array<{ user_preference_id: number; discipline_id: number; enabled: boolean }>): Promise<void>;
     countNotificationPreferences(userId: string, discipline: string): Promise<number>;
     updateLastNotified(userId: string, discipline: string): Promise<void>;
-    findUsersToNotify(discipline: string): Promise<Array<{ user_id: string; email: string; regions: string[] }>>;
+    findUsersToNotify(discipline: string): Promise<Array<{ user_id: string; email: string; regions: string[]; niveaux: string[] }>>;
 }
 
 type NotificationPreference = {
@@ -48,26 +54,32 @@ export class UserRepository implements IUserRepository {
 
     }
 
-    async findNotificationRegions(userId: string): Promise<string[]> {
+    async findNotificationFilters(userId: string): Promise<{ regions: string[]; niveaux: string[] }> {
         const preferences = await prisma.user_preferences.findUnique({
             where: { user_id: userId },
-            select: { regions: true }
+            select: { regions: true, niveaux: true }
         });
-        return preferences?.regions ?? [];
+        return {
+            regions: preferences?.regions ?? [],
+            niveaux: preferences?.niveaux ?? []
+        };
     }
 
-    // `regions` absent = on ne touche pas aux régions déjà enregistrées
-    async upsertUserPreferences(userId: string, email: string, regions?: string[]): Promise<{ id: number }> {
+    // Filtre absent = on ne touche pas à la valeur déjà enregistrée
+    async upsertUserPreferences(userId: string, email: string, filters: NotificationFilters = {}): Promise<{ id: number }> {
+        const { regions, niveaux } = filters;
         return await prisma.user_preferences.upsert({
             where: { user_id: userId },
             create: {
                 user_id: userId,
                 email,
-                regions: regions ?? []
+                regions: regions ?? [],
+                niveaux: niveaux ?? []
             },
             update: {
                 email,
                 ...(regions !== undefined && { regions }),
+                ...(niveaux !== undefined && { niveaux }),
                 updated_at: new Date()
             }
         });
@@ -127,7 +139,7 @@ export class UserRepository implements IUserRepository {
         });
     }
 
-    async findUsersToNotify(discipline: string): Promise<Array<{ user_id: string; email: string; regions: string[] }>> {
+    async findUsersToNotify(discipline: string): Promise<Array<{ user_id: string; email: string; regions: string[]; niveaux: string[] }>> {
         const users = await prisma.user_preferences.findMany({
             where: {
                 user_notification_preferences: {
@@ -144,13 +156,15 @@ export class UserRepository implements IUserRepository {
             select: {
                 user_id: true,
                 email: true,
-                regions: true
+                regions: true,
+                niveaux: true
             }
         });
-        // La colonne est nullable en base (liste Prisma) : on normalise en []
-        return users.map((user: { user_id: string; email: string; regions: string[] | null }) => ({
+        // Les colonnes sont nullables en base (listes Prisma) : on normalise en []
+        return users.map((user: { user_id: string; email: string; regions: string[] | null; niveaux: string[] | null }) => ({
             ...user,
-            regions: user.regions ?? []
+            regions: user.regions ?? [],
+            niveaux: user.niveaux ?? []
         }));
     }
 }

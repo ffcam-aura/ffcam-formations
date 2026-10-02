@@ -330,4 +330,50 @@ describe('NotificationProcessor avec injection', () => {
       expect(result.get('ancien')?.formations).toHaveLength(1);
     });
   });
+
+  describe('filtre par niveau de stage', () => {
+    const recent = (reference: string) =>
+      makeFormation({ reference, discipline: 'Ski alpinisme', firstSeenAt: fixedDate.toISOString() });
+
+    beforeEach(() => {
+      mockNotificationRepo.getLastNotification.mockResolvedValue(null);
+    });
+
+    it('ne garde que les niveaux choisis par l’utilisateur (cas de l’issue #31)', async () => {
+      mockUserService.getUsersToNotifyForDiscipline.mockResolvedValue([
+        { userId: 'certif', email: 'certif@test.com', niveaux: ['initiateur-1-certification'] },
+        { userId: 'tous', email: 'tous@test.com', niveaux: [] },
+      ]);
+
+      const result = await processor.processFormations([
+        recent('2027SNSMINT84701'), // certification initiateur 1er degré
+        recent('2027SNSMRIN84701'), // recyclage
+        recent('2027SNSMIQT84701'), // certification 2e degré
+      ]);
+
+      expect(result.get('certif')?.formations.map(f => f.reference)).toEqual(['2027SNSMINT84701']);
+      expect(result.get('tous')?.formations).toHaveLength(3);
+    });
+
+    it('ne notifie pas un utilisateur dont aucun niveau ne correspond', async () => {
+      mockUserService.getUsersToNotifyForDiscipline.mockResolvedValue([
+        { userId: 'recyclage', email: 'r@test.com', niveaux: ['recyclage'] },
+      ]);
+
+      const result = await processor.processFormations([recent('2027SNSMINT84701')]);
+
+      expect(result.size).toBe(0);
+      expect(mockNotificationRepo.getLastNotification).not.toHaveBeenCalled();
+    });
+
+    it('traite une absence de niveaux comme « tous les niveaux »', async () => {
+      mockUserService.getUsersToNotifyForDiscipline.mockResolvedValue([
+        { userId: 'ancien', email: 'ancien@test.com' },
+      ]);
+
+      const result = await processor.processFormations([recent('2027SNSMINT84701')]);
+
+      expect(result.get('ancien')?.formations).toHaveLength(1);
+    });
+  });
 });

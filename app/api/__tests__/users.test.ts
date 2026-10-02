@@ -58,14 +58,19 @@ describe('/api/users', () => {
       vi.mocked(auth).mockResolvedValue({ userId: 'user123' } as any);
       mockGetNotificationSettings.mockResolvedValue({
         disciplines: ['Escalade', 'Alpinisme'],
-        regions: ['84']
+        regions: ['84'],
+        niveaux: ['initiateur-1-certification']
       });
 
       const response = await GET();
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toEqual({ disciplines: ['Escalade', 'Alpinisme'], regions: ['84'] });
+      expect(data).toEqual({
+        disciplines: ['Escalade', 'Alpinisme'],
+        regions: ['84'],
+        niveaux: ['initiateur-1-certification']
+      });
     });
   });
 
@@ -182,7 +187,7 @@ describe('/api/users', () => {
         'user123',
         'test@test.com',
         ['Escalade', 'Alpinisme'],
-        undefined
+        { regions: undefined, niveaux: undefined }
       );
     });
 
@@ -206,7 +211,7 @@ describe('/api/users', () => {
         'user123',
         'test@test.com',
         ['Escalade'],
-        ['84', '93']
+        { regions: ['84', '93'], niveaux: undefined }
       );
     });
 
@@ -229,7 +234,7 @@ describe('/api/users', () => {
         'user123',
         'test@test.com',
         ['Escalade'],
-        []
+        { regions: [], niveaux: undefined }
       );
     });
 
@@ -246,6 +251,51 @@ describe('/api/users', () => {
       });
 
       const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe('Invalid request body');
+      expect(mockUpdateNotificationPreferences).not.toHaveBeenCalled();
+    });
+
+    const postAs = async (body: unknown) => {
+      vi.mocked(auth).mockResolvedValue({ userId: 'user123' } as any);
+      vi.mocked(currentUser).mockResolvedValue({
+        emailAddresses: [{ emailAddress: 'test@test.com' }]
+      } as any);
+      return POST(new Request('http://localhost/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      }));
+    };
+
+    it('should save level filters without duplicates', async () => {
+      const response = await postAs({
+        disciplines: ['Ski alpinisme'],
+        niveaux: ['initiateur-1-certification', 'recyclage', 'initiateur-1-certification']
+      });
+
+      expect(response.status).toBe(200);
+      expect(mockUpdateNotificationPreferences).toHaveBeenCalledWith(
+        'user123',
+        'test@test.com',
+        ['Ski alpinisme'],
+        { regions: undefined, niveaux: ['initiateur-1-certification', 'recyclage'] }
+      );
+    });
+
+    it('should save regions and levels together', async () => {
+      const response = await postAs({ disciplines: ['Escalade'], regions: ['84'], niveaux: [] });
+
+      expect(response.status).toBe(200);
+      expect(mockUpdateNotificationPreferences).toHaveBeenCalledWith(
+        'user123', 'test@test.com', ['Escalade'], { regions: ['84'], niveaux: [] }
+      );
+    });
+
+    it('should return 400 for an unknown level', async () => {
+      const response = await postAs({ disciplines: ['Escalade'], niveaux: ['INT'] });
       const data = await response.json();
 
       expect(response.status).toBe(400);
