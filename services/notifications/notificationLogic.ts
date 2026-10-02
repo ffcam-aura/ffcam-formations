@@ -1,3 +1,4 @@
+import { subHours } from "date-fns";
 import { Formation } from "@/types/formation";
 
 /**
@@ -5,44 +6,40 @@ import { Formation } from "@/types/formation";
  * Séparées pour faciliter les tests unitaires
  */
 
+/** Premier email d'un abonné : formations apparues dans les dernières 24h. */
 export const NOTIFICATION_WINDOW_HOURS = 24;
+/** Rattrapage maximal : on ne remonte jamais plus loin, même si le dernier email est plus ancien. */
+export const NOTIFICATION_LOOKBACK_HOURS = 72;
+
+/** Début de la fenêtre de rattrapage. */
+export const getLookbackStart = (now: Date): Date => subHours(now, NOTIFICATION_LOOKBACK_HOURS);
 
 /**
- * Filtre les formations récemment apparues pour une discipline donnée.
+ * À partir de quand envoyer les nouveautés à un abonné : depuis son dernier email
+ * (sans remonter au-delà de 72h), ou depuis 24h s'il n'en a encore jamais reçu.
  *
- * Fenêtre glissante sur `first_seen_at` (24h par défaut) plutôt que « même jour
- * calendaire » : une formation captée par une sync hors créneau (ex: en soirée)
- * reste notifiable au run suivant. Le throttle par utilisateur (last_notified_at)
- * évite les doublons.
+ * Partir du dernier email plutôt que d'une fenêtre fixe de 24h évite de perdre les
+ * formations d'un jour où l'abonné n'a rien reçu (abonné notifié la veille, envoi en
+ * échec, run sauté), sans renvoyer une formation déjà envoyée. Le rattrapage suppose
+ * un premier email : sans date de dernier email, on s'en tient aux dernières 24h.
  */
-export const filterRecentFormations = (
+export const getNotifiableSince = (lastNotifiedAt: Date | null | undefined, now: Date): Date => {
+  if (!lastNotifiedAt) return subHours(now, NOTIFICATION_WINDOW_HOURS);
+  const lookbackStart = getLookbackStart(now);
+  return lastNotifiedAt > lookbackStart ? lastNotifiedAt : lookbackStart;
+};
+
+/** Formations d'une discipline apparues strictement après `since`. */
+export const filterFormationsSince = (
   formations: Formation[],
   discipline: string,
-  now: Date,
-  windowHours: number = NOTIFICATION_WINDOW_HOURS
-): Formation[] => {
-  const cutoff = now.getTime() - windowHours * 60 * 60 * 1000;
-  return formations.filter(f =>
+  since: Date
+): Formation[] =>
+  formations.filter(f =>
     f.discipline === discipline &&
     f.firstSeenAt &&
-    new Date(f.firstSeenAt).getTime() >= cutoff
+    new Date(f.firstSeenAt).getTime() > since.getTime()
   );
-};
-
-/**
- * Détermine si un utilisateur doit être notifié en fonction du temps écoulé
- */
-export const shouldNotifyBasedOnTime = (
-  lastNotifiedAt: Date | null | undefined,
-  currentTime: Date
-): boolean => {
-  if (!lastNotifiedAt) return true;
-
-  const timeSinceLastNotification = currentTime.getTime() - lastNotifiedAt.getTime();
-  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
-
-  return timeSinceLastNotification > TWENTY_FOUR_HOURS;
-};
 
 /**
  * Groupe les formations par utilisateur

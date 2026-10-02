@@ -74,13 +74,13 @@ describe('NotificationProcessor avec injection', () => {
       expect(mockNotificationRepo.getLastNotification).toHaveBeenCalledTimes(2);
     });
 
-    it('should not notify users who were recently notified', async () => {
+    it('ne renvoie pas une formation apparue avant le dernier email', async () => {
       const formations: Formation[] = [
         {
           reference: 'REF1',
           titre: 'Formation Alpinisme',
           discipline: 'Alpinisme',
-          firstSeenAt: fixedDate.toISOString(),
+          firstSeenAt: new Date(fixedDate.getTime() - 3 * 60 * 60 * 1000).toISOString(), // apparue 1h avant le dernier email
           dates: [],
           lieu: 'Chamonix',
           informationStagiaire: '',
@@ -100,7 +100,7 @@ describe('NotificationProcessor avec injection', () => {
         { userId: 'user1', email: 'user1@test.com' }
       ]);
 
-      // User1 a été notifié il y a 2 heures (moins de 24h)
+      // User1 a reçu un email il y a 2 heures, après l'apparition de la formation
       const twoHoursAgo = new Date(fixedDate);
       twoHoursAgo.setHours(twoHoursAgo.getHours() - 2);
       mockNotificationRepo.getLastNotification.mockResolvedValue({
@@ -109,46 +109,36 @@ describe('NotificationProcessor avec injection', () => {
 
       const result = await processor.processFormations(formations);
 
-      // User1 ne doit pas être dans le résultat
+      // Rien de nouveau depuis son dernier email
       expect(result.size).toBe(0);
     });
 
-    it('should filter out formations older than the 24h window', async () => {
-      const threeDaysAgo = new Date(fixedDate);
-      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-
-      const formations: Formation[] = [
-        {
-          reference: 'REF1',
-          titre: 'Formation ancienne',
-          discipline: 'Alpinisme',
-          firstSeenAt: threeDaysAgo.toISOString(), // au-delà de 24h
-          dates: [],
-          lieu: 'Chamonix',
-          informationStagiaire: '',
-          nombreParticipants: 10,
-          placesRestantes: 5,
-          hebergement: '',
-          tarif: 100,
-          organisateur: '',
-          responsable: '',
-          emailContact: '',
-          documents: [],
-          lastSeenAt: ''
-        }
-      ];
-
+    it("premier email : n'envoie pas une formation apparue il y a plus de 24h", async () => {
+      const formations = [makeFormation({
+        reference: 'IL_Y_A_48H',
+        discipline: 'Alpinisme',
+        firstSeenAt: new Date(fixedDate.getTime() - 48 * 60 * 60 * 1000).toISOString(),
+      })];
       mockUserService.getUsersToNotifyForDiscipline.mockResolvedValue([
         { userId: 'user1', email: 'user1@test.com' }
       ]);
-
       mockNotificationRepo.getLastNotification.mockResolvedValue(null);
 
       const result = await processor.processFormations(formations);
 
-      // Aucun utilisateur ne doit être notifié car la formation est trop ancienne
       expect(result.size).toBe(0);
-      // La fenêtre étant vide, on n'interroge même pas les utilisateurs
+    });
+
+    it("n'interroge pas les abonnés quand aucune formation n'est apparue dans les 72h", async () => {
+      const formations = [makeFormation({
+        reference: 'IL_Y_A_4_JOURS',
+        discipline: 'Alpinisme',
+        firstSeenAt: new Date(fixedDate.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+      })];
+
+      const result = await processor.processFormations(formations);
+
+      expect(result.size).toBe(0);
       expect(mockUserService.getUsersToNotifyForDiscipline).not.toHaveBeenCalled();
     });
 
@@ -256,6 +246,45 @@ describe('NotificationProcessor avec injection', () => {
     });
   });
 
+  describe('formations parues depuis le dernier email', () => {
+    // Cas réel du 01/10/2026 : email envoyé la veille vers 06:01, sync à 04:00, cron à 06:00
+    const emailDeLaVeille = new Date('2026-09-30T06:01:14Z');
+    const dejaEnvoyee = makeFormation({ reference: 'DEJA', discipline: 'Cartographie Orientation', firstSeenAt: '2026-09-30T04:00:34Z' });
+    const nouvelle = makeFormation({ reference: 'NOUVELLE', discipline: 'Cartographie Orientation', firstSeenAt: '2026-10-01T04:00:34Z' });
+
+    const processorAt = (now: string) =>
+      new NotificationProcessor(mockNotificationRepo, mockUserService, () => new Date(now));
+
+    beforeEach(() => {
+      mockUserService.getUsersToNotifyForDiscipline.mockResolvedValue([
+        { userId: 'abonne', email: 'abonne@test.com', regions: [] },
+      ]);
+      mockNotificationRepo.getLastNotification.mockResolvedValue({ last_notified_at: emailDeLaVeille });
+    });
+
+    it('notifie le lendemain un abonné qui a reçu un email la veille, sans renvoyer les formations déjà envoyées', async () => {
+      const result = await processorAt('2026-10-01T06:00:01Z').processFormations([dejaEnvoyee, nouvelle]);
+
+      expect(result.get('abonne')?.formations.map(f => f.reference)).toEqual(['NOUVELLE']);
+    });
+
+    it("rattrape le surlendemain une formation qui n'a pas pu être envoyée (run sauté, envoi en échec)", async () => {
+      const result = await processorAt('2026-10-02T06:00:01Z').processFormations([nouvelle]);
+
+      expect(result.get('abonne')?.formations.map(f => f.reference)).toEqual(['NOUVELLE']);
+    });
+
+    it("ne remonte pas au-delà de 72h, même si le dernier email est plus ancien", async () => {
+      mockNotificationRepo.getLastNotification.mockResolvedValue({ last_notified_at: new Date('2026-08-01T06:00:00Z') });
+      const ilYa2Jours = makeFormation({ reference: 'IL_Y_A_2_JOURS', discipline: 'Cartographie Orientation', firstSeenAt: '2026-09-29T04:00:00Z' });
+      const ilYa5Jours = makeFormation({ reference: 'IL_Y_A_5_JOURS', discipline: 'Cartographie Orientation', firstSeenAt: '2026-09-26T04:00:00Z' });
+
+      const result = await processorAt('2026-10-01T06:00:00Z').processFormations([ilYa5Jours, ilYa2Jours]);
+
+      expect(result.get('abonne')?.formations.map(f => f.reference)).toEqual(['IL_Y_A_2_JOURS']);
+    });
+  });
+
   describe('filtre par comité régional organisateur', () => {
     const recent = (reference: string) =>
       makeFormation({ reference, discipline: 'Alpinisme', firstSeenAt: fixedDate.toISOString() });
@@ -287,7 +316,7 @@ describe('NotificationProcessor avec injection', () => {
       const result = await processor.processFormations([recent('2027FCCOPPE84712')]);
 
       expect(result.size).toBe(0);
-      // Pas de lecture du throttle inutile quand rien ne correspond
+      // Pas de lecture du dernier email quand aucun comité ne correspond
       expect(mockNotificationRepo.getLastNotification).not.toHaveBeenCalled();
     });
 

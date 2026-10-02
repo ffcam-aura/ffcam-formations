@@ -29,7 +29,8 @@ export async function GET(request: Request) {
   );
 
   try {
-    // Récupère les formations des dernières 24h
+    // Formations encore en ligne (vues par la sync des dernières 24h). Le processeur ne garde
+    // que celles parues depuis le dernier email de chaque abonné (72h au plus).
     logger.info('Fetching recent formations...');
     const recentFormations = await formationService.getRecentFormations(24);
     logger.info(`Found ${recentFormations.length} recent formations`);
