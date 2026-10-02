@@ -156,7 +156,7 @@ export default function Filters({
       </div>
 
       {/* Autres filtres */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div>
           <label htmlFor="location-select" className="sr-only">Filtrer par lieu</label>
           <select
@@ -203,7 +203,7 @@ export default function Filters({
           />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 xl:col-span-2">
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="flex-1">
               <label htmlFor="start-date" className="sr-only">Date de début</label>

@@ -21,6 +21,7 @@ describe('getNiveauFromReference', () => {
     ['2027FCCOPIN75706', 'PIN', 'pratiquant-initie'],
     ['2027FCFCUFC93701', 'UFC', 'ufc'],
     ['2027FCFCEPI27801', 'EPI', 'qualification'],
+    ['2025ESVFFVF27701', 'FVF', 'qualification'], // QUALIFICATION Via Ferrata FFCAM
     // Codes ajoutés après la revue de la PR #34
     ['2027VMVMPIV84701', 'PIV', 'pratiquant-initie'], // initié VTT
     ['2027SNSNCT184701', 'CT1', 'initiateur-1-certification'], // ski de rando nordique

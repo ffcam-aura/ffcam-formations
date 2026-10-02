@@ -37,12 +37,13 @@ export const NIVEAUX: readonly Niveau[] = [
   { value: 'recyclage', label: 'Recyclage (initiateur, qualification)', codes: ['RIN', 'RFE'] },
   { value: 'ufc', label: 'Unité de formation commune (UFC)', codes: ['UFC'] },
   { value: 'animateur', label: 'Animateur', codes: ['ASP'] },
-  { value: 'qualification', label: 'Qualifications (ouvreur, gestionnaire EPI…)', codes: ['FES', 'EPI'] },
+  // FVF : qualification via ferrata
+  { value: 'qualification', label: 'Qualifications (ouvreur, gestionnaire EPI…)', codes: ['FES', 'EPI', 'FVF'] },
   // Codes rencontrés en base mais non classés : rangés ici sans warning
   {
     value: NIVEAU_AUTRES,
     label: 'Autres formations',
-    codes: ['PSC', 'FDI', 'SEC', 'UTA', 'USC', '801', 'UGV', 'RAN', 'FVF', 'IRQ', 'IVM', '708', 'UEV', 'UFA'],
+    codes: ['PSC', 'FDI', 'SEC', 'UTA', 'USC', '801', 'UGV', 'RAN', 'IRQ', 'IVM', '708', 'UEV', 'UFA'],
   },
 ];
 
