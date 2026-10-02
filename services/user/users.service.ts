@@ -4,18 +4,26 @@ import { logger } from "@/lib/logger";
 export class UserService {
     constructor(private readonly userRepository: IUserRepository) {}
 
-    async getNotificationPreferences(userId: string): Promise<string[]> {
+    async getNotificationSettings(userId: string): Promise<{ disciplines: string[]; regions: string[] }> {
         try {
-            return await this.userRepository.findNotificationPreferences(userId);
+            const [disciplines, regions] = await Promise.all([
+                this.userRepository.findNotificationPreferences(userId),
+                this.userRepository.findNotificationRegions(userId)
+            ]);
+            return { disciplines, regions };
         } catch (error) {
-            logger.error('Error getting user preferences', error as Error, { userId });
+            logger.error('Error getting user notification settings', error as Error, { userId });
             throw error;
         }
     }
 
-    async updateNotificationPreferences(userId: string, email: string, disciplines: string[]): Promise<void> {
+    /**
+     * @param regions codes région des comités organisateurs à suivre ([] = tous) ;
+     *                non fourni = conserve les régions déjà enregistrées.
+     */
+    async updateNotificationPreferences(userId: string, email: string, disciplines: string[], regions?: string[]): Promise<void> {
         try {
-            const userPref = await this.userRepository.upsertUserPreferences(userId, email);
+            const userPref = await this.userRepository.upsertUserPreferences(userId, email, regions);
             await this.userRepository.deleteNotificationPreferences(userPref.id);
 
             if (disciplines.length > 0) {
@@ -30,7 +38,7 @@ export class UserService {
                 );
             }
         } catch (error) {
-            logger.error('Error updating user preferences', error as Error, { userId, email, disciplines });
+            logger.error('Error updating user preferences', error as Error, { userId, email, disciplines, regions });
             throw error;
         }
     }
@@ -54,12 +62,13 @@ export class UserService {
         }
     }
 
-    async getUsersToNotifyForDiscipline(discipline: string): Promise<Array<{userId: string, email: string}>> {
+    async getUsersToNotifyForDiscipline(discipline: string): Promise<Array<{userId: string, email: string, regions: string[]}>> {
         try {
             const users = await this.userRepository.findUsersToNotify(discipline);
             return users.map(user => ({
                 userId: user.user_id,
-                email: user.email
+                email: user.email,
+                regions: user.regions ?? []
             }));
         } catch (error) {
             logger.error('Error getting users to notify', error as Error, { discipline });

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NotificationProcessor } from './notificationProcessor.service';
 import { Formation } from '@/types/formation';
+import { makeFormation } from '@/test/factories';
 
 describe('NotificationProcessor avec injection', () => {
   let mockNotificationRepo: any;
@@ -252,6 +253,52 @@ describe('NotificationProcessor avec injection', () => {
 
       expect(mockUserService.getUsersToNotifyForDiscipline).toHaveBeenCalledWith('Alpinisme');
       expect(mockUserService.getUsersToNotifyForDiscipline).toHaveBeenCalledWith('Escalade');
+    });
+  });
+
+  describe('filtre par comité régional organisateur', () => {
+    const recent = (reference: string) =>
+      makeFormation({ reference, discipline: 'Alpinisme', firstSeenAt: fixedDate.toISOString() });
+
+    beforeEach(() => {
+      mockNotificationRepo.getLastNotification.mockResolvedValue(null);
+    });
+
+    it('ne garde que les formations des comités choisis par l’utilisateur', async () => {
+      mockUserService.getUsersToNotifyForDiscipline.mockResolvedValue([
+        { userId: 'aura', email: 'aura@test.com', regions: ['84'] },
+        { userId: 'tous', email: 'tous@test.com', regions: [] },
+      ]);
+
+      const result = await processor.processFormations([
+        recent('2027FCCOPPE84712'),
+        recent('2027FCCOPIN75706'),
+      ]);
+
+      expect(result.get('aura')?.formations.map(f => f.reference)).toEqual(['2027FCCOPPE84712']);
+      expect(result.get('tous')?.formations).toHaveLength(2);
+    });
+
+    it('ne notifie pas un utilisateur dont aucun comité ne correspond', async () => {
+      mockUserService.getUsersToNotifyForDiscipline.mockResolvedValue([
+        { userId: 'bretagne', email: 'bzh@test.com', regions: ['53'] },
+      ]);
+
+      const result = await processor.processFormations([recent('2027FCCOPPE84712')]);
+
+      expect(result.size).toBe(0);
+      // Pas de lecture du throttle inutile quand rien ne correspond
+      expect(mockNotificationRepo.getLastNotification).not.toHaveBeenCalled();
+    });
+
+    it('traite une absence de régions comme « tous les comités »', async () => {
+      mockUserService.getUsersToNotifyForDiscipline.mockResolvedValue([
+        { userId: 'ancien', email: 'ancien@test.com' },
+      ]);
+
+      const result = await processor.processFormations([recent('2027FCCOPPE84712')]);
+
+      expect(result.get('ancien')?.formations).toHaveLength(1);
     });
   });
 });

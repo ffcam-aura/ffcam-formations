@@ -11,6 +11,10 @@ import { AlertCircle, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { logger } from "@/lib/logger";
+import { getAllRegionOptions, COMITE_TOOLTIP } from "@/lib/regions";
+import { MultiSelect } from "@/components/ui/multi-select";
+
+const REGION_OPTIONS = getAllRegionOptions();
 
 type Discipline = {
   id: string;
@@ -30,6 +34,7 @@ type ApiError = {
 export default function NotificationsForm({ initialDisciplines }: NotificationsFormProps) {
   const { user } = useUser();
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -47,7 +52,13 @@ export default function NotificationsForm({ initialDisciplines }: NotificationsF
           throw new Error(errorData.message || 'Erreur lors du chargement des préférences');
         }
         const data = await response.json();
-        setSelectedDisciplines(data);
+        // Ancien format : tableau de disciplines seul
+        if (Array.isArray(data)) {
+          setSelectedDisciplines(data);
+        } else {
+          setSelectedDisciplines(data.disciplines ?? []);
+          setSelectedRegions(data.regions ?? []);
+        }
       } catch (error) {
         logger.error('Erreur lors du chargement des préférences', error instanceof Error ? error : undefined);
         setLoadError({
@@ -84,7 +95,7 @@ export default function NotificationsForm({ initialDisciplines }: NotificationsF
       const response = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ disciplines: selectedDisciplines }),
+        body: JSON.stringify({ disciplines: selectedDisciplines, regions: selectedRegions }),
       });
 
       if (!response.ok) {
@@ -189,6 +200,29 @@ export default function NotificationsForm({ initialDisciplines }: NotificationsF
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="mt-6 border-t pt-6">
+            <Label htmlFor="notification-comites" className="text-sm font-medium">
+              Comité régional organisateur <span className="font-normal text-gray-500">(optionnel)</span>
+            </Label>
+            <p className="mt-1 mb-3 text-sm text-gray-500">
+              Limitez les alertes aux formations organisées par certains comités régionaux.
+              Sans sélection, vous êtes alerté pour tous les comités. {COMITE_TOOLTIP}
+            </p>
+            <MultiSelect
+              id="notification-comites"
+              label="Comité régional organisateur"
+              placeholder="Tous les comités régionaux"
+              options={REGION_OPTIONS}
+              value={selectedRegions}
+              onChange={(regions) => {
+                setSaveError(null);
+                setSelectedRegions(regions);
+              }}
+              className="max-w-md"
+              buttonClassName="px-3 py-2 min-h-[44px] rounded-md border border-input bg-white text-sm focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
           </div>
 
           {saveError && (
