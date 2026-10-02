@@ -25,16 +25,21 @@ export class NotificationService {
 
   async notifyBatchNewFormations(formations: Formation[]): Promise<NotificationResult[]> {
     try {
+      // Heure de début du run : sert à choisir les nouveautés et devient la date du dernier
+      // email. Prendre l'heure après l'envoi ferait passer pour déjà envoyée une formation
+      // apparue pendant l'envoi.
+      const runStartedAt = new Date();
       const notificationProcessor = new NotificationProcessor(
         this.notificationRepo,
-        this.userService
+        this.userService,
+        () => runStartedAt
       );
 
       // Step 1: Find users to notify (DB queries only, fast)
       const userNotifications = await notificationProcessor.processFormations(formations);
 
       // Step 2: Send emails OUTSIDE transaction (slow, network I/O)
-      return await this.sendNotifications(userNotifications);
+      return await this.sendNotifications(userNotifications, runStartedAt);
     } catch (error) {
       logger.error('Error in batch notification', error as Error, {
         formationCount: formations.length
@@ -44,7 +49,8 @@ export class NotificationService {
   }
 
   private async sendNotifications(
-    userNotifications: Map<string, UserNotificationData>
+    userNotifications: Map<string, UserNotificationData>,
+    notifiedAt: Date
   ): Promise<NotificationResult[]> {
     const results: NotificationResult[] = [];
     
@@ -57,7 +63,7 @@ export class NotificationService {
           html: htmlContent
         });
         
-        await this.updateNotificationTimestamps(userId, data.formations);
+        await this.updateNotificationTimestamps(userId, data.formations, notifiedAt);
         results.push(...this.createSuccessResults(data.formations));
       } catch (error) {
         results.push(...this.createErrorResults(userId, data.formations, error));
@@ -67,10 +73,10 @@ export class NotificationService {
     return results;
   }
 
-  private async updateNotificationTimestamps(userId: string, formations: Formation[]): Promise<void> {
+  private async updateNotificationTimestamps(userId: string, formations: Formation[], notifiedAt: Date): Promise<void> {
     const disciplines = [...new Set(formations.map(f => f.discipline))];
     for (const discipline of disciplines) {
-      await this.notificationRepo.updateLastNotified(userId, discipline);
+      await this.notificationRepo.updateLastNotified(userId, discipline, notifiedAt);
     }
   }
 

@@ -135,15 +135,9 @@ export class UserRepository implements IUserRepository {
                         disciplines: {
                             nom: discipline
                         },
-                        enabled: true,
-                        OR: [
-                            { last_notified_at: null },
-                            {
-                                last_notified_at: {
-                                    lt: new Date(Date.now() - 24 * 60 * 60 * 1000)
-                                }
-                            }
-                        ]
+                        // Pas de filtre sur last_notified_at : le processeur n'envoie que les
+                        // formations parues depuis le dernier email de chaque abonné
+                        enabled: true
                     }
                 }
             },

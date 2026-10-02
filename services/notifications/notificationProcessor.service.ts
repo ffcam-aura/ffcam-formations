@@ -4,8 +4,9 @@ import { UserService } from "@/services/user/users.service";
 import { UserRepository } from "@/repositories/UserRepository";
 import { filterFormationsByRegions } from "@/lib/regions";
 import {
-  filterRecentFormations,
-  shouldNotifyBasedOnTime,
+  filterFormationsSince,
+  getLookbackStart,
+  getNotifiableSince,
   extractUniqueDisciplines
 } from "./notificationLogic";
 
@@ -59,11 +60,11 @@ export interface UserNotificationData {
       formations: Formation[],
       userNotifications: Map<string, UserNotificationData>
     ): Promise<void> {
-      // Fenêtre glissante sur first_seen_at (robuste aux syncs hors créneau)
-      const recentFormations = filterRecentFormations(formations, discipline, this.dateProvider());
+      const now = this.dateProvider();
+      const candidates = filterFormationsSince(formations, discipline, getLookbackStart(now));
 
-      // Si aucune formation récente, on évite la requête de récupération des utilisateurs
-      if (recentFormations.length === 0) {
+      // Rien dans la fenêtre de rattrapage : on évite la requête de récupération des utilisateurs
+      if (candidates.length === 0) {
         return;
       }
 
@@ -71,30 +72,24 @@ export interface UserNotificationData {
 
       for (const {userId, email, regions} of usersToNotify) {
         // Filtre optionnel par comité régional organisateur (aucune région = toutes)
-        const formationsForUser = filterFormationsByRegions(recentFormations, regions);
+        const formationsForRegions = filterFormationsByRegions(candidates, regions);
+        if (formationsForRegions.length === 0) continue;
+
+        // Seulement les formations apparues depuis le dernier email de l'abonné
+        const lastNotification = await this.notificationRepo.getLastNotification(userId, discipline);
+        const since = getNotifiableSince(lastNotification?.last_notified_at, now);
+        const formationsForUser = filterFormationsSince(formationsForRegions, discipline, since);
         if (formationsForUser.length === 0) continue;
 
-        if (await this.shouldNotifyUser(userId, discipline)) {
-          this.addFormationsForUser(
-            userId,
-            email,
-            formationsForUser,
-            userNotifications
-          );
-        }
+        this.addFormationsForUser(
+          userId,
+          email,
+          formationsForUser,
+          userNotifications
+        );
       }
     }
-  
-    private async shouldNotifyUser(userId: string, discipline: string): Promise<boolean> {
-      const lastNotification = await this.notificationRepo.getLastNotification(userId, discipline);
 
-      // Utilise la fonction pure pour la logique de temps
-      return shouldNotifyBasedOnTime(
-        lastNotification?.last_notified_at,
-        this.dateProvider()
-      );
-  }
-  
   
     private addFormationsForUser(
       userId: string,
