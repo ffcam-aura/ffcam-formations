@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Mock } from 'vitest';
-import { NotificationService } from './notifications.service';
+import { NotificationService, summarizeNotificationResults } from './notifications.service';
 import { NotificationProcessor } from './notificationProcessor.service';
 import { makeFormation } from '@/test/factories';
 
@@ -121,6 +121,17 @@ describe('NotificationService', () => {
       }
     });
 
+    it("compte l'email comme envoyé même si l'enregistrement de la date échoue ensuite", async () => {
+      // L'abonné a bien reçu l'email : le compter en erreur fausse le contrôle (et la date sera rattrapée au run suivant)
+      mockNotificationRepo.updateLastNotified.mockRejectedValue(new Error('base indisponible'));
+
+      const results = await notificationService.notifyBatchNewFormations(mockFormations);
+
+      expect(mockEmailService.sendEmail).toHaveBeenCalledTimes(1);
+      expect(results[0].usersNotified).toBe(1);
+      expect(results[0].errors).toHaveLength(0);
+    });
+
     it('devrait gérer les erreurs d\'envoi d\'email', async () => {
       // Setup de l'erreur
       const testError = new Error('Test error');
@@ -157,13 +168,14 @@ describe('NotificationService', () => {
 
   describe('méthodes privées', () => {
     it('createSuccessResults devrait créer les bons résultats', () => {
-      const results = (notificationService as any).createSuccessResults(mockFormations);
+      const results = (notificationService as any).createSuccessResults('user1', mockFormations);
       
       expect(results).toHaveLength(mockFormations.length);
       expect(results[0]).toEqual({
         formation: mockFormations[0],
         usersNotified: 1,
-        errors: []
+        errors: [],
+        userId: 'user1'
       });
     });
 
@@ -191,5 +203,20 @@ describe('NotificationService', () => {
       expect(mockNotificationRepo.updateLastNotified)
         .toHaveBeenCalledWith('user1', 'Escalade', notifiedAt);
     });
+  });
+});
+describe('summarizeNotificationResults', () => {
+  const f = (reference: string) => makeFormation({ reference });
+
+  it('compte les abonnés et les formations distincts, pas les paires abonné × formation', () => {
+    const results = [
+      { formation: f('A'), usersNotified: 1, errors: [], userId: 'u1' },
+      { formation: f('B'), usersNotified: 1, errors: [], userId: 'u1' },
+      { formation: f('A'), usersNotified: 1, errors: [], userId: 'u2' },
+      { formation: f('C'), usersNotified: 0, errors: [{ userId: 'u3', error: 'SMTP' }] },
+      { formation: f('D'), usersNotified: 0, errors: [{ userId: 'u3', error: 'SMTP' }] },
+    ];
+
+    expect(summarizeNotificationResults(results)).toEqual({ usersNotified: 2, formationsSent: 2, usersInError: 1 });
   });
 });

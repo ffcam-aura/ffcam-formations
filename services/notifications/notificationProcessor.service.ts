@@ -4,6 +4,7 @@ import { UserService } from "@/services/user/users.service";
 import { UserRepository } from "@/repositories/UserRepository";
 import { filterFormationsByRegions } from "@/lib/regions";
 import { filterFormationsByNiveaux } from "@/lib/niveaux";
+import { logger } from "@/lib/logger";
 import {
   filterFormationsSince,
   getLookbackStart,
@@ -69,7 +70,14 @@ export interface UserNotificationData {
         return;
       }
 
-      const usersToNotify = await this.actualUserService.getUsersToNotifyForDiscipline(discipline);
+      // Une erreur sur une discipline ou un abonné est journalisée sans bloquer les autres envois
+      let usersToNotify: Awaited<ReturnType<UserService['getUsersToNotifyForDiscipline']>>;
+      try {
+        usersToNotify = await this.actualUserService.getUsersToNotifyForDiscipline(discipline);
+      } catch (error) {
+        logger.error('Notifications : abonnés illisibles, discipline ignorée', error as Error, { discipline });
+        return;
+      }
 
       for (const {userId, email, regions, niveaux} of usersToNotify) {
         // Filtres optionnels par comité régional organisateur et niveau de stage (vide = tous)
@@ -80,8 +88,14 @@ export interface UserNotificationData {
         if (formationsForFilters.length === 0) continue;
 
         // Seulement les formations apparues depuis le dernier email de l'abonné
-        const lastNotification = await this.notificationRepo.getLastNotification(userId, discipline);
-        const since = getNotifiableSince(lastNotification?.last_notified_at, now);
+        let lastNotification: Awaited<ReturnType<NotificationRepository['getLastNotification']>>;
+        try {
+          lastNotification = await this.notificationRepo.getLastNotification(userId, discipline);
+        } catch (error) {
+          logger.error('Notifications : dernier email illisible, abonné ignoré pour cette discipline', error as Error, { userId, discipline });
+          continue;
+        }
+        const since = getNotifiableSince(lastNotification?.last_notified_at, now, lastNotification?.created_at);
         const formationsForUser = filterFormationsSince(formationsForFilters, discipline, since);
         if (formationsForUser.length === 0) continue;
 

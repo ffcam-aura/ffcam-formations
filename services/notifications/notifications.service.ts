@@ -6,13 +6,25 @@ import { Formation } from "@/types/formation";
 import { NotificationProcessor, UserNotificationData } from "./notificationProcessor.service";
 import { logger } from "@/lib/logger";
 
-interface NotificationResult {
+export interface NotificationResult {
   formation: Formation;
   usersNotified: number;
   errors: Array<{
     userId: string;
     error: string;
   }>;
+  /** Abonné destinataire, pour un envoi réussi */
+  userId?: string;
+}
+
+/** Bilan d'un envoi : abonnés et formations distincts (les résultats sont par paire abonné × formation). */
+export function summarizeNotificationResults(results: NotificationResult[]) {
+  const sent = results.filter(r => r.usersNotified > 0);
+  return {
+    usersNotified: new Set(sent.map(r => r.userId)).size,
+    formationsSent: new Set(sent.map(r => r.formation.reference)).size,
+    usersInError: new Set(results.flatMap(r => r.errors.map(e => e.userId))).size,
+  };
 }
 
 export class NotificationService {
@@ -62,12 +74,19 @@ export class NotificationService {
           subject: this.emailRenderer.getSubject(data.formations),
           html: htmlContent
         });
-        
-        await this.updateNotificationTimestamps(userId, data.formations, notifiedAt);
-        results.push(...this.createSuccessResults(data.formations));
       } catch (error) {
         results.push(...this.createErrorResults(userId, data.formations, error));
+        continue;
       }
+
+      // L'email est parti : un échec ici ne doit pas le compter en erreur. Sans date enregistrée,
+      // ces formations seront renvoyées au prochain run (doublon plutôt que perte).
+      try {
+        await this.updateNotificationTimestamps(userId, data.formations, notifiedAt);
+      } catch (error) {
+        logger.error('Notifications : email envoyé mais date du dernier email non enregistrée', error as Error, { userId });
+      }
+      results.push(...this.createSuccessResults(userId, data.formations));
     }
     
     return results;
@@ -80,11 +99,12 @@ export class NotificationService {
     }
   }
 
-  private createSuccessResults(formations: Formation[]): NotificationResult[] {
+  private createSuccessResults(userId: string, formations: Formation[]): NotificationResult[] {
     return formations.map(formation => ({
       formation,
       usersNotified: 1,
-      errors: []
+      errors: [],
+      userId
     }));
   }
 

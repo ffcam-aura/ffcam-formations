@@ -3,6 +3,8 @@ import { NotificationProcessor } from './notificationProcessor.service';
 import { Formation } from '@/types/formation';
 import { makeFormation } from '@/test/factories';
 
+vi.mock('@/lib/logger', () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() } }));
+
 describe('NotificationProcessor avec injection', () => {
   let mockNotificationRepo: any;
   let mockUserService: any;
@@ -282,6 +284,55 @@ describe('NotificationProcessor avec injection', () => {
       const result = await processorAt('2026-10-01T06:00:00Z').processFormations([ilYa5Jours, ilYa2Jours]);
 
       expect(result.get('abonne')?.formations.map(f => f.reference)).toEqual(['IL_Y_A_2_JOURS']);
+    });
+  });
+
+  describe('robustesse : une erreur isolée ne bloque pas les autres envois', () => {
+    const now = '2026-10-03T06:00:00Z';
+    const processor = () => new NotificationProcessor(mockNotificationRepo, mockUserService, () => new Date(now));
+    const alpi = makeFormation({ reference: 'ALPI', discipline: 'Alpinisme', firstSeenAt: '2026-10-03T04:00:00Z' });
+    const esca = makeFormation({ reference: 'ESCA', discipline: 'Escalade', firstSeenAt: '2026-10-03T04:00:00Z' });
+
+    it("continue avec les autres disciplines si la lecture des abonnés d'une discipline échoue", async () => {
+      mockUserService.getUsersToNotifyForDiscipline.mockImplementation(async (d: string) => {
+        if (d === 'Alpinisme') throw new Error('connexion perdue');
+        return [{ userId: 'grimpeur', email: 'g@test.com', regions: [] }];
+      });
+      mockNotificationRepo.getLastNotification.mockResolvedValue(null);
+
+      const result = await processor().processFormations([alpi, esca]);
+
+      expect(result.get('grimpeur')?.formations.map(f => f.reference)).toEqual(['ESCA']);
+    });
+
+    it("continue avec les autres abonnés si la lecture du dernier email d'un abonné échoue", async () => {
+      mockUserService.getUsersToNotifyForDiscipline.mockResolvedValue([
+        { userId: 'casse', email: 'c@test.com', regions: [] },
+        { userId: 'ok', email: 'o@test.com', regions: [] },
+      ]);
+      mockNotificationRepo.getLastNotification.mockImplementation(async (userId: string) => {
+        if (userId === 'casse') throw new Error('timeout');
+        return null;
+      });
+
+      const result = await processor().processFormations([alpi]);
+
+      expect([...result.keys()]).toEqual(['ok']);
+    });
+  });
+
+  describe("abonné jamais notifié : rattrapage depuis son abonnement", () => {
+    it('envoie une formation parue après son abonnement, même au-delà de 24h', async () => {
+      // Abonné depuis 2 jours, jamais notifié (envoi en échec ou préférences réenregistrées)
+      mockUserService.getUsersToNotifyForDiscipline.mockResolvedValue([{ userId: 'nouveau', email: 'n@test.com', regions: [] }]);
+      mockNotificationRepo.getLastNotification.mockResolvedValue({ last_notified_at: null, created_at: new Date('2026-10-01T10:00:00Z') });
+      const ilYa30h = makeFormation({ reference: 'IL_Y_A_30H', discipline: 'Alpinisme', firstSeenAt: '2026-10-02T00:00:00Z' });
+      const avantAbonnement = makeFormation({ reference: 'AVANT', discipline: 'Alpinisme', firstSeenAt: '2026-10-01T04:00:00Z' });
+
+      const result = await new NotificationProcessor(mockNotificationRepo, mockUserService, () => new Date('2026-10-03T06:00:00Z'))
+        .processFormations([avantAbonnement, ilYa30h]);
+
+      expect(result.get('nouveau')?.formations.map(f => f.reference)).toEqual(['IL_Y_A_30H']);
     });
   });
 

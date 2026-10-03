@@ -23,20 +23,7 @@ export class UserService {
      */
     async updateNotificationPreferences(userId: string, email: string, disciplines: string[], filters: NotificationFilters = {}): Promise<void> {
         try {
-            const userPref = await this.userRepository.upsertUserPreferences(userId, email, filters);
-            await this.userRepository.deleteNotificationPreferences(userPref.id);
-
-            if (disciplines.length > 0) {
-                const disciplineRecords = await this.userRepository.findDisciplinesByNames(disciplines);
-                
-                await this.userRepository.createNotificationPreferences(
-                    disciplineRecords.map(discipline => ({
-                        user_preference_id: userPref.id,
-                        discipline_id: discipline.id,
-                        enabled: true
-                    }))
-                );
-            }
+            await this.userRepository.savePreferences(userId, email, disciplines, filters);
         } catch (error) {
             logger.error('Error updating user preferences', error as Error, { userId, email, disciplines, ...filters });
             throw error;

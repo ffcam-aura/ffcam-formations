@@ -3,7 +3,7 @@ import { NotificationRepository } from "@/repositories/NotificationRepository";
 import { EmailService } from "@/services/email/email.service";
 import { EmailTemplateRenderer } from "@/services/notifications/emailTemplate.service";
 import { FormationService } from "@/services/formation/formations.service";
-import { NotificationService } from "@/services/notifications/notifications.service";
+import { NotificationService, summarizeNotificationResults } from "@/services/notifications/notifications.service";
 import { UserService } from "@/services/user/users.service";
 import { FormationRepository } from "@/repositories/FormationRepository";
 import { logger } from "@/lib/logger";
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     if (recentFormations.length === 0) {
       // Still send healthcheck to confirm email system works
       logger.info('No formations, sending healthcheck email...');
-      await sendHealthcheckEmail({ totalFormations: 0, notifiedUsers: 0, errors: 0, formationsWithNotifications: 0 });
+      await sendHealthcheckEmail({ onlineFormations: 0, usersNotified: 0, formationsSent: 0, usersInError: 0 });
 
       return Response.json({
         success: true,
@@ -51,12 +51,10 @@ export async function GET(request: Request) {
     logger.info('Sending notifications...');
     const notificationResults = await notificationService.notifyBatchNewFormations(recentFormations);
 
-    // Calcule les statistiques de notification
+    // Bilan en abonnés et formations distincts (les résultats sont par paire abonné × formation)
     const stats = {
-      totalFormations: recentFormations.length,
-      notifiedUsers: notificationResults.reduce((acc, result) => acc + result.usersNotified, 0),
-      errors: notificationResults.reduce((acc, result) => acc + result.errors.length, 0),
-      formationsWithNotifications: notificationResults.filter(r => r.usersNotified > 0).length
+      onlineFormations: recentFormations.length,
+      ...summarizeNotificationResults(notificationResults)
     };
 
     // Send healthcheck email (tests full email delivery chain)
@@ -65,7 +63,7 @@ export async function GET(request: Request) {
 
     return Response.json({
       success: true,
-      message: `Notifications sent for ${stats.totalFormations} formations`,
+      message: `Notifications sent to ${stats.usersNotified} users (${stats.formationsSent} formations)`,
       stats
     });
 
@@ -73,6 +71,8 @@ export async function GET(request: Request) {
     logger.error('Erreur API /api/notifications/send', error, {
       stack: error instanceof Error ? error.stack : undefined
     });
+    // Sans cet email, une panne ne se voit qu'en remarquant l'absence du message habituel
+    await sendHealthcheckFailure(error);
     return Response.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -82,11 +82,14 @@ export async function GET(request: Request) {
 }
 
 interface NotificationStats {
-  totalFormations: number;
-  notifiedUsers: number;
-  errors: number;
-  formationsWithNotifications: number;
+  onlineFormations: number;
+  usersNotified: number;
+  formationsSent: number;
+  usersInError: number;
 }
+
+const escapeHtml = (value: string) =>
+  value.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 
 async function sendHealthcheckEmail(stats: NotificationStats): Promise<void> {
   const healthcheckEmail = env.HEALTHCHECK_NOTIFICATIONS_EMAIL;
@@ -95,8 +98,8 @@ async function sendHealthcheckEmail(stats: NotificationStats): Promise<void> {
     return;
   }
 
-  const status = stats.errors === 0 ? '✅' : '⚠️';
-  const subject = `${status} FFCAM Notifications - ${stats.notifiedUsers} users, ${stats.totalFormations} formations`;
+  const status = stats.usersInError === 0 ? '✅' : '⚠️';
+  const subject = `${status} FFCAM Notifications - ${stats.usersNotified} abonnés notifiés, ${stats.formationsSent} formations envoyées`;
 
   try {
     await EmailService.sendEmail({
@@ -105,14 +108,15 @@ async function sendHealthcheckEmail(stats: NotificationStats): Promise<void> {
       html: `
         <p><strong>Notifications FFCAM</strong></p>
         <ul>
-          <li>Formations récentes: ${stats.totalFormations}</li>
-          <li>Utilisateurs notifiés: ${stats.notifiedUsers}</li>
-          <li>Erreurs: ${stats.errors}</li>
+          <li>Formations en ligne : ${stats.onlineFormations}</li>
+          <li>Abonnés notifiés : ${stats.usersNotified}</li>
+          <li>Formations envoyées : ${stats.formationsSent}</li>
+          <li>Abonnés en erreur : ${stats.usersInError}</li>
         </ul>
         <p><em>Cet email confirme que le système d'envoi fonctionne.</em></p>
       `
     });
-    logger.info('Healthcheck email sent', { to: healthcheckEmail });
+    logger.info('Healthcheck email sent', { email: healthcheckEmail });
   } catch (error) {
     // Log but don't throw - healthcheck failure shouldn't break the response
     logger.warn('Failed to send healthcheck email', {
@@ -121,4 +125,28 @@ async function sendHealthcheckEmail(stats: NotificationStats): Promise<void> {
   }
 }
 
+async function sendHealthcheckFailure(error: unknown): Promise<void> {
+  const healthcheckEmail = env.HEALTHCHECK_NOTIFICATIONS_EMAIL;
+  if (!healthcheckEmail) return;
+
+  const message = (error instanceof Error ? error.message : String(error)).slice(0, 300);
+  try {
+    await EmailService.sendEmail({
+      to: healthcheckEmail,
+      subject: "❌ FFCAM Notifications - échec de l'envoi",
+      html: `
+        <p><strong>L'envoi des notifications a échoué.</strong></p>
+        <p>${escapeHtml(message)}</p>
+        <p><em>Les formations non envoyées seront rattrapées au prochain run (jusqu'à 72h).</em></p>
+      `
+    });
+  } catch (sendError) {
+    logger.warn('Failed to send healthcheck failure email', {
+      error: sendError instanceof Error ? sendError.message : String(sendError)
+    });
+  }
+}
+
 export const dynamic = 'force-dynamic'
+// Envoi séquentiel des emails : on garde la limite maximale d'une fonction
+export const maxDuration = 300
