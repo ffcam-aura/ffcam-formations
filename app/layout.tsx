@@ -77,18 +77,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider localization={frFR}>
-      <html lang="fr">
-        <head>
-          <link rel="manifest" href="/manifest.json" />
-          <meta name="theme-color" content="#0066CC" />
-          <link rel="apple-touch-icon" href="/ffcam.png" />
-          <OrganizationStructuredData />
-          <WebSiteStructuredData />
-        </head>
-        <body
-          className={`${sourceSans3.variable} font-sans antialiased bg-background`}
-        >
+    <html lang="fr">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0066CC" />
+        <link rel="apple-touch-icon" href="/ffcam.png" />
+        <OrganizationStructuredData />
+        <WebSiteStructuredData />
+      </head>
+      <body
+        className={`${sourceSans3.variable} font-sans antialiased bg-background`}
+      >
+        {/* Clerk 7 (Core 3) : ClerkProvider doit être dans <body>, plus autour de <html> */}
+        <ClerkProvider localization={frFR} afterSignOutUrl="/">
           <NavigationProvider>
             <div className="min-h-screen flex flex-col">
               <Navbar />
@@ -99,8 +100,8 @@ export default function RootLayout({
               <Toaster />
             </div>
           </NavigationProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }
