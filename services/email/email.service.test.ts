@@ -73,9 +73,10 @@ describe('EmailService', () => {
         html: '<p>Content</p>',
       });
 
+      // L'adresse va dans le contexte, que le logger anonymise avant Sentry, jamais dans le message
       expect(logger.info).toHaveBeenCalledWith(
-        'Email sent to recipient@test.com',
-        { subject: 'Test Subject' }
+        'Email sent',
+        { subject: 'Test Subject', email: 'recipient@test.com' }
       );
     });
 
@@ -95,8 +96,8 @@ describe('EmailService', () => {
       );
 
       expect(logger.info).toHaveBeenCalledWith(
-        'Email sent to user1@test.com, user2@test.com',
-        expect.any(Object)
+        'Email sent',
+        expect.objectContaining({ email: 'user1@test.com, user2@test.com' })
       );
     });
 
@@ -113,9 +114,9 @@ describe('EmailService', () => {
       ).rejects.toThrow('SMTP connection failed');
 
       expect(logger.error).toHaveBeenCalledWith(
-        'Failed to send email to recipient@test.com',
+        'Failed to send email',
         error,
-        { subject: 'Test' }
+        { subject: 'Test', email: 'recipient@test.com' }
       );
     });
   });

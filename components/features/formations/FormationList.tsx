@@ -20,6 +20,9 @@ const container = {
   }
 };
 
+/** Délai d'apparition échelonné, plafonné pour que les longues listes s'affichent vite. */
+export const getEntryDelay = (index: number): number => Math.min(index, 15) * 0.02;
+
 export default function FormationList({ formations, viewMode }: FormationListProps) {
   return (
     <AnimatePresence mode="wait">
@@ -38,7 +41,7 @@ export default function FormationList({ formations, viewMode }: FormationListPro
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ delay: index * 0.02 }}
+              transition={{ delay: getEntryDelay(index) }}
             >
               <FormationCard formation={formation} />
             </motion.li>
@@ -59,7 +62,7 @@ export default function FormationList({ formations, viewMode }: FormationListPro
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              transition={{ delay: index * 0.02 }}
+              transition={{ delay: getEntryDelay(index) }}
             >
               <FormationRow formation={formation} />
             </motion.li>
