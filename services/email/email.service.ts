@@ -29,12 +29,15 @@ export class EmailService {
       
           try {
             await this.transporter.sendMail(mailOptions);
-            logger.info(`Email sent to ${Array.isArray(to) ? to.join(', ') : to}`, {
-                subject: mailOptions.subject
+            // Adresse dans le contexte (anonymisé par le logger avant Sentry), jamais dans le message
+            logger.info('Email sent', {
+                subject: mailOptions.subject,
+                email: Array.isArray(to) ? to.join(', ') : to
             });
           } catch (error) {
-            logger.error(`Failed to send email to ${Array.isArray(to) ? to.join(', ') : to}`, error, {
-                subject: mailOptions.subject
+            logger.error('Failed to send email', error, {
+                subject: mailOptions.subject,
+                email: Array.isArray(to) ? to.join(', ') : to
             });
             throw error;
           }

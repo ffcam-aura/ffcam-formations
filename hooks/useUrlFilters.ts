@@ -20,7 +20,9 @@ export function useUrlFilters() {
       }
     });
 
-    router.push(`${pathname}?${params.toString()}`);
+    // replace + scroll: false : changer un filtre ne remonte pas la page et n'ajoute pas
+    // d'entrée dans l'historique (Précédent quitte la recherche au lieu de rejouer chaque coche)
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }, [pathname, router, searchParams]);
 
   const getFiltersFromUrl = (): Filters => ({

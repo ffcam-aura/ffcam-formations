@@ -191,7 +191,9 @@ export default function Filters({
           </select>
         </div>
 
-        <div>
+        {/* Entre 640 et 1279px, niveau et dates prennent chacun toute la largeur :
+            deux champs date ne tiennent pas dans une demi-colonne */}
+        <div className="sm:col-span-2 xl:col-span-1">
           <MultiSelect
             id="niveau-select"
             label="Niveau de stage"
@@ -203,7 +205,7 @@ export default function Filters({
           />
         </div>
 
-        <div className="flex flex-col gap-2 xl:col-span-2">
+        <div className="flex flex-col gap-2 sm:col-span-2">
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="flex-1">
               <label htmlFor="start-date" className="sr-only">Date de début</label>

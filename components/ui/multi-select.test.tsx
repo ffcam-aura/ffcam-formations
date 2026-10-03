@@ -27,6 +27,24 @@ function Harness({ onChange = vi.fn() }: { onChange?: (v: string[]) => void }) {
 }
 
 describe('MultiSelect', () => {
+  it("garde « +N » visible à côté d'un libellé tronqué et donne la liste complète au survol", () => {
+    render(
+      <MultiSelect
+        id="comites"
+        label="Comité régional organisateur"
+        placeholder="Comité régional organisateur"
+        options={options}
+        value={['93', '84']}
+        onChange={vi.fn()}
+      />
+    );
+
+    // « +1 » dans son propre élément : la troncature du libellé ne peut plus le masquer
+    expect(screen.getByText('+1')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Comité régional organisateur/ }))
+      .toHaveAttribute('title', "Auvergne-Rhône-Alpes, Provence-Alpes-Côte d'Azur");
+  });
+
   it('affiche le placeholder puis ouvre la liste au clic', () => {
     render(<Harness />);
     const button = screen.getByRole('button', { name: 'Comité régional organisateur' });
@@ -44,7 +62,7 @@ describe('MultiSelect', () => {
     fireEvent.click(screen.getByLabelText('Bretagne'));
 
     expect(onChange).toHaveBeenLastCalledWith(['84', '53']);
-    expect(screen.getByText('Auvergne-Rhône-Alpes +1')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Comité régional organisateur/ })).toHaveTextContent('Auvergne-Rhône-Alpes+1');
   });
 
   it('désélectionne tout', () => {

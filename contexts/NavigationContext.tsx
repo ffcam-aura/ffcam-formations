@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 
 interface NavigationContextType {
   isNavigating: boolean;
-  startNavigation: () => void;
+  startNavigation: (event?: React.MouseEvent) => void;
   endNavigation: () => void;
 }
 
@@ -13,7 +13,10 @@ const NavigationContext = createContext<NavigationContextType | undefined>(undef
 export function NavigationProvider({ children }: { children: React.ReactNode }) {
   const [isNavigating, setIsNavigating] = useState(false);
 
-  const startNavigation = useCallback(() => {
+  const startNavigation = useCallback((event?: React.MouseEvent) => {
+    // Cmd/Ctrl/Maj/Alt+clic ou clic molette : ouverture dans un autre onglet, la page
+    // courante ne change pas et l'écran « Chargement » resterait affiché indéfiniment
+    if (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0)) return;
     setIsNavigating(true);
   }, []);
 

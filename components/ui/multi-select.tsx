@@ -71,12 +71,9 @@ export function MultiSelect({
   };
 
   const selectedLabels = options.filter(o => value.includes(o.value)).map(o => o.label);
-  const summary =
-    selectedLabels.length === 0
-      ? placeholder
-      : selectedLabels.length === 1
-        ? selectedLabels[0]
-        : `${selectedLabels[0]} +${selectedLabels.length - 1}`;
+  const summary = selectedLabels.length === 0 ? placeholder : selectedLabels[0];
+  // « +N » hors du texte tronqué : sinon les points de suspension le masquent
+  const moreCount = selectedLabels.length - 1;
 
   return (
     <div
@@ -96,6 +93,7 @@ export function MultiSelect({
           id={baseId}
           type="button"
           aria-label={selectedLabels.length ? `${label} : ${selectedLabels.join(", ")}` : label}
+          title={selectedLabels.length ? selectedLabels.join(", ") : undefined}
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => setOpen(o => !o)}
@@ -104,8 +102,11 @@ export function MultiSelect({
             buttonClassName
           )}
         >
-          <span className={cn("truncate", selectedLabels.length === 0 && "text-gray-500")}>
-            {summary}
+          <span className="flex min-w-0 items-center gap-1">
+            <span className={cn("truncate", selectedLabels.length === 0 && "text-gray-500")}>
+              {summary}
+            </span>
+            {moreCount > 0 && <span className="shrink-0 font-medium text-gray-600">+{moreCount}</span>}
           </span>
           <ChevronDown
             aria-hidden="true"
