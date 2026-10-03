@@ -1,17 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Use vi.hoisted to create mock function before mock is hoisted
-const { mockSendMail } = vi.hoisted(() => {
-  return { mockSendMail: vi.fn() };
+const { mockSendMail, mockCreateTransport } = vi.hoisted(() => {
+  const mockSendMail = vi.fn();
+  return { mockSendMail, mockCreateTransport: vi.fn(() => ({ sendMail: mockSendMail })) };
 });
 
 // Mock nodemailer before importing EmailService
 vi.mock('nodemailer', () => {
   return {
     default: {
-      createTransport: () => ({
-        sendMail: mockSendMail,
-      }),
+      createTransport: mockCreateTransport,
     },
   };
 });
@@ -39,6 +38,17 @@ vi.mock('@/lib/logger', () => ({
 // Import after mocks
 import { EmailService } from './email.service';
 import { logger } from '@/lib/logger';
+
+describe('EmailService : transport SMTP', () => {
+  it('borne la durée des connexions SMTP', () => {
+    // Sans timeout, un serveur SMTP qui ne répond plus bloque l'envoi jusqu'à la limite de la fonction
+    const options = (mockCreateTransport.mock.calls as unknown as Array<[Record<string, number>]>)[0][0];
+    for (const cle of ['connectionTimeout', 'greetingTimeout', 'socketTimeout']) {
+      expect(options[cle]).toBeGreaterThan(0);
+      expect(options[cle]).toBeLessThanOrEqual(60_000);
+    }
+  });
+});
 
 describe('EmailService', () => {
   beforeEach(() => {

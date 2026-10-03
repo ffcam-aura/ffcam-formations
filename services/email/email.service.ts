@@ -15,7 +15,11 @@ export class EmailService {
         auth: {
             user: env.SMTP_USER,
             pass: env.SMTP_PASSWORD,
-        }
+        },
+        // Sans timeout, un serveur SMTP qui ne répond plus bloque l'envoi jusqu'à la limite de la fonction
+        connectionTimeout: 15_000,
+        greetingTimeout: 10_000,
+        socketTimeout: 30_000,
     });
     
     static async sendEmail({ to, subject, html }: EmailOptions): Promise<void> {

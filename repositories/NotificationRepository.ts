@@ -15,6 +15,8 @@ export class NotificationRepository {
       },
       select: {
         last_notified_at: true,
+        // Date d'abonnement : point de départ du rattrapage tant qu'aucun email n'a été envoyé
+        created_at: true,
       },
     });
   }

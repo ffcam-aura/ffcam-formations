@@ -9,10 +9,7 @@ export type NotificationFilters = {
 export interface IUserRepository {
     findNotificationPreferences(userId: string): Promise<string[]>;
     findNotificationFilters(userId: string): Promise<{ regions: string[]; niveaux: string[] }>;
-    upsertUserPreferences(userId: string, email: string, filters?: NotificationFilters): Promise<{ id: number }>;
-    deleteNotificationPreferences(userPreferenceId: number): Promise<void>;
-    findDisciplinesByNames(disciplines: string[]): Promise<Array<{ id: number; nom: string }>>;
-    createNotificationPreferences(preferences: Array<{ user_preference_id: number; discipline_id: number; enabled: boolean }>): Promise<void>;
+    savePreferences(userId: string, email: string, disciplines: string[], filters?: NotificationFilters): Promise<void>;
     countNotificationPreferences(userId: string, discipline: string): Promise<number>;
     updateLastNotified(userId: string, discipline: string): Promise<void>;
     findUsersToNotify(discipline: string): Promise<Array<{ user_id: string; email: string; regions: string[]; niveaux: string[] }>>;
@@ -66,46 +63,45 @@ export class UserRepository implements IUserRepository {
     }
 
     // Filtre absent = on ne touche pas à la valeur déjà enregistrée
-    async upsertUserPreferences(userId: string, email: string, filters: NotificationFilters = {}): Promise<{ id: number }> {
+    /**
+     * Enregistre les préférences en une transaction. Les disciplines conservées gardent leur
+     * ligne, donc la date de leur dernier email et leur date d'abonnement (point de départ du
+     * rattrapage) ; seules les disciplines retirées sont supprimées, les nouvelles ajoutées.
+     * Un filtre non fourni conserve la valeur déjà enregistrée.
+     */
+    async savePreferences(userId: string, email: string, disciplines: string[], filters: NotificationFilters = {}): Promise<void> {
         const { regions, niveaux } = filters;
-        return await prisma.user_preferences.upsert({
-            where: { user_id: userId },
-            create: {
-                user_id: userId,
-                email,
-                regions: regions ?? [],
-                niveaux: niveaux ?? []
-            },
-            update: {
-                email,
-                ...(regions !== undefined && { regions }),
-                ...(niveaux !== undefined && { niveaux }),
-                updated_at: new Date()
-            }
-        });
-    }
-
-    async deleteNotificationPreferences(userPreferenceId: number): Promise<void> {
-        await prisma.user_notification_preferences.deleteMany({
-            where: {
-                user_preference_id: userPreferenceId
-            }
-        });
-    }
-
-    async findDisciplinesByNames(disciplines: string[]): Promise<Array<{ id: number; nom: string }>> {
-        return await prisma.disciplines.findMany({
-            where: {
-                nom: {
-                    in: disciplines
+        await prisma.$transaction(async (tx) => {
+            const userPref = await tx.user_preferences.upsert({
+                where: { user_id: userId },
+                create: {
+                    user_id: userId,
+                    email,
+                    regions: regions ?? [],
+                    niveaux: niveaux ?? []
+                },
+                update: {
+                    email,
+                    ...(regions !== undefined && { regions }),
+                    ...(niveaux !== undefined && { niveaux }),
+                    updated_at: new Date()
                 }
-            }
-        });
-    }
+            });
 
-    async createNotificationPreferences(preferences: Array<{ user_preference_id: number; discipline_id: number; enabled: boolean }>): Promise<void> {
-        await prisma.user_notification_preferences.createMany({
-            data: preferences
+            const disciplineIds = disciplines.length > 0
+                ? (await tx.disciplines.findMany({ where: { nom: { in: disciplines } }, select: { id: true } })).map(d => d.id)
+                : [];
+
+            await tx.user_notification_preferences.deleteMany({
+                where: { user_preference_id: userPref.id, OR: [{ discipline_id: { notIn: disciplineIds } }, { discipline_id: null }] }
+            });
+
+            if (disciplineIds.length > 0) {
+                await tx.user_notification_preferences.createMany({
+                    data: disciplineIds.map(discipline_id => ({ user_preference_id: userPref.id, discipline_id, enabled: true })),
+                    skipDuplicates: true
+                });
+            }
         });
     }
 

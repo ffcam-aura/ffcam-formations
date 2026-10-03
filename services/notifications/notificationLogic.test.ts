@@ -24,6 +24,19 @@ describe('notificationLogic', () => {
       expect(getNotifiableSince(emailDeLaVeille, now)).toEqual(emailDeLaVeille);
     });
 
+    it("jamais notifié : part de la date d'abonnement si elle a plus de 24h", () => {
+      // Abonné il y a 2 jours sans email : formations parues depuis son abonnement
+      expect(getNotifiableSince(null, now, new Date('2026-09-29T10:00:00Z'))).toEqual(new Date('2026-09-29T10:00:00Z'));
+    });
+
+    it('jamais notifié et abonné depuis moins de 24h : dernières 24h', () => {
+      expect(getNotifiableSince(null, now, new Date('2026-10-01T05:50:00Z'))).toEqual(new Date('2026-09-30T06:00:01Z'));
+    });
+
+    it('jamais notifié et abonné depuis longtemps : pas plus de 72h', () => {
+      expect(getNotifiableSince(null, now, new Date('2025-01-01T00:00:00Z'))).toEqual(new Date('2026-09-28T06:00:01Z'));
+    });
+
     it('ne remonte jamais au-delà de 72h', () => {
       expect(getNotifiableSince(new Date('2026-08-01T06:00:00Z'), now)).toEqual(new Date('2026-09-28T06:00:01Z'));
     });

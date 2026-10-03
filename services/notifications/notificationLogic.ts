@@ -15,18 +15,28 @@ export const NOTIFICATION_LOOKBACK_HOURS = 72;
 export const getLookbackStart = (now: Date): Date => subHours(now, NOTIFICATION_LOOKBACK_HOURS);
 
 /**
- * À partir de quand envoyer les nouveautés à un abonné : depuis son dernier email
- * (sans remonter au-delà de 72h), ou depuis 24h s'il n'en a encore jamais reçu.
+ * À partir de quand envoyer les nouveautés à un abonné : depuis son dernier email,
+ * sans remonter au-delà de 72h.
  *
  * Partir du dernier email plutôt que d'une fenêtre fixe de 24h évite de perdre les
  * formations d'un jour où l'abonné n'a rien reçu (abonné notifié la veille, envoi en
- * échec, run sauté), sans renvoyer une formation déjà envoyée. Le rattrapage suppose
- * un premier email : sans date de dernier email, on s'en tient aux dernières 24h.
+ * échec, run sauté), sans renvoyer une formation déjà envoyée.
+ *
+ * Sans email reçu dans cette discipline : depuis l'abonnement (borné à 72h), ou les
+ * dernières 24h pour un abonnement de moins d'un jour.
  */
-export const getNotifiableSince = (lastNotifiedAt: Date | null | undefined, now: Date): Date => {
-  if (!lastNotifiedAt) return subHours(now, NOTIFICATION_WINDOW_HOURS);
+export const getNotifiableSince = (
+  lastNotifiedAt: Date | null | undefined,
+  now: Date,
+  subscribedAt?: Date | null
+): Date => {
   const lookbackStart = getLookbackStart(now);
-  return lastNotifiedAt > lookbackStart ? lastNotifiedAt : lookbackStart;
+  if (lastNotifiedAt) return lastNotifiedAt > lookbackStart ? lastNotifiedAt : lookbackStart;
+
+  const firstWindowStart = subHours(now, NOTIFICATION_WINDOW_HOURS);
+  if (!subscribedAt) return firstWindowStart;
+  const fromSubscription = subscribedAt > lookbackStart ? subscribedAt : lookbackStart;
+  return fromSubscription < firstWindowStart ? fromSubscription : firstWindowStart;
 };
 
 /** Formations d'une discipline apparues strictement après `since`. */
