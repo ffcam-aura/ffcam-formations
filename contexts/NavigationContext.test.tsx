@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { NavigationProvider, useNavigation } from './NavigationContext';
 
@@ -15,6 +15,22 @@ function Lien() {
 const rendu = () => render(<NavigationProvider><Lien /></NavigationProvider>);
 
 describe('NavigationContext', () => {
+  beforeEach(() => sessionStorage.clear());
+
+  it("mémorise la position de la liste en ouvrant une fiche, pour la retrouver au retour", () => {
+    window.scrollY = 2021;
+    rendu();
+    fireEvent.click(screen.getByText('Plus de détails'));
+    expect(JSON.parse(sessionStorage.getItem('ffcam:liste-scroll') ?? '{}')).toMatchObject({ y: 2021 });
+  });
+
+  it("ne mémorise rien quand la fiche s'ouvre dans un autre onglet", () => {
+    window.scrollY = 2021;
+    rendu();
+    fireEvent.click(screen.getByText('Plus de détails'), { metaKey: true });
+    expect(sessionStorage.getItem('ffcam:liste-scroll')).toBeNull();
+  });
+
   it("affiche le chargement pour un clic simple", () => {
     rendu();
     fireEvent.click(screen.getByText('Plus de détails'));

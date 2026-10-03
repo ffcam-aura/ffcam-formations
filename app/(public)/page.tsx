@@ -11,6 +11,7 @@ import { FormationsToolbar } from "@/components/features/formations/FormationsTo
 import { ErrorDisplay } from "@/components/ui/error-display";
 import { getRegionOptionsFromFormations, getOrganisateurRegions } from "@/lib/regions";
 import { getNiveauOptionsFromFormations } from "@/lib/niveaux";
+import { takeScrollPosition } from "@/lib/scrollMemory";
 
 export default function Home() {
   const { formations, lastSyncDate, loading, error, retry, retryCount } = useFormations();
@@ -64,6 +65,16 @@ export default function Home() {
   );
 
   const { filters, setFilters, filteredFormations } = useFormationFilters(formations, sortOption);
+
+  // Retour d'une fiche : rétablit la position de la liste une fois affichée. Deux frames
+  // d'attente laissent FormationsFilters appliquer les filtres de l'URL avant le défilement.
+  useEffect(() => {
+    if (loading || error) return;
+    const y = takeScrollPosition();
+    if (y === null) return;
+    const frame = requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo(0, y)));
+    return () => cancelAnimationFrame(frame);
+  }, [loading, error]);
 
   if (loading) {
     return (
