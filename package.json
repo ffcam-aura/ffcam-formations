@@ -51,7 +51,6 @@
     "react-dom": "19.3.0",
     "react-spinners": "^0.17.1",
     "tailwind-merge": "^2.6.0",
-    "tailwindcss-animate": "^1.0.7",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -74,6 +73,7 @@
     "postcss": "^8.5.6",
     "prisma": "6.19.3",
     "tailwindcss": "^3.4.17",
+    "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.9.3",
     "vitest": "^3.2.7"
   },
@@ -83,7 +83,10 @@
       "@types/react-dom": "19.3.0",
       "next>postcss": "^8.5.28",
       "@sentry/nextjs>rollup": "^3.30.0",
-      "terser-webpack-plugin>serialize-javascript": "^7.0.3"
+      "terser-webpack-plugin>serialize-javascript": "^7.0.3",
+      "@sentry/bundler-plugin-core>unplugin": "1.16.1",
+      "@sentry/webpack-plugin>unplugin": "1.16.1",
+      "brace-expansion@>=2.0.0 <2.1.7": "2.1.7"
     },
     "onlyBuiltDependencies": [
       "@prisma/client",
