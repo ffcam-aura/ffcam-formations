@@ -237,6 +237,26 @@ describe('FormationRepository', () => {
             expect(prisma.formations.upsert).not.toHaveBeenCalled();
         });
 
+        it("ne crée pas de discipline au nom vide et ne touche pas à celle de la formation", async () => {
+            // Une formation sans discipline sur le site FFCAM créait une discipline « » proposée dans le formulaire
+            setupUpsertMocks();
+
+            await repository.upsertFormations([
+                { ...mockFormation, reference: 'REF_VIDE', discipline: '' },
+                { ...mockFormation, reference: 'REF_BLANC', discipline: '  ' },
+            ]);
+
+            const nomsDemandes = vi.mocked(prisma.disciplines.findMany).mock.calls
+                .flatMap(([args]) => (args?.where?.nom as { in: string[] }).in);
+            expect(nomsDemandes.every(nom => nom.trim() !== '')).toBe(true);
+            expect(prisma.disciplines.createMany).not.toHaveBeenCalled();
+            for (const [args] of vi.mocked(prisma.formations.upsert).mock.calls) {
+                expect(args.create.discipline_id ?? null).toBeNull();
+                // undefined = Prisma laisse la valeur en base ; null l'effacerait
+                expect(args.update.discipline_id).toBeUndefined();
+            }
+        });
+
         it('should rollback on batch failure', async () => {
             setupUpsertMocks();
 
@@ -281,6 +301,16 @@ describe('FormationRepository', () => {
             expect(prisma.formations.upsert).toHaveBeenCalled();
             expect(prisma.formations_dates.deleteMany).toHaveBeenCalled();
             expect(prisma.formations_documents.deleteMany).toHaveBeenCalled();
+        });
+    });
+
+    describe('findAllDisciplines', () => {
+        it('ne propose pas de discipline au nom vide', async () => {
+            vi.mocked(prisma.disciplines.findMany).mockResolvedValue([
+                { nom: '' }, { nom: ' ' }, { nom: 'Escalade' },
+            ] as never);
+
+            expect(await repository.findAllDisciplines()).toEqual(['Escalade']);
         });
     });
 

@@ -100,7 +100,8 @@ export class FormationRepository implements IFormationRepository {
 
     private async preloadRelations(formations: Formation[]): Promise<void> {
         // Extraire les valeurs uniques
-        const disciplines = new Set(formations.map(f => f.discipline));
+        // Une discipline au nom vide finirait proposée dans le formulaire des alertes
+        const disciplines = new Set(formations.map(f => f.discipline).filter(nom => nom?.trim()));
         const lieux = new Set(formations.map(f => f.lieu));
         const hebergements = new Set(
             formations.filter(f => f.hebergement).map(f => f.hebergement)
@@ -152,7 +153,8 @@ export class FormationRepository implements IFormationRepository {
             const formationsData = formations.map(formation => ({
                 reference: formation.reference,
                 titre: formation.titre,
-                discipline_id: this.relationCache.disciplines.get(formation.discipline)!,
+                // undefined si la discipline est vide : null à la création, inchangée à la mise à jour
+                discipline_id: this.relationCache.disciplines.get(formation.discipline),
                 information_stagiaire: formation.informationStagiaire,
                 nombre_participants: formation.nombreParticipants,
                 places_restantes: formation.placesRestantes,
@@ -252,7 +254,7 @@ export class FormationRepository implements IFormationRepository {
             orderBy: { nom: 'asc' },
             select: { nom: true }
         });
-        return disciplines.map(d => d.nom);
+        return disciplines.map(d => d.nom).filter(nom => nom.trim() !== '');
     }
 
     async getLastSync(): Promise<Date | null> {
