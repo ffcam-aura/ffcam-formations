@@ -4,7 +4,9 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-50 border-t mt-8">
+    // overflow-anchor: none : au retour d'une fiche, Chrome ne doit pas s'accrocher au pied de page
+    // pendant que la liste s'insère au-dessus
+    <footer className="bg-gray-50 border-t mt-8 [overflow-anchor:none]">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* À propos */}

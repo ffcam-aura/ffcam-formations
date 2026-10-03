@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { saveScrollPosition } from '@/lib/scrollMemory';
 
 interface NavigationContextType {
   isNavigating: boolean;
@@ -17,6 +18,8 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
     // Cmd/Ctrl/Maj/Alt+clic ou clic molette : ouverture dans un autre onglet, la page
     // courante ne change pas et l'écran « Chargement » resterait affiché indéfiniment
     if (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0)) return;
+    // Position de la liste, rétablie au retour (voir lib/scrollMemory)
+    saveScrollPosition();
     setIsNavigating(true);
   }, []);
 
