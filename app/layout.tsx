@@ -77,7 +77,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider localization={frFR}>
+    <ClerkProvider localization={frFR} afterSignOutUrl="/">
       <html lang="fr">
         <head>
           <link rel="manifest" href="/manifest.json" />

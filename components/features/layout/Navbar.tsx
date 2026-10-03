@@ -2,7 +2,7 @@
 import { BellRing, Github, Menu, X, FileText } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils"; // Assuming you have the shadcn/ui cn utility
@@ -107,7 +107,7 @@ export default function Navbar() {
 
             {/* Desktop Clerk Components */}
             <div className="flex items-center space-x-4 ml-4 border-l pl-4">
-              <SignedOut>
+              <Show when="signed-out">
                 <SignInButton>
                   <button className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-primary-500 transition-colors">
                     Se connecter
@@ -118,8 +118,8 @@ export default function Navbar() {
                     S&apos;inscrire
                   </button>
                 </SignUpButton>
-              </SignedOut>
-              <SignedIn>
+              </Show>
+              <Show when="signed-in">
                 <Link
                   href="/notifications"
                   className="p-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-primary-500 transition-colors"
@@ -128,7 +128,6 @@ export default function Navbar() {
                   <BellRing size={20} />
                 </Link>
                 <UserButton
-                  afterSignOutUrl="/"
                   appearance={{
                     elements: {
                       avatarBox: "w-8 h-8 rounded-md",
@@ -136,7 +135,7 @@ export default function Navbar() {
                     }
                   }}
                 />
-              </SignedIn>
+              </Show>
             </div>
           </div>
         </div>
@@ -178,7 +177,7 @@ export default function Navbar() {
 
           {/* Mobile Clerk Components */}
           <div className="border-t pt-4 space-y-2">
-            <SignedOut>
+            <Show when="signed-out">
               <div className="flex flex-col space-y-2 px-3">
                 <SignInButton>
                   <button className="w-full py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-primary-500 transition-colors">
@@ -191,8 +190,8 @@ export default function Navbar() {
                   </button>
                 </SignUpButton>
               </div>
-            </SignedOut>
-            <SignedIn>
+            </Show>
+            <Show when="signed-in">
               <div className="flex items-center space-x-4 px-3">
                 <Link
                   href="/notifications"
@@ -203,7 +202,6 @@ export default function Navbar() {
                   <BellRing size={20} />
                 </Link>
                 <UserButton
-                  afterSignOutUrl="/"
                   appearance={{
                     elements: {
                       avatarBox: "w-8 h-8 rounded-md",
@@ -212,7 +210,7 @@ export default function Navbar() {
                   }}
                 />
               </div>
-            </SignedIn>
+            </Show>
           </div>
         </div>
         </div>

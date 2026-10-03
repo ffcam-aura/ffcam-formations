@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format, parseISO } from "date-fns";
-import { SignUpButton, SignedOut } from "@clerk/nextjs";
+import { Show, SignUpButton } from "@clerk/nextjs";
 
 type FormationsHeaderProps = {
   showIntro: boolean;
@@ -28,7 +28,7 @@ export function FormationsHeader({ showIntro, setShowIntro, lastSyncDate }: Form
         </Alert>
       )}
 
-      <SignedOut>
+      <Show when="signed-out">
         <Alert className="mb-6 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border-primary/20 relative overflow-hidden">
           <div className="absolute -left-12 top-4 bg-primary text-primary-foreground px-12 py-1 -rotate-45 text-xs font-semibold shadow-md">
             Nouveau !
@@ -47,7 +47,7 @@ export function FormationsHeader({ showIntro, setShowIntro, lastSyncDate }: Form
             </SignUpButton>
           </AlertDescription>
         </Alert>
-      </SignedOut>
+      </Show>
 
       <h1 className="text-3xl font-bold mb-4 text-center text-primary">
         Découvrez les formations de la FFCAM
