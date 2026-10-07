@@ -7,8 +7,10 @@ vi.mock('@/lib/logger', () => ({
 }));
 
 const getAllFormations = vi.fn();
+const getFormationByReference = vi.fn();
+const getLastSync = vi.fn();
 vi.mock('@/services/formation/formations.service', () => ({
-  FormationService: vi.fn(() => ({ getAllFormations })),
+  FormationService: vi.fn(() => ({ getAllFormations, getFormationByReference, getLastSync })),
 }));
 vi.mock('@/repositories/FormationRepository', () => ({ FormationRepository: vi.fn() }));
 
@@ -77,5 +79,61 @@ describe('garde-fou de taille du cache', () => {
     vi.advanceTimersByTime(61 * 60 * 1000);
     await getCachedFormations();
     expect(logger.error).toHaveBeenCalledTimes(2);
+  });
+});
+
+// Chaque requête par référence réveille Neon : une fiche doit se servir de la
+// liste partagée, reconstruite une seule fois par sync.
+describe('findCachedFormation', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('sert une fiche présente dans la liste sans requête par référence', async () => {
+    const { findCachedFormation } = await import('./cachedFormations');
+    const cible = makeFormation({ reference: '2027ESESINI84705' });
+    getAllFormations.mockResolvedValue([makeFormation({ reference: '2026ALALINT84704' }), cible]);
+
+    const formation = await findCachedFormation('2027ESESINI84705');
+
+    expect(formation).toEqual(cible);
+    expect(getFormationByReference).not.toHaveBeenCalled();
+  });
+
+  it('retombe sur la requête par référence pour une fiche absente de la liste', async () => {
+    const { findCachedFormation } = await import('./cachedFormations');
+    const absente = makeFormation({ reference: '2024ESESINI84701' });
+    getAllFormations.mockResolvedValue([makeFormation({ reference: '2026ALALINT84704' })]);
+    getFormationByReference.mockResolvedValue(absente);
+
+    const formation = await findCachedFormation('2024ESESINI84701');
+
+    expect(formation).toEqual(absente);
+    expect(getFormationByReference).toHaveBeenCalledWith('2024ESESINI84701');
+  });
+
+  it('renvoie null pour une référence inconnue', async () => {
+    const { findCachedFormation } = await import('./cachedFormations');
+    getAllFormations.mockResolvedValue([makeFormation({ reference: '2026ALALINT84704' })]);
+    getFormationByReference.mockResolvedValue(null);
+
+    expect(await findCachedFormation('2099XXXX00000')).toBeNull();
+  });
+});
+
+// unstable_cache stocke du JSON : la date sort en ISO, comme la sérialisait la route.
+describe('getCachedLastSync', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('renvoie la date du dernier sync au format ISO', async () => {
+    const { getCachedLastSync } = await import('./cachedFormations');
+    getLastSync.mockResolvedValue(new Date('2026-10-07T04:00:36.324Z'));
+
+    expect(await getCachedLastSync()).toBe('2026-10-07T04:00:36.324Z');
+  });
+
+  it('renvoie null tant qu\'aucun sync n\'a eu lieu', async () => {
+    const { getCachedLastSync } = await import('./cachedFormations');
+    getLastSync.mockResolvedValue(null);
+
+    expect(await getCachedLastSync()).toBeNull();
   });
 });
