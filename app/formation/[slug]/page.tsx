@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { CalendarDays, MapPin, Users, Euro, User, Home, FileText, Clock } from 'lucide-react';
-import { getCachedFormations, getCachedFormationByReference } from '@/lib/cachedFormations';
+import { getCachedFormations, findCachedFormation } from '@/lib/cachedFormations';
 import { Formation } from '@/types/formation';
 import { extractReferenceFromSlug, getFormationUrl } from '@/utils/slug';
 import { FormationStructuredData, BreadcrumbStructuredData } from '@/components/seo/StructuredData';
@@ -33,7 +33,7 @@ const getFormation = cache(async (slug: string): Promise<Formation | null> => {
   }
 
   try {
-    return await getCachedFormationByReference(reference);
+    return await findCachedFormation(reference);
   } catch (error) {
     logger.error('Erreur lors de la récupération de la formation', error, { slug, reference });
     return null;

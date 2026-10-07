@@ -81,3 +81,32 @@ export const getCachedFormationByReference = (
     ['formations:by-reference', reference],
     { revalidate: ONE_DAY_SECONDS, tags: [FORMATIONS_CACHE_TAG] }
   )();
+
+// Une fiche se sert de la liste partagée : une seule requête par sync pour toutes
+// les fiches. Le sync invalide chaque entrée par référence ; les robots repassant
+// sur les fiches au fil de la journée, chacune réveillait Neon.
+export async function findCachedFormation(reference: string): Promise<Formation | null> {
+  try {
+    const formations = await getCachedFormations();
+    const formation = formations.find((f) => f.reference === reference);
+    if (formation) return formation;
+  } catch (error) {
+    // Liste illisible : la requête par référence évite une 404 sur une fiche existante.
+    logger.warn('Liste des formations indisponible, repli sur la lecture par référence', {
+      reference,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+
+  return getCachedFormationByReference(reference);
+}
+
+// Lue à chaque affichage de l'accueil. En ISO car unstable_cache stocke du JSON.
+export const getCachedLastSync = unstable_cache(
+  async (): Promise<string | null> => {
+    const lastSync = await buildService().getLastSync();
+    return lastSync ? lastSync.toISOString() : null;
+  },
+  ['formations:last-sync'],
+  { revalidate: ONE_DAY_SECONDS, tags: [FORMATIONS_CACHE_TAG] }
+);

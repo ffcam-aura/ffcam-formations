@@ -50,10 +50,6 @@ interface SyncResult {
 export class SyncService {
     private static readonly BATCH_SIZE = 50;
 
-    static async getLastSyncDate() {
-        return formationService.getLastSync();
-    }
-
     static async synchronize(): Promise<SyncResult> {
         const startTime = new Date();
         logger.info('Démarrage du scraping des formations FFCAM');
