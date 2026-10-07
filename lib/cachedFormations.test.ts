@@ -110,6 +110,20 @@ describe('findCachedFormation', () => {
     expect(getFormationByReference).toHaveBeenCalledWith('2024ESESINI84701');
   });
 
+  // Une liste illisible (timeout au réveil de Neon…) ne doit pas transformer
+  // une fiche existante en 404.
+  it('retombe sur la requête par référence si la liste est indisponible', async () => {
+    const { findCachedFormation } = await import('./cachedFormations');
+    const cible = makeFormation({ reference: '2027ESESINI84705' });
+    getAllFormations.mockRejectedValue(new Error('timeout'));
+    getFormationByReference.mockResolvedValue(cible);
+
+    const formation = await findCachedFormation('2027ESESINI84705');
+
+    expect(formation).toEqual(cible);
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+  });
+
   it('renvoie null pour une référence inconnue', async () => {
     const { findCachedFormation } = await import('./cachedFormations');
     getAllFormations.mockResolvedValue([makeFormation({ reference: '2026ALALINT84704' })]);

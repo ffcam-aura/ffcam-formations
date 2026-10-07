@@ -86,9 +86,17 @@ export const getCachedFormationByReference = (
 // les fiches. Le sync invalide chaque entrée par référence ; les robots repassant
 // sur les fiches au fil de la journée, chacune réveillait Neon.
 export async function findCachedFormation(reference: string): Promise<Formation | null> {
-  const formations = await getCachedFormations();
-  const formation = formations.find((f) => f.reference === reference);
-  if (formation) return formation;
+  try {
+    const formations = await getCachedFormations();
+    const formation = formations.find((f) => f.reference === reference);
+    if (formation) return formation;
+  } catch (error) {
+    // Liste illisible : la requête par référence évite une 404 sur une fiche existante.
+    logger.warn('Liste des formations indisponible, repli sur la lecture par référence', {
+      reference,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
 
   return getCachedFormationByReference(reference);
 }
