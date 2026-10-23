@@ -1,0 +1,22 @@
+# Réglages pnpm du projet (pas de monorepo : aucun paquet déclaré).
+# Ils vivaient dans le champ "pnpm" de package.json, que pnpm 11 ne lit plus :
+# les overrides de sécurité y seraient ignorés sans erreur.
+
+overrides:
+  "@types/react": "19.3.0"
+  "@types/react-dom": "19.3.0"
+  "next>postcss": "^8.5.28"
+  "@sentry/nextjs>rollup": "^3.30.0"
+  "terser-webpack-plugin>serialize-javascript": "^7.0.3"
+  "@sentry/bundler-plugin-core>unplugin": "1.16.1"
+  "@sentry/webpack-plugin>unplugin": "1.16.1"
+  "brace-expansion@>=2.0.0 <2.1.7": "2.1.7"
+  "source-map-js@<1.2.2": "1.2.2"
+
+onlyBuiltDependencies:
+  - "@prisma/client"
+  - "@prisma/engines"
+  - prisma
+  - esbuild
+  - sharp
+  - "@clerk/shared"
