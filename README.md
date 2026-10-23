@@ -183,7 +183,7 @@ HEALTHCHECK_NOTIFICATIONS_EMAIL="your-uuid@hc-ping.com"
 
 ### Prérequis
 
-- Node.js 20+
+- Node.js 24 (`nvm use` lit `.nvmrc`)
 - pnpm
 - PostgreSQL (ou Docker)
 

@@ -17,9 +17,11 @@ jobs:
 
       - uses: pnpm/action-setup@v6
 
+      # Version lue dans engines.node, comme Vercel : la CI teste sur la même
+      # majeure que la prod (.nvmrc ne sert qu'à nvm en local).
       - uses: actions/setup-node@v7
         with:
-          node-version-file: .nvmrc
+          node-version-file: package.json
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile

@@ -6,6 +6,11 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    # Les types Node suivent la majeure du runtime (engines.node) : une majeure
+    # de @types/node typerait des API absentes en prod. On la monte avec Node.
+    ignore:
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       # Un seul PR par lot pour limiter la charge de revue. Les majeures sont
       # exclues des groupes : mélangées, elles donnent un PR trop gros pour être
