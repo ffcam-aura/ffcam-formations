@@ -54,7 +54,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@playwright/test": "^1.63.0",
+    "@playwright/test": "^1.64.1",
     "@prisma/client": "^6.19.3",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.3",
@@ -70,7 +70,7 @@
     "eslint-config-next": "15.5.28",
     "husky": "^9.1.7",
     "jsdom": "^25.0.1",
-    "postcss": "^8.5.6",
+    "postcss": "^8.5.31",
     "prisma": "6.19.3",
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
