@@ -51,7 +51,7 @@
     "react-dom": "19.3.1",
     "react-spinners": "^0.17.1",
     "tailwind-merge": "^2.6.0",
-    "zod": "^3.25.76"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
@@ -75,7 +75,7 @@
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.9.3",
-    "vitest": "^3.2.7"
+    "vitest": "^5.1.0"
   },
   "packageManager": "pnpm@10.34.5",
   "engines": {
