@@ -51,7 +51,7 @@
     "react-dom": "19.3.1",
     "react-spinners": "^0.17.1",
     "tailwind-merge": "^2.6.0",
-    "zod": "^3.25.76"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
